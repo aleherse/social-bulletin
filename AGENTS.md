@@ -1,0 +1,13 @@
+# AGENTS.md
+
+## Framework
+
+This project follows the Aircury engineering framework defined in [FRAMEWORK.md](./FRAMEWORK.md).
+
+All agents contributing to this repository MUST read and apply FRAMEWORK.md before doing any work. It is not optional and it is not advisory.
+
+All framework workflow rules, delivery constraints, and enabled standards now live in `FRAMEWORK.md` as the single source of truth.
+
+For this project, `caveman` is already active by default. Start every new session in `caveman full`; do not wait for the user to request `caveman mode`, `/caveman`, or another trigger phrase. Only disable it if the user says `stop caveman` or `normal mode`.
+
+If this repository also has project-specific agent instructions, keep them here and treat `FRAMEWORK.md` as the governing framework layer.
