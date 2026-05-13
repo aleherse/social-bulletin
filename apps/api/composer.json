@@ -5,6 +5,8 @@
     "license": "proprietary",
     "require": {
         "php": ">=8.2",
+        "doctrine/dbal": "^4.4",
+        "doctrine/doctrine-bundle": "^2.18",
         "social-bulletin/core": "dev-main",
         "symfony/console": "7.4.*",
         "symfony/framework-bundle": "7.4.*",
