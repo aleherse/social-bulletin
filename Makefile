@@ -1,0 +1,44 @@
+COMPOSE := docker compose
+PHP := $(COMPOSE) run --rm php
+
+.PHONY: help init up down logs shell tests tests-api tests-core clean
+
+help:
+	@printf '%s\n' 'Available targets:'
+	@printf '%s\n' '  init        Build containers and install dependencies'
+	@printf '%s\n' '  up          Start development stack'
+	@printf '%s\n' '  down        Stop development stack'
+	@printf '%s\n' '  logs        Follow service logs'
+	@printf '%s\n' '  shell       Open shell in PHP container'
+	@printf '%s\n' '  tests       Run all tests'
+	@printf '%s\n' '  tests-api   Run API Behat tests'
+	@printf '%s\n' '  tests-core  Run core phpspec tests'
+	@printf '%s\n' '  clean       Remove generated local dependencies and cache'
+
+init:
+	LOCAL_UID=$$(id -u) LOCAL_GID=$$(id -g) $(COMPOSE) build
+	$(PHP) composer install --working-dir=packages/core
+	$(PHP) composer install --working-dir=apps/api
+
+up:
+	LOCAL_UID=$$(id -u) LOCAL_GID=$$(id -g) $(COMPOSE) up -d
+
+down:
+	$(COMPOSE) down
+
+logs:
+	$(COMPOSE) logs -f
+
+shell:
+	$(PHP) sh
+
+tests: tests-core tests-api
+
+tests-api:
+	$(PHP) apps/api/vendor/bin/behat --config apps/api/behat.yml
+
+tests-core:
+	$(PHP) packages/core/vendor/bin/phpspec run --config packages/core/phpspec.yml
+
+clean:
+	$(PHP) sh -lc 'rm -rf apps/api/vendor apps/api/var packages/core/vendor'

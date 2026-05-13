@@ -1,0 +1,13 @@
+default:
+  suites:
+    api:
+      paths:
+        - '%paths.base%/tests/Behat/features'
+      contexts:
+        - SocialBulletin\Api\Tests\Behat\FeatureContext
+  extensions:
+    FriendsOfBehat\SymfonyExtension:
+      kernel:
+        class: SocialBulletin\Api\Kernel
+        environment: test
+        debug: true

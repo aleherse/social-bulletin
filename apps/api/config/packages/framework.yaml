@@ -1,0 +1,6 @@
+framework:
+  secret: 'local-development-secret'
+  handle_all_throwables: true
+  http_method_override: false
+  php_errors:
+    log: true

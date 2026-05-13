@@ -1,0 +1,25 @@
+{
+    "name": "social-bulletin/core",
+    "description": "Framework-free core package for SocialBulletin domain and application code.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpspec/phpspec": "^7.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "SocialBulletin\\Core\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "spec\\SocialBulletin\\Core\\": "spec/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
