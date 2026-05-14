@@ -93,3 +93,11 @@ http-client.private.env.json
 /apps/api/vendor/
 /apps/api/var/
 /packages/core/vendor/
+
+# Web frontend
+/apps/web/node_modules/
+/apps/web/dist/
+/apps/web/coverage/
+/apps/web/.vite/
+/apps/web/*.tsbuildinfo
+/apps/web/node_modules/.tmp/

@@ -5,11 +5,15 @@ The system SHALL provide developer commands that initialise, start, stop, inspec
 
 #### Scenario: Developer initialises local environment
 - **WHEN** a developer runs the initialisation command from a fresh checkout with required container tooling available
-- **THEN** the system builds the local runtime environment and installs project dependencies
+- **THEN** the system builds the local runtime environment, installs project dependencies, and compiles the web frontend
 
 #### Scenario: Developer starts local API
 - **WHEN** a developer runs the start command after initialisation
 - **THEN** the system serves the API through the configured local hostname
+
+#### Scenario: Developer starts local web application
+- **WHEN** a developer runs the start command after initialisation
+- **THEN** the system serves the compiled web frontend through the configured local hostname
 
 #### Scenario: Developer starts local database
 - **WHEN** a developer runs the start command after initialisation
@@ -17,10 +21,10 @@ The system SHALL provide developer commands that initialise, start, stop, inspec
 
 #### Scenario: Developer runs all tests
 - **WHEN** a developer runs the full test command
-- **THEN** the system runs the API behaviour checks and core package specifications
+- **THEN** the system runs the API behaviour checks, core package specifications, and web frontend behaviour checks
 
 #### Scenario: Developer runs scoped tests
-- **WHEN** a developer runs a scoped test command for either the API or core package
+- **WHEN** a developer runs a scoped test command for the API, core package, or web frontend
 - **THEN** the system runs only the requested test scope
 
 #### Scenario: Developer opens runtime shell

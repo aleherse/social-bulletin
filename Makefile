@@ -1,7 +1,8 @@
 COMPOSE := docker compose
 PHP := $(COMPOSE) run --rm php
+NODE := $(COMPOSE) run --rm node
 
-.PHONY: help init up down logs shell tests tests-api tests-core clean
+.PHONY: help init up down logs shell tests tests-api tests-core tests-web build-web clean
 
 help:
 	@printf '%s\n' 'Available targets:'
@@ -13,12 +14,16 @@ help:
 	@printf '%s\n' '  tests       Run all tests'
 	@printf '%s\n' '  tests-api   Run API Behat tests'
 	@printf '%s\n' '  tests-core  Run core phpspec tests'
+	@printf '%s\n' '  tests-web   Run web Vitest tests'
+	@printf '%s\n' '  build-web   Compile web frontend assets'
 	@printf '%s\n' '  clean       Remove generated local dependencies and cache'
 
 init:
 	LOCAL_UID=$$(id -u) LOCAL_GID=$$(id -g) $(COMPOSE) build
 	$(PHP) composer install --working-dir=packages/core
 	$(PHP) composer install --working-dir=apps/api
+	$(NODE) npm install --prefix apps/web
+	$(NODE) npm run build --prefix apps/web
 
 up:
 	LOCAL_UID=$$(id -u) LOCAL_GID=$$(id -g) $(COMPOSE) up -d
@@ -32,7 +37,7 @@ logs:
 shell:
 	$(PHP) sh
 
-tests: tests-core tests-api
+tests: tests-core tests-api tests-web
 
 tests-api:
 	$(PHP) apps/api/vendor/bin/behat --config apps/api/behat.yml
@@ -40,5 +45,11 @@ tests-api:
 tests-core:
 	$(PHP) packages/core/vendor/bin/phpspec run --config packages/core/phpspec.yml
 
+tests-web:
+	$(NODE) npm test --prefix apps/web
+
+build-web:
+	$(NODE) npm run build --prefix apps/web
+
 clean:
-	$(PHP) sh -lc 'rm -rf apps/api/vendor apps/api/var packages/core/vendor'
+	$(PHP) sh -lc 'rm -rf apps/api/vendor apps/api/var packages/core/vendor apps/web/node_modules apps/web/dist apps/web/coverage'

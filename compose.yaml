@@ -10,11 +10,25 @@ services:
     environment:
       COMPOSER_HOME: /tmp/composer
       DATABASE_URL: postgresql://social_bulletin:social_bulletin@database:5432/social_bulletin?serverVersion=18&charset=utf8
+      WEB_ALLOWED_ORIGIN: ${WEB_ALLOWED_ORIGIN:-http://app.bulletin.local}
     volumes:
       - .:/srv/app
     depends_on:
       database:
         condition: service_healthy
+
+  node:
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile
+    profiles:
+      - tools
+    working_dir: /srv/app
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://api.bulletin.local}
+    volumes:
+      - .:/srv/app
 
   nginx:
     image: nginx:1.27-alpine
@@ -24,7 +38,7 @@ services:
       - "80:80"
     volumes:
       - .:/srv/app:ro
-      - ./docker/nginx/api.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx:/etc/nginx/conf.d:ro
 
   database:
     image: postgres:18-alpine
