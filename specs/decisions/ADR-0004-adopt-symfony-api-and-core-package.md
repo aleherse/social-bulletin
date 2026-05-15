@@ -19,6 +19,8 @@ The Symfony application owns HTTP controllers, framework configuration, public r
 
 Install `nelmio/api-doc-bundle` (v5) and `zircote/swagger-php` (v6) in the API application. Expose the OpenAPI specification at `GET /doc.json` and `GET /doc.yaml`. All controllers MUST document their routes using `OpenApi\Attributes` PHP 8 attributes. The Swagger UI is not enabled because the application has no Twig dependency.
 
+Install `symfony/monolog-bundle` (v3) in the API application. Configure it to emit structured JSON log events to `stderr` in all environments. In development, log at `debug` level. In production and test, use a `fingers_crossed` handler that buffers until an error-level event occurs. Event and Doctrine channels are excluded from the main handler in development to reduce noise.
+
 Local development, dependency installation, and test execution must run through Docker Compose and root Makefile targets, consistent with ADR-0002 and ADR-0003.
 
 ## Consequences
@@ -31,6 +33,7 @@ Positive outcomes:
 - Aligns implementation with existing monorepo, Docker, and Makefile decisions.
 - API contracts are machine-readable and discoverable via `/doc.json` from the first endpoint.
 - OpenAPI attributes co-locate documentation with the route, reducing drift between code and spec.
+- Structured JSON logs on `stderr` integrate cleanly with Docker log aggregation and local `make logs`.
 
 Tradeoffs:
 
@@ -38,6 +41,7 @@ Tradeoffs:
 - Adds container setup before any product domain behaviour exists.
 - Requires maintaining Symfony configuration and Docker runtime files as the API grows.
 - Developers must annotate new endpoints with `OpenApi\Attributes`; undocumented routes will silently appear without descriptions.
+- Monolog configuration must be maintained per environment; missing or misconfigured handlers will suppress log output silently.
 
 Follow-ups:
 

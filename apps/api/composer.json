@@ -9,6 +9,7 @@
         "doctrine/doctrine-bundle": "^2.18",
         "nelmio/api-doc-bundle": "^5.10",
         "nelmio/cors-bundle": "^2.6",
+        "symfony/monolog-bundle": "^3.0",
         "social-bulletin/core": "dev-main",
         "symfony/console": "7.4.*",
         "symfony/framework-bundle": "7.4.*",

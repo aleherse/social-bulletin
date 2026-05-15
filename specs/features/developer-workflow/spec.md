@@ -52,3 +52,10 @@ The system SHALL expose the OpenAPI specification for the running API without re
 #### Scenario: Developer retrieves OpenAPI specification as YAML
 - **WHEN** a developer requests `GET /doc.yaml` from the running API
 - **THEN** the system returns a valid OpenAPI 3.x specification document in YAML format describing all documented endpoints
+
+### Requirement: API application log output is accessible during local development
+The system SHALL emit structured log output from the API application that is accessible through the local development log inspection command without requiring additional configuration.
+
+#### Scenario: Developer inspects structured API logs
+- **WHEN** a developer runs the log inspection command while the API handles requests
+- **THEN** the system streams structured log events from the API application including request outcomes and error context
