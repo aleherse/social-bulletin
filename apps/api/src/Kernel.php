@@ -22,5 +22,11 @@ final class Kernel extends BaseKernel
     protected function configureRoutes(RoutingConfigurator $routes): void
     {
         $routes->import('../src/Controller/', 'attribute');
+        $routes->add('app.swagger_json', '/doc.json')
+            ->controller('nelmio_api_doc.controller.swagger_json')
+            ->methods(['GET']);
+        $routes->add('app.swagger_yaml', '/doc.yaml')
+            ->controller('nelmio_api_doc.controller.swagger_yaml')
+            ->methods(['GET']);
     }
 }

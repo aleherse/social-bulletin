@@ -2,7 +2,7 @@ COMPOSE := docker compose
 PHP := $(COMPOSE) run --rm php
 NODE := $(COMPOSE) run --rm node
 
-.PHONY: help init up down logs shell tests tests-api tests-core tests-web build-web clean
+.PHONY: help init up down logs shell console tests tests-api tests-core tests-web build-web clean
 
 help:
 	@printf '%s\n' 'Available targets:'
@@ -11,6 +11,7 @@ help:
 	@printf '%s\n' '  down        Stop development stack'
 	@printf '%s\n' '  logs        Follow service logs'
 	@printf '%s\n' '  shell       Open shell in PHP container'
+	@printf '%s\n' '  console     Run a Symfony console command (e.g. make console CMD="debug:router")'
 	@printf '%s\n' '  tests       Run all tests'
 	@printf '%s\n' '  tests-api   Run API Behat tests'
 	@printf '%s\n' '  tests-core  Run core phpspec tests'
@@ -36,6 +37,9 @@ logs:
 
 shell:
 	$(PHP) sh
+
+console:
+	$(PHP) php apps/api/bin/console $(CMD)
 
 tests: tests-core tests-api tests-web
 

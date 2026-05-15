@@ -41,3 +41,14 @@ The system SHALL provide developer commands that initialise, start, stop, inspec
 
 ### Requirement: API database connection is configured locally
 The system SHALL configure the Symfony API with a local PostgreSQL connection available through Docker Compose without requiring a host-level database service.
+
+### Requirement: API documentation is accessible during local development
+The system SHALL expose the OpenAPI specification for the running API without requiring a separate documentation build step.
+
+#### Scenario: Developer retrieves OpenAPI specification as JSON
+- **WHEN** a developer requests `GET /doc.json` from the running API
+- **THEN** the system returns a valid OpenAPI 3.x specification document in JSON format describing all documented endpoints
+
+#### Scenario: Developer retrieves OpenAPI specification as YAML
+- **WHEN** a developer requests `GET /doc.yaml` from the running API
+- **THEN** the system returns a valid OpenAPI 3.x specification document in YAML format describing all documented endpoints
