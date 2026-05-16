@@ -2,7 +2,7 @@ COMPOSE := docker compose
 PHP := $(COMPOSE) run --rm php
 NODE := $(COMPOSE) run --rm node
 
-.PHONY: help init up down logs shell console tests tests-api tests-core tests-web build-web clean
+.PHONY: help init up down logs shell console tests tests-api tests-core tests-web build-web dev-web clean
 
 help:
 	@printf '%s\n' 'Available targets:'
@@ -17,6 +17,7 @@ help:
 	@printf '%s\n' '  tests-core  Run core phpspec tests'
 	@printf '%s\n' '  tests-web   Run web Vitest tests'
 	@printf '%s\n' '  build-web   Compile web frontend assets'
+	@printf '%s\n' '  dev-web     Start web frontend dev server with hot-reload'
 	@printf '%s\n' '  clean       Remove generated local dependencies and cache'
 
 init:
@@ -36,7 +37,7 @@ logs:
 	$(COMPOSE) logs -f
 
 shell:
-	$(PHP) sh
+	$(PHP) bash
 
 console:
 	$(PHP) php apps/api/bin/console $(CMD)
@@ -54,6 +55,9 @@ tests-web:
 
 build-web:
 	$(NODE) npm run build --prefix apps/web
+
+dev-web:
+	LOCAL_UID=$$(id -u) LOCAL_GID=$$(id -g) $(COMPOSE) run --rm -p 5173:5173 node npm run dev --prefix apps/web
 
 clean:
 	$(PHP) sh -lc 'rm -rf apps/api/vendor apps/api/var packages/core/vendor apps/web/node_modules apps/web/dist apps/web/coverage'

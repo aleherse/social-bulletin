@@ -13,7 +13,7 @@ The frontend needs a small application skeleton that can compile quickly, be ser
 
 Adopt React for the web application's UI layer.
 
-Adopt Vite as the frontend build tool and Vitest-compatible project foundation because it provides fast TypeScript and React builds with a small configuration surface.
+Adopt Vite as the frontend build tool and Vitest-compatible project foundation because it provides fast TypeScript and React builds with a small configuration surface. Vite's development server is enabled with `server.host: true` so the container can accept connections from the host. The `dev-web` Makefile target starts the Vite dev server with hot-module replacement on port 5173 by publishing the container port to the host. The `DEV_ALLOWED_HOST` environment variable controls Vite's `server.allowedHosts` so the dev server accepts requests arriving under a custom local hostname (default `app.bulletin.local`) without hardcoding it in the configuration file.
 
 Adopt npm as the package manager for the web application. npm commands must run through the Docker Compose Node service and root Makefile targets, not through a required host-level Node.js installation. The Node tooling image should install the latest stable npm during image build so local and CI package-manager behaviour does not depend on the npm version bundled with the base Node image.
 
@@ -27,6 +27,7 @@ Positive outcomes:
 - Keeps frontend dependency installation, tests, and builds reproducible through Docker Compose.
 - Gives future frontend work a clear source organisation model without adding premature empty structure.
 - Keeps the web application as an adapter boundary, separate from API and core package code.
+- The dev server with hot-module replacement allows rapid frontend iteration without rebuilding static assets.
 
 Tradeoffs:
 
@@ -34,6 +35,7 @@ Tradeoffs:
 - `make init` and full test workflows now include frontend dependency and build work, increasing setup time.
 - The Node tooling image must be rebuilt to pick up newer npm releases.
 - Vite environment variables are build-time inputs, so changes to frontend runtime configuration require rebuilding compiled assets.
+- The dev server bypasses nginx and serves assets directly; production behaviour must still be verified against the compiled build.
 - Feature-Sliced Design requires discipline to avoid over-creating layers or placing product behaviour in shared code.
 
 Follow-ups:

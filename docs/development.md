@@ -13,7 +13,7 @@ The health check endpoint is available at `http://api.bulletin.local/health` aft
 
 The web application is available at `http://app.bulletin.local` after `make init` and `make up`.
 
-The web build uses `VITE_API_BASE_URL` to choose the API base URL and defaults to `http://api.bulletin.local` through Docker Compose. The API uses `WEB_ALLOWED_ORIGIN` for CORS and defaults to `http://app.bulletin.local`.
+The web build uses `VITE_API_BASE_URL` to choose the API base URL and defaults to `http://api.bulletin.local` through Docker Compose. The API uses `WEB_ALLOWED_ORIGIN` for CORS and defaults to `^https?://app\.bulletin\.local(:[0-9]+)?$`.
 
 ## Local Database
 

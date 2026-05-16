@@ -10,7 +10,7 @@ services:
     environment:
       COMPOSER_HOME: /tmp/composer
       DATABASE_URL: postgresql://social_bulletin:social_bulletin@database:5432/social_bulletin?serverVersion=18&charset=utf8
-      WEB_ALLOWED_ORIGIN: ${WEB_ALLOWED_ORIGIN:-http://app.bulletin.local}
+      WEB_ALLOWED_ORIGIN: ^https?://app\.bulletin\.local(:[0-9]+)?$
     volumes:
       - .:/srv/app
     depends_on:
@@ -27,6 +27,7 @@ services:
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://api.bulletin.local}
+      DEV_ALLOWED_HOST: ${DEV_ALLOWED_HOST:-app.bulletin.local}
     volumes:
       - .:/srv/app
 

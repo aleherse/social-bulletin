@@ -15,6 +15,14 @@ The system SHALL provide developer commands that initialise, start, stop, inspec
 - **WHEN** a developer runs the start command after initialisation
 - **THEN** the system serves the compiled web frontend through the configured local hostname
 
+#### Scenario: Developer starts web frontend dev server
+- **WHEN** a developer runs the dev server command after initialisation
+- **THEN** the system starts the web frontend with hot-module replacement and serves it on a local port accessible from the host
+
+#### Scenario: Dev server accepts requests under the configured local hostname
+- **WHEN** a browser requests the dev server using the configured local hostname
+- **THEN** the dev server accepts the connection without blocking it as an unauthorised host
+
 #### Scenario: Developer starts local database
 - **WHEN** a developer runs the start command after initialisation
 - **THEN** the system starts a PostgreSQL database service for the API connection

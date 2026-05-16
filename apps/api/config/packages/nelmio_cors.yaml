@@ -1,14 +1,8 @@
 nelmio_cors:
     defaults:
-        origin_regex: false
-        allow_origin: []
+        origin_regex: true
+        allow_origin: ['%env(WEB_ALLOWED_ORIGIN)%']
         allow_methods: []
         allow_headers: []
         expose_headers: []
         max_age: 0
-    paths:
-        '^/health$':
-            allow_origin: ['%env(WEB_ALLOWED_ORIGIN)%']
-            allow_methods: ['GET']
-            allow_headers: ['Accept']
-            max_age: 3600
