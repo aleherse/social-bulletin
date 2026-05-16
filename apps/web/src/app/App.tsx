@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import { checkApiHealth } from '../shared/api/health';
 import { useTranslation } from '../shared/i18n';
 
@@ -27,9 +29,9 @@ export function App() {
   }
 
   return (
-    <main role="alert">
-      <h1>{t('error.service_unavailable')}</h1>
-      <p>{t('error.service_unavailable_detail')}</p>
-    </main>
+    <Box component="main" role="alert">
+      <Typography variant="h4" component="h1">{t('error.service_unavailable')}</Typography>
+      <Typography variant="body1">{t('error.service_unavailable_detail')}</Typography>
+    </Box>
   );
 }

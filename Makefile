@@ -37,8 +37,11 @@ down:
 logs:
 	$(COMPOSE) logs -f
 
-shell:
+shell-php:
 	$(PHP) bash
+
+shell-node:
+	$(NODE) sh
 
 console:
 	$(PHP) php apps/api/bin/console $(CMD)
