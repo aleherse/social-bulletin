@@ -1,0 +1,4 @@
+error:
+    service_unavailable: 'Service temporarily unavailable. Please try again later.'
+    not_found: 'The requested resource was not found.'
+    bad_request: 'The request could not be understood. Please check your input.'

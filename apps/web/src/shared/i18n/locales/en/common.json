@@ -1,0 +1,9 @@
+{
+  "app": {
+    "title": "Social Bulletin"
+  },
+  "error": {
+    "service_unavailable": "Service unavailable",
+    "service_unavailable_detail": "Social Bulletin cannot reach the API. Try again later."
+  }
+}

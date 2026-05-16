@@ -1,0 +1,7 @@
+This value should not be blank.: 'This field is required.'
+This value is not valid.: 'This value is not valid.'
+This value is too short. It should have {{ limit }} character or more.|This value is too short. It should have {{ limit }} characters or more.: >
+    This value is too short. It must be at least {{ limit }} character.|This value is too short. It must be at least {{ limit }} characters.
+This value is too long. It should have {{ limit }} character or less.|This value is too long. It should have {{ limit }} characters or less.: >
+    This value is too long. It must be {{ limit }} character or fewer.|This value is too long. It must be {{ limit }} characters or fewer.
+This value is not a valid email address.: 'Please enter a valid email address.'

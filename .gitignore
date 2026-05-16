@@ -101,3 +101,8 @@ http-client.private.env.json
 /apps/web/.vite/
 /apps/web/*.tsbuildinfo
 /apps/web/node_modules/.tmp/
+
+# PHP Unit
+**/.phpunit.result.cache
+**/phpunit.xml
+**/coverage/

@@ -1,3 +1,6 @@
+parameters:
+    app.supported_locales: ['en']
+
 services:
   _defaults:
     autowire: true
@@ -7,3 +10,16 @@ services:
     resource: '../src/'
     exclude:
       - '../src/Kernel.php'
+
+  SocialBulletin\Api\Application\Port\TranslatorPort:
+    class: SocialBulletin\Api\Infrastructure\I18n\SymfonyTranslatorAdapter
+
+  SocialBulletin\Api\Infrastructure\I18n\LocaleSubscriber:
+    arguments:
+      $supportedLocales: '%app.supported_locales%'
+    tags:
+      - { name: kernel.event_subscriber }
+
+  SocialBulletin\Api\Infrastructure\I18n\ExceptionListener:
+    tags:
+      - { name: kernel.event_subscriber }

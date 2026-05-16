@@ -2,7 +2,7 @@ COMPOSE := docker compose
 PHP := $(COMPOSE) run --rm php
 NODE := $(COMPOSE) run --rm node
 
-.PHONY: help init up down logs shell console tests tests-api tests-core tests-web build-web dev-web clean
+.PHONY: help init up down logs shell console tests tests-api tests-unit-api tests-core tests-web build-web dev-web clean
 
 help:
 	@printf '%s\n' 'Available targets:'
@@ -13,7 +13,8 @@ help:
 	@printf '%s\n' '  shell       Open shell in PHP container'
 	@printf '%s\n' '  console     Run a Symfony console command (e.g. make console CMD="debug:router")'
 	@printf '%s\n' '  tests       Run all tests'
-	@printf '%s\n' '  tests-api   Run API Behat tests'
+	@printf '%s\n' '  tests-api   Run API Behat integration tests'
+	@printf '%s\n' '  tests-unit-api Run API PHPUnit unit tests'
 	@printf '%s\n' '  tests-core  Run core phpspec tests'
 	@printf '%s\n' '  tests-web   Run web Vitest tests'
 	@printf '%s\n' '  build-web   Compile web frontend assets'
@@ -42,7 +43,10 @@ shell:
 console:
 	$(PHP) php apps/api/bin/console $(CMD)
 
-tests: tests-core tests-api tests-web
+tests: tests-core tests-unit-api tests-api tests-web
+
+tests-unit-api:
+	$(PHP) apps/api/vendor/bin/phpunit --configuration apps/api/phpunit.xml.dist
 
 tests-api:
 	$(PHP) apps/api/vendor/bin/behat --config apps/api/behat.yml
