@@ -10,9 +10,27 @@ services:
     resource: '../src/'
     exclude:
       - '../src/Kernel.php'
+      - '../src/Application/Model/'
+      - '../src/Application/ValueObject/'
+      - '../src/Application/Command/'
+      - '../src/Application/Exception/'
+      - '../src/Application/Event/'
+      - '../src/Infrastructure/Security/SecurityUser.php'
 
   SocialBulletin\Api\Application\Port\TranslatorPort:
     class: SocialBulletin\Api\Infrastructure\I18n\SymfonyTranslatorAdapter
+
+  SocialBulletin\Api\Application\Port\UserRepositoryPort:
+    class: SocialBulletin\Api\Infrastructure\Persistence\DoctrineUserRepository
+
+  SocialBulletin\Api\Application\Port\PasswordHasherPort:
+    class: SocialBulletin\Api\Infrastructure\Security\SymfonyPasswordHasherAdapter
+
+  SocialBulletin\Api\Application\Port\UuidGeneratorPort:
+    class: SocialBulletin\Api\Infrastructure\Uid\SymfonyUidGenerator
+
+  SocialBulletin\Api\Application\Port\AuthTokenPort:
+    class: SocialBulletin\Api\Infrastructure\Security\LexikJwtTokenIssuer
 
   SocialBulletin\Api\Infrastructure\I18n\LocaleSubscriber:
     arguments:
