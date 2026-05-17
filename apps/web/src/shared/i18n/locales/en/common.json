@@ -5,5 +5,23 @@
   "error": {
     "service_unavailable": "Service unavailable",
     "service_unavailable_detail": "Social Bulletin cannot reach the API. Try again later."
+  },
+  "registration": {
+    "button": "Register",
+    "modal_title": "Create your account",
+    "email_label": "Email address",
+    "password_label": "Password",
+    "password_confirm_label": "Confirm password",
+    "password_mismatch": "Passwords do not match.",
+    "terms_label": "I accept the",
+    "terms_link": "terms and conditions",
+    "submit_button": "Create account",
+    "error_duplicate_email": "This email address is already registered.",
+    "error_generic": "Registration failed. Please try again.",
+    "success": "Account created successfully."
+  },
+  "terms": {
+    "page_title": "Terms and Conditions",
+    "intro": "By registering, you agree to the following terms and conditions."
   }
 }

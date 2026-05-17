@@ -1,37 +1,14 @@
-import { useEffect, useState } from 'react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import { checkApiHealth } from '../shared/api/health';
-import { useTranslation } from '../shared/i18n';
-
-type HealthState = 'checking' | 'ok' | 'error';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { HomePage } from '../pages/home/ui/HomePage';
+import { TermsPage } from '../pages/terms/ui/TermsPage';
 
 export function App() {
-  const { t } = useTranslation();
-  const [healthState, setHealthState] = useState<HealthState>('checking');
-
-  useEffect(() => {
-    let isMounted = true;
-
-    checkApiHealth().then((isHealthy) => {
-      if (isMounted) {
-        setHealthState(isHealthy ? 'ok' : 'error');
-      }
-    });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (healthState !== 'error') {
-    return null;
-  }
-
   return (
-    <Box component="main" role="alert">
-      <Typography variant="h4" component="h1">{t('error.service_unavailable')}</Typography>
-      <Typography variant="body1">{t('error.service_unavailable_detail')}</Typography>
-    </Box>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/terms" element={<TermsPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
