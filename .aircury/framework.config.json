@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "capabilities": [
+    "open-spec",
+    "spec-kit",
+    "git",
+    "decision-records",
+    "testing",
+    "code-style",
+    "frontend",
+    "token-efficiency",
+    "resilience",
+    "specs",
+    "language"
+  ],
+  "language": {
+    "britishEnglish": true
+  }
+}
