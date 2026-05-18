@@ -1,0 +1,19 @@
+# ADR-0011: JWT is delivered and read only through the httpOnly `token` cookie.
+lexik_jwt_authentication:
+    secret_key: '%env(resolve:JWT_SECRET_KEY)%'
+    public_key: '%env(resolve:JWT_PUBLIC_KEY)%'
+    pass_phrase: '%env(JWT_PASSPHRASE)%'
+    token_extractors:
+        authorization_header:
+            enabled: false
+        cookie:
+            enabled: true
+            name: token
+    set_cookies:
+        token:
+            lifetime: 3600
+            samesite: strict
+            path: /
+            domain: null
+            secure: true
+            httpOnly: true

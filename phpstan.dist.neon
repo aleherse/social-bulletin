@@ -1,0 +1,8 @@
+# ADR-0012: PHPStan owns type and static correctness rules.
+# Level 8 is the strict-but-incremental baseline; harden towards max as the codebase grows.
+parameters:
+    level: 8
+    paths:
+        - apps/api/src
+        - packages/core/src
+    tmpDir: apps/api/var/phpstan

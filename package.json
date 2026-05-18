@@ -1,0 +1,8 @@
+{
+  "name": "social-bulletin",
+  "private": true,
+  "description": "Repository tooling only: the git hook runner lives here so hooks work on the host. Application code is under apps/ and packages/.",
+  "devDependencies": {
+    "lefthook": "^2.1.1"
+  }
+}

@@ -1,0 +1,27 @@
+{
+    "name": "social-bulletin/core",
+    "description": "Framework-free domain and application logic for Social Bulletin",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.3",
+        "symfony/translation-contracts": "^3.7",
+        "webmozart/assert": "^2.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "SocialBulletin\\Core\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "spec\\SocialBulletin\\Core\\": "spec/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "require-dev": {
+        "phpspec/phpspec": "^8.3"
+    }
+}

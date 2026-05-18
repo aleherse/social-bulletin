@@ -1,0 +1,21 @@
+# ADR-0015: Behat + SymfonyExtension own API tests.
+# The @fixtures feature only runs explicitly (make db), never in the test run.
+default:
+    gherkin:
+        filters:
+            tags: ~@fixtures
+    extensions:
+        FriendsOfBehat\SymfonyExtension:
+            bootstrap: tests/bootstrap.php
+            kernel:
+                class: App\Kernel
+                environment: test
+                debug: true
+    suites:
+        api:
+            paths:
+                - '%paths.base%/features'
+            contexts:
+                - App\Tests\Behat\ApiContext
+                - App\Tests\Behat\DatabaseContext
+                - App\Tests\Behat\SessionContext

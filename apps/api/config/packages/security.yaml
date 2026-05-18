@@ -1,0 +1,20 @@
+security:
+    providers:
+        app_users:
+            id: App\Security\ApiUserProvider
+
+    firewalls:
+        dev:
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_users
+            jwt: ~
+
+    access_control:
+        - { path: ^/api/session$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/logout$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/doc\.json$, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }

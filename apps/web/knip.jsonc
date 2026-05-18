@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  // ADR-0012: knip owns unused dependency/file/export detection.
+  // FSD tuning: slice/segment public APIs (index.ts) are deliberate entry
+  // points; their exports form the contract other layers compose from, so
+  // they are not "unused" while the app is still growing into them.
+  "entry": [
+    "src/{app,pages,widgets,features,entities}/**/index.{ts,tsx}",
+    "src/shared/*/index.{ts,tsx}",
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignoreDependencies": [
+    // shadcn/ui iconLibrary: pulled in by generated primitives as they arrive.
+    "lucide-react",
+    // Used via CSS @import in src/index.css, invisible to the TS module graph.
+    "tailwindcss",
+    "tw-animate-css",
+    "@fontsource-variable/geist",
+    // Pinned CLI, invoked via the package runner (npx shadcn ...).
+    "shadcn",
+    // Part of the Testing Library toolchain (ADR-0015); first used by the
+    // walking-skeleton component tests (T43).
+    "@testing-library/user-event",
+  ],
+}

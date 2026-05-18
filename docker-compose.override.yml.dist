@@ -1,0 +1,20 @@
+# Copy to docker-compose.override.yml (git ignored) and personalise
+# ports and environment variables for your machine.
+services:
+  php:
+    environment:
+      XDEBUG_REMOTE_HOST: host.docker.internal
+      XDEBUG_REMOTE_PORT: "9003"
+
+  node:
+    ports:
+      - "3000:3000"
+
+  nginx:
+    ports:
+      - "80:80"
+      - "443:443"
+
+  postgres:
+    ports:
+      - "5432:5432"

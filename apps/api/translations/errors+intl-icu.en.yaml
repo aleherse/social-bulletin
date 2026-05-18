@@ -1,0 +1,2 @@
+error.unauthorized: 'Authentication is required to access this resource.'
+error.server: 'An unexpected error occurred. Please try again later.'

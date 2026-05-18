@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "skills": {
+    "adr-skill": {
+      "source": "skillrecordings/adr-skill",
+      "sourceType": "github",
+      "skillPath": "skills/adr-skill/SKILL.md",
+      "computedHash": "c6a786cb3c69478135098561e60c193953fd473d08f8e4c03dbb48b90f5c73aa"
+    },
+    "caveman": {
+      "source": "juliusbrussee/caveman",
+      "sourceType": "github",
+      "skillPath": "skills/caveman/SKILL.md",
+      "computedHash": "d18cdf73a5f5c496d681a43a6846336b110223bdffa6817b8992529c57f1a815"
+    },
+    "commit-changes": {
+      "source": "git@github.com:aircury/ai-framework.git",
+      "sourceType": "git",
+      "skillPath": "skills/commit-changes/SKILL.md",
+      "computedHash": "98fb775983e89600e25c1bd47ab9ee8a05ff770f004b4fc9b096781593112082"
+    },
+    "db-schema-design": {
+      "source": "git@github.com:aircury/ai-framework.git",
+      "sourceType": "git",
+      "skillPath": "skills/db-schema-design/SKILL.md",
+      "computedHash": "713fbde716e7c39df15d574db25a50c0658bc65a8cc503f08c7691addee7be53"
+    },
+    "dbml-database-docs": {
+      "source": "git@github.com:aircury/ai-framework.git",
+      "sourceType": "git",
+      "skillPath": "skills/dbml-database-docs/SKILL.md",
+      "computedHash": "0fe865a4a42122c73610431e3067cecbc19f9dff2ceecc156b5c6df36a228b6d"
+    },
+    "feature-sliced-design": {
+      "source": "feature-sliced/skills",
+      "sourceType": "github",
+      "skillPath": "feature-sliced-design/SKILL.md",
+      "computedHash": "c57a32d524addae35b41b07bbfdd35eea3d85b3d0bd8f4779032eb31b62e5ce9"
+    },
+    "playwright-best-practices": {
+      "source": "currents-dev/playwright-best-practices-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "63ce3ddf87fb796c7855f4d6b34f892b3f83b288cf11c1ea1e4503a0c1b6cc6b"
+    },
+    "semantic-line-breaks": {
+      "source": "git@github.com:aircury/ai-framework.git",
+      "sourceType": "git",
+      "skillPath": "skills/semantic-line-breaks/SKILL.md",
+      "computedHash": "15b6feaf78f24d53aa6fb48328718076689cd1c5b9738f4740c34f1ab41233c8"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "d81caa0f86aabab65b25e302d454f23a3328760386ed9078345584c0d5c8058e"
+    },
+    "uk-business-english": {
+      "source": "git@github.com:jezweb/claude-skills.git",
+      "sourceType": "git",
+      "skillPath": "plugins/writing/skills/uk-business-english/SKILL.md",
+      "computedHash": "38d757f02faf387e39b2d3df48c3dfd0a1b61839530db4f7656864b3e637813c"
+    },
+    "walking-skeleton": {
+      "source": "git@github.com:aircury/walking-skeleton.git",
+      "sourceType": "git",
+      "skillPath": "skills/walking-skeleton/SKILL.md",
+      "computedHash": "1fde081924ef98544570cfd7d70478436c4da28d36a7cb9f65e78f002efceca8"
+    }
+  }
+}

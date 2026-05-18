@@ -1,0 +1,5 @@
+# Expose the OpenAPI specification as a JSON document only (ADR-0005).
+app.swagger:
+    path: /api/doc.json
+    methods: GET
+    defaults: { _controller: nelmio_api_doc.controller.swagger }

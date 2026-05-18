@@ -1,0 +1,20 @@
+{
+  "appName": "Social Bulletin",
+  "home": {
+    "loading": "Loading…",
+    "form": {
+      "title": "Welcome to Social Bulletin",
+      "description": "Enter your email address to register or sign in.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Continue",
+      "invalidEmail": "Enter a valid email address.",
+      "requestFailed": "Something went wrong. Please try again."
+    },
+    "hello": {
+      "greeting": "Hello, {{email}}!",
+      "description": "You are signed in.",
+      "logout": "Log out"
+    }
+  }
+}

@@ -1,0 +1,76 @@
+name: social-bulletin
+
+services:
+  php:
+    build: docker/php
+    environment:
+      HOST_UID: ${HOST_UID:-1000}
+      HOST_GID: ${HOST_GID:-1000}
+      XDEBUG_REMOTE_HOST: ${XDEBUG_REMOTE_HOST:-host.docker.internal}
+      XDEBUG_REMOTE_PORT: ${XDEBUG_REMOTE_PORT:-9003}
+      XDEBUG_DIR: ${XDEBUG_DIR:-/app/var/xdebug}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://bulletin:bulletin@postgres:5432/bulletin?serverVersion=17&charset=utf8}
+      # Plain URL for DSLR (it cannot parse Doctrine's query parameters).
+      DSLR_DATABASE_URL: ${DSLR_DATABASE_URL:-postgresql://bulletin:bulletin@postgres:5432/bulletin}
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  node:
+    build: docker/node
+    environment:
+      HOST_UID: ${HOST_UID:-1000}
+      HOST_GID: ${HOST_GID:-1000}
+      DSLR_DATABASE_URL: ${DSLR_DATABASE_URL:-postgresql://bulletin:bulletin@postgres:5432/bulletin}
+      NODE_EXTRA_CA_CERTS: /certs/rootCA.pem
+    volumes:
+      - .:/app
+      - ./docker/certs:/certs:ro
+    ports:
+      - "3000:3000"
+    ipc: host
+    depends_on:
+      - nginx
+      - postgres
+
+  nginx:
+    build: docker/nginx
+    environment:
+      HOST_UID: ${HOST_UID:-1000}
+      HOST_GID: ${HOST_GID:-1000}
+    volumes:
+      - .:/app:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/certs:/certs
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - php
+    networks:
+      default:
+        # Lets other containers (e.g. E2E runs in the node container) reach the dev hostnames.
+        aliases:
+          - dev.api.social.aleherse.com
+          - dev.app.social.aleherse.com
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: bulletin
+      POSTGRES_USER: bulletin
+      POSTGRES_PASSWORD: bulletin
+    volumes:
+      - social-bulletin-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bulletin -d bulletin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  social-bulletin-data:

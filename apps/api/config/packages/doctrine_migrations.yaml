@@ -1,0 +1,12 @@
+# ADR-0009: migrations use the DBAL connection directly via raw SQL,
+# and all application-owned objects live in the `bulletin` schema.
+# The name is unqualified on purpose: `make db` sets the database default
+# search_path to `bulletin`, so the table lands there, while a qualified name
+# breaks doctrine-migrations' table-existence detection on PostgreSQL.
+doctrine_migrations:
+    migrations_paths:
+        'DoctrineMigrations': '%kernel.project_dir%/migrations'
+    storage:
+        table_storage:
+            table_name: 'doctrine_migration_versions'
+    enable_profiler: false

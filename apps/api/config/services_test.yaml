@@ -1,0 +1,9 @@
+# Behat contexts are wired as autowired services in the test container
+# (friends-of-behat/symfony-extension resolves them from here).
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Tests\Behat\:
+        resource: '../tests/Behat/*'

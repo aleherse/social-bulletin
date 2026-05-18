@@ -1,0 +1,41 @@
+# Dependencies
+vendor/
+node_modules/
+
+# Build output
+dist/
+build/
+.vite/
+
+# Runtime and caches
+var/
+coverage/
+*.cache
+.phpunit.result.cache
+
+# Environment
+.env.local
+.env.*.local
+docker-compose.override.yml
+
+# Secrets and certificates
+docker/certs/
+apps/api/config/jwt/
+
+# Editor and IDE state
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+.install.lock
+*.tmp
+*.log
+apps/api/behat.yml
+test-results/
+playwright-report/

@@ -1,0 +1,10 @@
+# ADR-0009: database access uses Doctrine DBAL directly, no ORM model layer.
+doctrine:
+    dbal:
+        url: '%env(resolve:DATABASE_URL)%'
+        server_version: '17'
+        profiling_collect_backtrace: '%kernel.debug%'
+        use_savepoints: true
+
+# ADR-0015: tests run against the same `bulletin` database that `make db`
+# prepares and snapshots with DSLR; no per-environment database suffix.

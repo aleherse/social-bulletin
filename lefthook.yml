@@ -1,0 +1,45 @@
+# ADR-0013: Lefthook is the git hook runner. Hook commands call hook-safe
+# Make targets (docker compose run --rm), so no services need to be running.
+#
+# Boundaries:
+# - pre-commit: fast checks only (format, lint, type, coding standard).
+# - commit-msg: Conventional Commits, optionally prefixed with a task ID.
+# - pre-push: medium-cost codebase scanners and unit tests; no API/E2E suites.
+
+pre-commit:
+  parallel: false
+  commands:
+    web-prettier:
+      run: make web-prettier
+    web-eslint:
+      run: make web-eslint
+    web-tsc:
+      run: make web-tsc
+    php-ecs:
+      run: make php-ecs
+    php-stan:
+      run: make php-stan
+
+commit-msg:
+  commands:
+    conventional-commit:
+      run: |
+        head -n1 {1} | grep -qE '^WIP\b|^([A-Z]+-[0-9]+ )?(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._-]+\))?!?: .+$' || {
+          echo "Commit message must follow Conventional Commits, optionally prefixed with a task ID, or start with WIP:"
+          echo "  [TASK-123 ]<type>[(scope)][!]: <description>"
+          echo "  types: build chore ci docs feat fix perf refactor revert style test"
+          echo "  or: WIP ..."
+          exit 1
+        }
+
+pre-push:
+  parallel: false
+  commands:
+    php-deptrac:
+      run: make php-deptrac
+    web-knip:
+      run: make web-knip
+    php-unit:
+      run: make php-unit
+    web-unit:
+      run: make web-unit

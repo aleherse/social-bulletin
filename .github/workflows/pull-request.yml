@@ -1,0 +1,52 @@
+# ADR-0013: optional CI jobs are requested by ticking the matching checkbox
+# in the pull request body (see .github/PULL_REQUEST_TEMPLATE.md).
+name: Pull request
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  phpspec:
+    name: PHPSpec
+    if: contains(github.event.pull_request.body, '- [x] PHPSpec')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run core package unit tests
+        run: make php-unit
+
+  behat:
+    name: Behat
+    if: contains(github.event.pull_request.body, '- [x] Behat')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate JWT keypair
+        run: HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose run --rm --workdir /app/apps/api php php bin/console lexik:jwt:generate-keypair --skip-if-exists
+      - name: Prepare the test database snapshot
+        run: make db
+      - name: Run API tests
+        run: make api-tests
+
+  vitest:
+    name: Vitest
+    if: contains(github.event.pull_request.body, '- [x] Vitest')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run frontend unit tests
+        run: make web-unit
+
+  playwright:
+    name: Playwright
+    if: contains(github.event.pull_request.body, '- [x] Playwright')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate JWT keypair
+        run: HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose run --rm --workdir /app/apps/api php php bin/console lexik:jwt:generate-keypair --skip-if-exists
+      - name: Prepare the test database snapshot
+        run: make db
+      - name: Run browser E2E tests
+        run: make web-e2e

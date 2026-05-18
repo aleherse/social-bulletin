@@ -1,0 +1,46 @@
+# ADR-0012: Deptrac owns package and layer dependency rules.
+# packages/core stays framework-free (contracts only); apps depend on packages, never the reverse.
+deptrac:
+  paths:
+    - apps/api/src
+    - packages/core/src
+
+  layers:
+    - name: App
+      collectors:
+        - type: directory
+          value: apps/api/src/.*
+
+    - name: Core
+      collectors:
+        - type: directory
+          value: packages/core/src/.*
+
+    - name: SymfonyContracts
+      collectors:
+        - type: classNameRegex
+          value: '/^Symfony\\Contracts/'
+
+    - name: Symfony
+      collectors:
+        - type: classNameRegex
+          value: '/^Symfony\\(?!Contracts)/'
+
+    - name: Doctrine
+      collectors:
+        - type: classNameRegex
+          value: '/^Doctrine/'
+
+    - name: Psr
+      collectors:
+        - type: classNameRegex
+          value: '/^Psr/'
+
+    - name: Assert
+      collectors:
+        - type: classNameRegex
+          value: '/^Webmozart/'
+
+  ruleset:
+    App: [Core, Symfony, SymfonyContracts, Doctrine, Psr, Assert]
+    Core: [SymfonyContracts, Psr, Assert]
