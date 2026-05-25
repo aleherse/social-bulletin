@@ -6,7 +6,7 @@ An object with **identity** that persists through time. Two entities are equal i
 
 ### Characteristics
 
-- Has a unique identifier
+- Has a unique or composite identifier 
 - Identity persists through lifecycle
 - Can change attributes but remains the same entity
 - Contains behavior (not just data)
@@ -123,6 +123,9 @@ A cluster of entities and value objects treated as a single unit for data change
 3. **Transaction boundary** - One aggregate per transaction (eventual consistency between aggregates)
 4. **Invariants within boundary** - Aggregate ensures its own consistency
 5. **Small aggregates** - Prefer smaller over larger
+6. **Unique ID** - Aggregate identity is based on **UUIDv6**
+7. **Repository saved** - aggregate rules have a repository and its state is only stored via a `save()` method.
+8. **Provider queried** - read model of aggregates are queried via specific provider methods (e.g. `byId()`).
 
 ## Aggregate Sizing Heuristics
 

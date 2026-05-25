@@ -16,7 +16,7 @@ Generate an actionable, dependency-ordered task list from the existing ADRs.
 
    Required: `specs/decisions/<ADR-XXXX-name>.md`.
 
-2. **Generate `specs/decisions/skeleton.md`**
+2. **Generate `specs/changes/walking-skeleton/skeleton.md`**
 
    For this skill execution do NOT follow any execution mode and do NOT follow TDD.
 
@@ -42,6 +42,7 @@ Generate an actionable, dependency-ordered task list from the existing ADRs.
    Before finishing:
     - Perform a consistency analysis across all available tasks and the existing ADRs.
     - Ensure no task is vague and that they are clear.
+    - Ensure all ADR follow-ups have a task.
 
     After writing skeleton.md output task count.
 
@@ -51,6 +52,7 @@ Generate an actionable, dependency-ordered task list from the existing ADRs.
 
     - Announce the task being worked on.
     - Review its linked ADR to ensure the outcome is clear.
+    - Load relevant skills.
     - Perform the task.
     - Mark complete in skeleton.md: `- [ ]` → `- [x]`.
 
@@ -67,6 +69,9 @@ Generate an actionable, dependency-ordered task list from the existing ADRs.
     - Regenerate all containers.
     - Install all the dependencies
     - Execute the full test suite.
+    - Delete superfluous or dead code in generated files.
+    - Execute the full test suite again.
+    - Deprecate the walking skeleton ADR without superseeding.
 
 **Guardrails**
 - Halt on non-parallel task failures — do not skip ahead.

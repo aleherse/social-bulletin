@@ -1,6 +1,6 @@
 # ADR-0010: Adopt lexik/jwt-authentication-bundle for Stateless JWT Auth
 
-- Status: Rejected
+- Status: Accepted
 - Date: 2026-05-17
 
 ## Context
@@ -13,11 +13,7 @@ Symfony's SecurityBundle firewall must be configured to validate tokens on each 
 
 Adopt `lexik/jwt-authentication-bundle` v3.x as the JWT issuance and validation layer for the API.
 
-Configure the SecurityBundle firewall as `stateless: true`. Token extraction is configured to read from the `token` httpOnly cookie only; the `Authorization` header extractor is disabled. RSA key pairs are stored under `apps/api/config/jwt/`; they are generated as part of `make init`, but only if the key files do not already exist (idempotent). The `apps/api/config/jwt/` directory is excluded from version control via `.gitignore`.
-
-The `User` aggregate does not implement `UserInterface` to keep the domain free of Symfony coupling. A dedicated `SecurityUser` bridge class adapts the aggregate for the Symfony user provider required by LexikJWT.
-
-A `AuthTokenPort` application port abstracts JWT issuance. The concrete `LexikJwtTokenIssuer` adapter in `Infrastructure/Security/` is the only implementation.
+Configure the SecurityBundle firewall as `stateless: true`. Token extraction is configured to read from the `token` httpOnly cookie only; the `Authorization` header extractor is disabled. RSA key pairs are stored under `apps/api/config/jwt/`; they are generated as part of `make init` using Symfony console command `lexik:jwt:generate-keypair`, but only if the key files do not already exist (idempotent). The `apps/api/config/jwt/` directory is excluded from version control via `.gitignore`.
 
 ## Consequences
 
@@ -25,7 +21,6 @@ Positive outcomes:
 
 - No server-side session storage required; API scales horizontally without shared state.
 - Token is self-contained; expiry and claims are embedded.
-- `AuthTokenPort` keeps the use case independently testable without the JWT library.
 
 Tradeoffs:
 

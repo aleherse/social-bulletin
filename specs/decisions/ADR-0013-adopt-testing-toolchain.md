@@ -1,4 +1,4 @@
-# ADR-0012: Adopt Testing Toolchain
+# ADR-0013: Adopt Testing Toolchain
 
 - Status: Accepted
 - Date: 2026-05-18
@@ -23,38 +23,22 @@ Use **PHPSpec** for unit tests in the `core` package.
 
 PHPSpec encourages behaviour-first specification of PHP objects. It is well-suited to the domain layer because `core` has no framework dependency and all behaviour is expressed through PHP classes with explicit collaborators.
 
-### Backend — `packages/api`
+### Backend — `apps/api`
 
-Use **Behat** with the **FriendsOfBehat SymfonyExtension** for integration and end-to-end tests in the `api` package.
+Use **Behat** with the **friends-of-behat/symfony-extension** for integration and end-to-end tests in the `api` package.
 
 Behat scenarios describe observable API behaviour in plain language. The SymfonyExtension boots the real Symfony kernel inside Behat, giving each scenario full access to the application container, HTTP client, database, and message bus without a running web server. This is used for:
 
 - **Integration tests** — use-case boundaries, persistence adapters, HTTP handlers, and messaging flows exercised through the real application stack.
 - **End-to-end API tests** — critical HTTP journeys tested through the real API surface from the outside.
 
-### Fixtures Strategy
-
-Create a dedicated `fixtures.feature` file inside `packages/api` (alongside the other Behat feature files) that contains a baseline set of generic, reusable `Given` steps representing sensible default system state.
-
-The fixture dataset is not exhaustive. Scenarios that require specific or unusual state MUST add their own `Given` steps directly in their feature file rather than adding narrow or one-off data to the shared fixture file.
-
-Rules for the fixture file:
-
-- The fixture feature or scenarios MUST use a dedicated Behat tag, e.g. `@fixtures`, and normal test execution MUST exclude that tag so fixture loading is not run as part of the API test suite.
-- Include only data that is genuinely reusable across multiple unrelated scenarios.
-- Prefer representative, sensible examples over an exhaustive set of edge cases.
-- Do not add scenario-specific or single-use data to this file.
-
-Rules for all `Given` steps (both shared fixtures and scenario-specific):
-
-- Every step MUST create data by invoking existing application code — command handlers, domain factories, or service objects — rather than inserting rows directly into the database.
-- Steps must be intention-revealing and name the state being created, not the mechanics of how it is created.
+Install **mtdowling/jmespath.php**, create a `JmespathContext.php` Behat context file and use it to add generic `THEN` steps that check response data.
 
 ### Database Snapshot and Restore
 
-Use **DSLR** (via `pip install DSLR`) to take a database snapshot immediately after the fixture dataset is loaded, and to restore that snapshot before each Behat scenario and before each Playwright scenario.
+Use **DSLR** (via `pip install DSLR`) to work with database snapshots. Using `dslr snapshot fixtures` to create the snapshot and `dslr restore fixtures` to restore the snapshot.
 
-The `db` Makefile target defined in ADR-0005 creates the database and runs migrations. The testing toolchain extends that target by appending two additional steps: load the `fixtures.feature` dataset, then create the DSLR snapshot. These two steps are a testing concern and must not leak into the core database infrastructure target.
+The `db` Makefile target defined in ADR-0005 creates the database and runs migrations. The testing toolchain extends that target by appending two additional steps: load the `fixtures.feature` dataset, then create the DSLR snapshot.
 
 The full `db` sequence is therefore:
 
@@ -76,9 +60,7 @@ This approach:
 Test execution MUST NOT recreate the snapshot. Behat and Playwright treat a valid snapshot as a precondition:
 
 - Each scenario restores the snapshot at startup.
-- Behat MUST invoke DSLR restore through the Symfony process booted by FriendsOfBehat SymfonyExtension, for example via a Symfony service or console command resolved from the test container. Behat step definitions and hooks MUST NOT shell out directly to DSLR or bypass the Symfony application process.
-- If no snapshot exists, the test run fails with a clear error indicating that `make db` must be run first.
-- Snapshot existence is checked, not recreated, so test suite startup time stays minimal.
+- Behat MUST invoke snapshot/restore through the `symfony/process` component, via a console command resolved from the test container.
 
 ### Frontend — `apps/web`
 
@@ -113,7 +95,6 @@ Tradeoffs:
 Follow-ups:
 
 - Implement the `db` Makefile target as described in ADR-0005.
-- Configure DSLR (or chosen equivalent) in the `packages/api` and `apps/web` test setup scripts to restore the snapshot at the start of each scenario and fail fast with a descriptive error if the snapshot is absent.
+- Configure DSLR in the `packages/api` and `apps/web` test setup scripts to restore the snapshot at the start of each scenario.
 - Create the initial `fixtures.feature` file with a representative set of `Given` steps covering the most common system states.
 - Document the required setup sequence (`make db` before first test run and after schema or fixture changes) in the project README or a dedicated testing guide.
-- Align Makefile test targets (`test-core`, `test-api`, `test-web`) so they restore the snapshot automatically but never create it.

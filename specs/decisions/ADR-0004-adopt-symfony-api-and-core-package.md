@@ -21,6 +21,11 @@ Install `nelmio/api-doc-bundle` (v5) and `zircote/swagger-php` (v6) in the API a
 
 Install `symfony/monolog-bundle` (v3) in the API application. Configure it to emit structured JSON log events to `stderr` in all environments. In development, log at `debug` level. In production and test, use a `fingers_crossed` handler that buffers until an error-level event occurs. Event and Doctrine channels are excluded from the main handler in development to reduce noise.
 
+Install and use these libraries:
+- `nelmio/cors-bundle` to send Cross-Origin Resource Sharing headers.
+- `symfony/uid` to generate unique identifiers based on `Uuid::v7()`.
+- `webmozart/assert` to validate method input/output with nice error messages.
+
 Local development, dependency installation, and test execution must run through Docker Compose and root Makefile targets, consistent with ADR-0002 and ADR-0003.
 
 Composer must be installed in the API PHP container by copying the binary from the official `composer` Docker image in a multi-stage Docker build. The PHP image must not download Composer through installer scripts during the build.

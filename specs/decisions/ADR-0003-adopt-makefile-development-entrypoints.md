@@ -19,7 +19,7 @@ The initial command surface should include:
 
 - `make init` to prepare the local development environment, including starting required containers, database services, and other infrastructure, and ensuring default local environment variables are available from versioned templates.
 - `make tests` to run the full automated test suite through all configured test tools.
-- `make up` to start the development stack without reinitialising local defaults.
+- `make up` to start the development stack without building containers.
 - `make down` to stop the development stack.
 - `make logs` to inspect service logs with an option to see specific container logs.
 - `make shell` or service-specific shell targets when interactive container access is useful with an option to access specific container shell.

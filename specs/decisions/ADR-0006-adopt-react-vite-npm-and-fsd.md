@@ -13,13 +13,16 @@ The frontend needs a small application skeleton that can compile quickly, be ser
 
 Adopt React for the web application's UI layer.
 
-Adopt Vite as the frontend build tool and Vitest-compatible project foundation because it provides fast TypeScript and React builds with a small configuration surface. Use `public` folder for static assets copied as-is into the build output. Vite's development server is enabled with `server.host: true` so the container can accept connections from the host. The `dev-web` Makefile target starts the Vite dev server with hot-module replacement on port 3000 by publishing the container port to the host. The `DEV_ALLOWED_HOST` environment variable controls Vite's `server.allowedHosts` so the dev server accepts requests arriving under a custom local hostname (default `app.bulletin.local`) without hardcoding it in the configuration file.
+Adopt Vite as the frontend build tool and Vitest-compatible project foundation because it provides fast TypeScript and React builds with a small configuration surface. Use `public` folder for static assets copied as-is into the build output (including `index.html`). Vite's development server is enabled with `server.host: true` so the container can accept connections from the host. The `dev-web` Makefile target starts the Vite dev server with hot-module replacement on port 3000 by publishing the container port to the host. The `DEV_ALLOWED_HOST` environment variable controls Vite's `server.allowedHosts` so the dev server accepts requests arriving under a custom local hostname (default `app.bulletin.local`) without hardcoding it in the configuration file.
 
 Adopt npm as the package manager for the web application. npm commands must run through the Docker Compose Node service and root Makefile targets, not through a required host-level Node.js installation. The Node tooling image should install the latest stable npm during image build so local and CI package-manager behaviour does not depend on the npm version bundled with the base Node image.
 
 The compiled React application must be served in local development via an nginx container at `app.bulletin.local`. Developers must add `app.bulletin.local` to their `/etc/hosts` file pointing to `127.0.0.1`; this step must be documented in the project README or onboarding guide. The nginx container serves the Vite build output as static files; the Vite dev server remains available separately via the `dev-web` target for hot-module replacement during active frontend development.
 
 Structure the web source using Feature-Sliced Design. The initial application should create only layers that contain real code, starting with `app` for bootstrap/startup orchestration and `shared` for reusable API/config code. Empty layers such as `entities`, `features`, `widgets`, or `pages` should not be created until they have concrete behaviour.
+
+Install and use these libraries:
+ - `@tanstack/react-query` for asynchronous state management, server-state utilities and data fetching.
 
 ## Consequences
 

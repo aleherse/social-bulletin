@@ -24,6 +24,8 @@ Each application or package must keep ownership boundaries explicit. Code inside
 
 Workspace-level commands should be introduced only when implementation code exists and should match the chosen language/runtime stack.
 
+Executable tooling SHOULD be installed or invoked through official Docker Hub images when practical, rather than installed directly on the host. For example, PHP dependency commands should prefer the official `composer` image for Composer execution. Host-level installs may still be used when no suitable official image exists, when Docker is unavailable, or when local developer ergonomics require it.
+
 Every time a new repository artifact is added, including an application, package, tooling configuration, generated output, or runtime-specific file set, the root `.gitignore` must be reviewed and updated with sensible ignore rules for that artifact. Ignore rules should cover generated files, build outputs, caches, local environment files, editor state, and tool-specific temporary data that should not be versioned.
 
 ## Consequences
@@ -34,12 +36,14 @@ Positive outcomes:
 - Keeps specs, ADRs, and implementation decisions visible in one place.
 - Supports consistent CI, linting, testing, and dependency policy.
 - Reduces duplicated setup across future applications.
+- Reduces host-machine tooling drift by preferring official containerized executables.
 
 Tradeoffs:
 
 - Requires clear package ownership to avoid accidental coupling.
 - CI must be scoped carefully as project size grows.
 - Workspace command conventions should be deferred until first real application/runtime is known.
+- Docker availability becomes more important for consistent local and CI tooling workflows.
 - Each new artifact introduces a small maintenance step to keep repository hygiene explicit in the root `.gitignore`.
 
 Follow-ups:
