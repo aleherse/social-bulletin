@@ -13,7 +13,7 @@ Adopt PostgreSQL 18 for the local development database using the `postgres:18-al
 
 Install Doctrine DBAL in the Symfony API application and configure its connection through DoctrineBundle using `DATABASE_URL`.
 
-Use the PostgreSQL schema `bulletin` as the default application schema. Doctrine DBAL connections must set the default schema to `bulletin`, and migrations must create and target this schema rather than relying on PostgreSQL's `public` schema.
+Use the PostgreSQL schema `DATABASE_SCHEMA` as the default application schema. Doctrine DBAL connections must set the default schema to `DATABASE_SCHEMA`, and migrations must create and target this schema rather than relying on PostgreSQL's `public` schema.
 
 Adopt `doctrine/migrations` and `doctrine/doctrine-migrations-bundle` for versioned schema management. Migration files are generated via `php bin/console doctrine:migrations:generate`. The `up()` method applies the schema change; the `down()` method reverts it. No ORM mapping is introduced; migrations use the DBAL connection directly with raw SQL DDL.
 
@@ -30,10 +30,10 @@ Tradeoffs:
 - Local development now starts and maintains a PostgreSQL data volume.
 - PHP runtime must include the PostgreSQL PDO extension.
 - Future PostgreSQL major upgrades require explicit ADR or implementation review because the image tag is pinned.
-- Schema lifecycle commands must ensure the `bulletin` schema exists before applying object-level migrations.
+- Schema lifecycle commands must ensure the `DATABASE_SCHEMA` schema exists before applying object-level migrations.
 
 Follow-ups:
 
-- Migration files live under `apps/api/migrations/` with the `SocialBulletin\Api\Migrations` namespace.
+- Migration files live under `apps/api/migrations/` with the `PROJECT_NAMESPACE\Api\Migrations` namespace.
 - Add a `db` Makefile target that creates the database and runs all migrations. This target owns the schema lifecycle and must be re-run whenever the schema changes.
-- Configure local and application database connections so unqualified database objects resolve under the `bulletin` schema by default.
+- Configure local and application database connections so unqualified database objects resolve under the `DATABASE_SCHEMA` schema by default.

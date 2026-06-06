@@ -5,13 +5,13 @@
 
 ## Context
 
-SocialBulletin needs a repeatable AWS deployment model for the existing application. The deployment must support isolated `preview` and `live` environments in one AWS account, and must allow additional isolated preview environments to be created in the future when required. It must serve the frontend through CloudFront and S3, run the backend on AWS Lambda with Bref, use Aurora Serverless for persistence, and deploy through GitHub Actions using AWS CDK.
+`PROJECT_NAME` needs a repeatable AWS deployment model for the existing application. The deployment must support isolated `preview` and `live` environments in one AWS account, and must allow additional isolated preview environments to be created in the future when required. It must serve the frontend through CloudFront and S3, run the backend on AWS Lambda with Bref, use Aurora Serverless for persistence, and deploy through GitHub Actions using AWS CDK.
 
 ## Decision
 
-We will deploy SocialBulletin to one AWS account with separate `preview` and `live` resources managed by AWS CDK. The CDK environment model will not be limited to only those two names: it must support additional preview-style environments when required, such as temporary or named preview deployments.
+We will deploy `PROJECT_NAME` to one AWS account with separate `preview` and `live` resources managed by AWS CDK. The CDK environment model will not be limited to only those two names: it must support additional preview-style environments when required, such as temporary or named preview deployments.
 
-Each environment will have separate CDK stacks for network, database, backend, and frontend resources. Stack and resource names will include the environment name, for example `socialbulletin-preview-backend` and `socialbulletin-live-backend`. Future preview environments must follow the same naming pattern with a unique environment name, for example `socialbulletin-preview-x-backend`.
+Each environment will have separate CDK stacks for network, database, backend, and frontend resources. Stack and resource names will include the environment name, for example `PROJECT_SLUG-preview-backend` and `PROJECT_SLUG-live-backend`. Future preview environments must follow the same naming pattern with a unique environment name, for example `PROJECT_SLUG-preview-x-backend`.
 
 The frontend will be built in GitHub Actions, uploaded to an environment-specific private S3 bucket, and served through an environment-specific CloudFront distribution using Origin Access Control.
 
@@ -19,7 +19,7 @@ The backend will run as a Bref PHP Lambda inside a VPC so it can reach Aurora. I
 
 The database will use Aurora Serverless v2 with one writer and no reader. Each environment will have a separate Aurora cluster. `preview` will use cost-optimised settings. `live` will use deletion protection and retained backups or snapshots.
 
-Configuration values and secrets will be stored in AWS Systems Manager Parameter Store under environment-scoped paths such as `/socialbulletin/preview/...` and `/socialbulletin/live/...`. Sensitive values must use SecureString parameters. Future preview environments must use their own scoped parameter paths, for example `/socialbulletin/preview-x/...`.
+Configuration values and secrets will be stored in AWS Systems Manager Parameter Store under environment-scoped paths such as `/PROJECT_SLUG/preview/...` and `/PROJECT_SLUG/live/...`. Sensitive values must use SecureString parameters. Future preview environments must use their own scoped parameter paths, for example `/PROJECT_SLUG/preview-x/...`.
 
 GitHub Actions will deploy through AWS OIDC rather than static AWS access keys. The account will contain separate deployment roles for `preview` and `live`, and may contain additional scoped deployment roles for future preview environments. The `preview` workflow may deploy from the main branch. Additional preview environments may deploy from explicit workflow inputs, branches, or pull request workflows when approved by the team. The `live` workflow must use GitHub Environment protection, such as manual approval or a release trigger.
 

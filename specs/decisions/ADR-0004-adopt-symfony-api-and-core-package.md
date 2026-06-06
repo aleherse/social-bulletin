@@ -30,7 +30,7 @@ Local development, dependency installation, and test execution must run through 
 
 Composer must be installed in the API PHP container by copying the binary from the official `composer` Docker image in a multi-stage Docker build. The PHP image must not download Composer through installer scripts during the build.
 
-The API must be served via an nginx container acting as a reverse proxy in front of the PHP-FPM process. In local development the API must be reachable at `api.bulletin.local`. Developers must add `api.bulletin.local` to their `/etc/hosts` file pointing to `127.0.0.1`; this step must be documented in the project README or onboarding guide. The nginx configuration must proxy requests to the PHP-FPM container and must not be installed on the host machine.
+The API must be served via an nginx container acting as a reverse proxy in front of the PHP-FPM process. In local development the API must be reachable at `API_URL`. Developers must add the `API_URL` hostname to their `/etc/hosts` file pointing to `127.0.0.1`; this step must be documented in the project README or onboarding guide. The nginx configuration must proxy requests to the PHP-FPM container and must not be installed on the host machine.
 
 A `make console` target (or equivalent) must be added to the root Makefile to execute Symfony console commands (`bin/console`) inside the API container. Developers must not need to know the container name or Docker Compose syntax to run Symfony commands.
 

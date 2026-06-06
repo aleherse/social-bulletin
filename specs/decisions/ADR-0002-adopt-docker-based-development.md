@@ -25,7 +25,7 @@ All project technologies must be introduced through containers. As capabilities 
 
 Project commands should be documented and executed through Docker Compose so developers do not need host-level language runtimes, package managers, browsers, or service daemons. Container images and compose service definitions should be kept close to the application or workspace they support.
 
-The local development stack must use one shared nginx container as the public HTTP(S) entrypoint for all applications. Each app is routed by hostname and nginx server block, for example `api.bulletin.local` for the API and `app.bulletin.local` for the web app. New applications should add an nginx server block or included configuration to the shared nginx service rather than introducing another nginx container, unless a future ADR records a specific isolation requirement.
+The local development stack must use one shared nginx container as the public HTTP(S) entrypoint for all applications. Each app is routed by hostname and nginx server block, for example `API_URL` for the API and `FRONTEND_URL` for the web app. New applications should add an nginx server block or included configuration to the shared nginx service rather than introducing another nginx container, unless a future ADR records a specific isolation requirement.
 
 Container processes must run as the host user's UID and GID so that files created inside a container are owned by the host user. This must be achieved by passing the host user identity into containers at runtime (e.g. via `user: "${UID}:${GID}"` in the compose service or equivalent), not by mapping files as root and relying on post-hoc permission fixes. Images must be built to support non-root execution where this is required.
 
