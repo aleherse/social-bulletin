@@ -1,0 +1,8 @@
+nelmio_api_doc:
+  documentation:
+    info:
+      title: SocialBulletin API
+      version: 0.1.0
+  areas:
+    path_patterns:
+      - ^/(?!doc\.json$)

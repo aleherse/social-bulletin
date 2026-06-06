@@ -1,0 +1,8 @@
+doctrine_migrations:
+  migrations_paths:
+    'SocialBulletin\Api\Migrations': '%kernel.project_dir%/migrations'
+  storage:
+    table_storage:
+      table_name: doctrine_migration_versions
+  all_or_nothing: true
+  check_database_platform: true

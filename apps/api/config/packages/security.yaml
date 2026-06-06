@@ -1,0 +1,15 @@
+security:
+  providers:
+    users:
+      id: SocialBulletin\Api\Security\UserProvider
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    main:
+      stateless: true
+      jwt: ~
+  access_control:
+    - { path: ^/auth/register, roles: PUBLIC_ACCESS }
+    - { path: ^/doc.json, roles: PUBLIC_ACCESS }
+    - { path: ^/, roles: PUBLIC_ACCESS }

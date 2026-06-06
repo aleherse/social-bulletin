@@ -1,0 +1,6 @@
+doctrine:
+  dbal:
+    url: '%env(resolve:DATABASE_URL)%'
+    schema_filter: '~^(?!public\.).*~'
+    options:
+      1002: 'SET search_path TO bulletin, public'

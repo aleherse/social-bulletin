@@ -1,0 +1,7 @@
+{
+  "app": "npx tsx bin/socialbulletin.ts",
+  "context": {
+    "projectSlug": "socialbulletin",
+    "environments": ["preview", "live"]
+  }
+}

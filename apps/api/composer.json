@@ -1,0 +1,70 @@
+{
+  "name": "socialbulletin/api",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.2",
+    "doctrine/dbal": "^4",
+    "doctrine/doctrine-bundle": "^2",
+    "doctrine/doctrine-migrations-bundle": "^3",
+    "doctrine/migrations": "^3",
+    "lexik/jwt-authentication-bundle": "^3",
+    "nelmio/api-doc-bundle": "^5",
+    "nelmio/cors-bundle": "^2",
+    "socialbulletin/core": "*@dev",
+    "symfony/framework-bundle": "^7.4",
+    "symfony/monolog-bundle": "^3",
+    "symfony/runtime": "^7.4",
+    "symfony/security-bundle": "^7.4",
+    "symfony/translation": "^7.4",
+    "symfony/translation-contracts": "^3.7",
+    "symfony/uid": "^7.4",
+    "webmozart/assert": "^1",
+    "zircote/swagger-php": "^6"
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../../packages/core",
+      "options": {
+        "symlink": true
+      }
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "SocialBulletin\\Api\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "SocialBulletin\\Api\\Tests\\": "tests/",
+      "SocialBulletin\\Api\\Tests\\Behat\\": "features/bootstrap/"
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true,
+      "symfony/flex": true,
+      "symfony/runtime": true
+    },
+    "sort-packages": true
+  },
+  "scripts": {
+    "test": "behat --tags='~@fixtures'",
+    "auto-scripts": {}
+  },
+  "require-dev": {
+    "behat/behat": "^3",
+    "deptrac/deptrac": "^3",
+    "friends-of-behat/symfony-extension": "^2",
+    "mtdowling/jmespath.php": "^2",
+    "phpstan/phpstan": "^2",
+    "symfony/browser-kit": "^7.4",
+    "symfony/css-selector": "^7.4",
+    "symfony/process": "^7.4",
+    "symplify/easy-coding-standard": "^12"
+  }
+}

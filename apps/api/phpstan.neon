@@ -1,0 +1,6 @@
+parameters:
+  level: 6
+  paths:
+    - src
+    - ../../packages/core/src
+  tmpDir: var/cache/phpstan

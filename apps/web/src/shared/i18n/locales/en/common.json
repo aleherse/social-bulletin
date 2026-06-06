@@ -1,0 +1,8 @@
+{
+  "appName": "SocialBulletin",
+  "registration": {
+    "emailLabel": "Email address",
+    "submit": "Continue"
+  },
+  "hello": "Hello, {{email}}"
+}

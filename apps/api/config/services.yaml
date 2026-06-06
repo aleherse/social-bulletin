@@ -1,0 +1,14 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  SocialBulletin\Api\:
+    resource: '../src/'
+    exclude:
+      - '../src/Kernel.php'
+      - '../src/Security/ApiUser.php'
+
+  SocialBulletin\Api\Http\OriginSecretListener:
+    arguments:
+      $originSecret: '%env(default::ORIGIN_SECRET)%'

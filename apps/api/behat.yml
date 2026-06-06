@@ -1,0 +1,14 @@
+default:
+  suites:
+    default:
+      paths:
+        - features
+      contexts:
+        - SocialBulletin\Api\Tests\Behat\ApiContext
+        - SocialBulletin\Api\Tests\Behat\JmespathContext
+        - SocialBulletin\Api\Tests\Behat\DslrContext
+  extensions:
+    FriendsOfBehat\SymfonyExtension:
+      kernel:
+        class: SocialBulletin\Api\Kernel
+        environment: test

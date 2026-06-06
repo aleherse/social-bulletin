@@ -1,0 +1,7 @@
+services:
+  SocialBulletin\Api\Tests\Behat\:
+    resource: '../features/bootstrap/'
+    autowire: true
+    autoconfigure: true
+    tags:
+      - { name: fob.context_service }

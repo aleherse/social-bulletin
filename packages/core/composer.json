@@ -1,0 +1,25 @@
+{
+  "name": "socialbulletin/core",
+  "type": "library",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.2",
+    "symfony/translation-contracts": "^3.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "SocialBulletin\\Core\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "SocialBulletin\\Core\\Spec\\": "spec/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "require-dev": {
+    "phpspec/phpspec": "^7"
+  }
+}

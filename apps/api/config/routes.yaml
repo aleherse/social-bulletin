@@ -1,0 +1,9 @@
+controllers:
+  resource: ../src/Controller/
+  type: attribute
+
+app_openapi_json:
+  path: /doc.json
+  methods: [GET]
+  defaults:
+    _controller: nelmio_api_doc.controller.swagger

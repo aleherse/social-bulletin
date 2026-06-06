@@ -1,0 +1,94 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /workspace/apps/api
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      COMPOSER_HOME: /tmp/composer
+      DATABASE_URL: ${DATABASE_URL:-postgresql://socialbulletin:socialbulletin@postgres:5432/socialbulletin?serverVersion=18&charset=utf8}
+    volumes:
+      - .:/workspace
+      - ./apps/api/docker/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /workspace/apps/web
+    environment:
+      DEV_ALLOWED_HOST: ${DEV_ALLOWED_HOST:-app.bulletin.local}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api.bulletin.local}
+    volumes:
+      - .:/workspace
+    ports:
+      - "3000:3000"
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - .:/workspace:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - api
+      - web
+    networks:
+      default:
+        aliases:
+          - api.bulletin.local
+          - app.bulletin.local
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-socialbulletin}
+      POSTGRES_USER: ${POSTGRES_USER:-socialbulletin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-socialbulletin}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  playwright:
+    build:
+      context: .
+      dockerfile: docker/playwright/Dockerfile
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /workspace/apps/web
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://socialbulletin:socialbulletin@postgres:5432/socialbulletin?serverVersion=18&charset=utf8}
+      PLAYWRIGHT_BASE_URL: ${PLAYWRIGHT_BASE_URL:-https://app.bulletin.local}
+    volumes:
+      - .:/workspace
+    depends_on:
+      - nginx
+
+  mkcert:
+    build:
+      context: .
+      dockerfile: docker/mkcert/Dockerfile
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+
+volumes:
+  postgres-data:
+
+networks:
+  default:

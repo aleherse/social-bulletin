@@ -1,0 +1,15 @@
+pre-commit:
+  commands:
+    fast-checks:
+      run: make hook-pre-commit
+
+commit-msg:
+  commands:
+    conventional-commit:
+      run: |
+        grep -Eq '^(\[[A-Z]+-[0-9]+\] )?(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?: .+' "{1}"
+
+pre-push:
+  commands:
+    medium-checks:
+      run: make hook-pre-push

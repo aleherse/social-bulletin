@@ -1,0 +1,17 @@
+deptrac:
+  paths:
+    - ../../packages/core/src
+    - src
+  layers:
+    - name: Core
+      collectors:
+        - type: directory
+          value: ../../packages/core/src/.*
+    - name: Api
+      collectors:
+        - type: directory
+          value: src/.*
+  ruleset:
+    Core: []
+    Api:
+      - Core
