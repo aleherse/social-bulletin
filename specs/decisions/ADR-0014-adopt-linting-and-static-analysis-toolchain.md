@@ -7,9 +7,9 @@
 
 The monorepo contains PHP backend packages and a TypeScript frontend application. Each language ecosystem needs automated checks that catch code style drift, dependency boundary violations, typing mistakes, and common maintainability issues before changes are merged.
 
-Without a documented linting and static analysis toolchain, contributors may choose overlapping or inconsistent tools per package. That increases configuration drift, weakens CI feedback, and makes code review carry concerns that should be handled automatically.
+Without a documented linting and static analysis toolchain, contributors may choose overlapping or inconsistent tools per package. That weakens CI feedback and makes code review carry concerns that should be automated.
 
-The selected tools must support the existing project shape:
+Selected tools must support:
 
 - `packages/core` and `packages/api` use PHP and need architectural dependency checks, static type analysis, automated coding-standard checks, and local debugging or coverage support.
 - `apps/web` uses TypeScript and needs linting, deterministic formatting, and checks for unused dependencies, files, and exports.
@@ -32,7 +32,7 @@ Use **symplify/easy-coding-standard** for PHP coding standards and formatting.
 
 Easy Coding Standard is the canonical PHP style tool. It should own PHP code style, formatting, and fixable coding-standard rules so reviewers do not need to enforce style manually.
 
-Configure Easy Coding Standard with sensible Symfony/PHP defaults: PSR-12-compatible formatting, ordered imports, unused import removal, short array syntax, strict type declarations where safe, and fixable readability rules. Easy Coding Standard must not duplicate architectural dependency rules that belong to Deptrac or type-system checks that belong to PHPStan.
+Configure Easy Coding Standard with sensible Symfony/PHP defaults. Easy Coding Standard must not duplicate architectural dependency rules that belong to Deptrac or type-system checks that belong to PHPStan.
 
 Use **xdebug** for PHP debugging and coverage instrumentation.
 
@@ -107,7 +107,7 @@ Frontend checks must have clear ownership:
 
 ### Execution Contract
 
-The root `Makefile` from ADR-0003 should expose linting and static analysis through stable developer entrypoints. At minimum, the project should provide commands that can run:
+The root `Makefile` should expose linting and static analysis through stable developer entrypoints. At minimum, the project should provide commands that can run:
 
 - all linting and static analysis checks together for local pre-merge verification;
 - PHP dependency analysis through Deptrac;
@@ -119,13 +119,9 @@ The root `Makefile` from ADR-0003 should expose linting and static analysis thro
 - frontend unused dependency, file, and export checks through Knip;
 - frontend formatting checks through Prettier.
 
-CI must run the full linting and static analysis suite before accepting changes. Automated fix commands may exist for developer convenience, but CI should use check-only commands.
-
 The full check order should be deterministic and fail fast: PHP dependency analysis, PHP static analysis, PHP coding-standard check, TypeScript type check, TypeScript lint check, Knip project hygiene check, then Prettier format check. Tool-specific ordering may be adjusted for performance in CI, but failures must remain attributable to one owning tool.
 
 ## Consequences
-
-Positive outcomes:
 
 - PHP architecture rules become executable through Deptrac instead of living only in documentation.
 - PHP type and correctness issues are caught earlier through PHPStan.
@@ -137,22 +133,14 @@ Positive outcomes:
 - Prettier defaults reduce frontend formatting debate while keeping configuration small.
 - CI gains a stable quality gate for both backend and frontend code.
 - Code review can focus more on behaviour, design, and correctness rather than repeatable style checks.
-
-Tradeoffs:
-
 - The project now has multiple quality-tool configurations to maintain.
-- Strict static analysis may require baselines or incremental rule adoption if existing code cannot satisfy all checks immediately.
 - ESLint and Prettier must be configured to avoid conflicting formatting rules.
 - Type-aware ESLint and import-resolution rules may require extra dependencies and careful performance monitoring.
 - Knip requires maintained entrypoint and ignore configuration to avoid false positives for framework, generated, or externally referenced files.
 - Deptrac rules must be updated when package boundaries or architecture decisions change.
 - Xdebug adds runtime overhead and must stay opt-in for normal development commands.
 - Developers need the Makefile or documented package commands to understand which checks to run locally.
-
-Follow-ups:
-
 - Add required tool dependencies and PHP extension setup to the relevant PHP and TypeScript package manifests or container images.
 - Add configuration files for Deptrac, PHPStan, Easy Coding Standard, ESLint, Prettier, Knip, and Xdebug runtime modes.
 - Add Makefile targets for aggregate checks and tool-specific checks.
-- Wire the aggregate linting and static analysis command into CI.
 - Document local usage in the project README or a dedicated development guide.

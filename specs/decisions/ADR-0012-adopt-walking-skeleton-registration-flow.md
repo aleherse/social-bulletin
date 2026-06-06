@@ -1,11 +1,11 @@
 # ADR-0012: Adopt Walking Skeleton Registration Flow
 
-- Status: Deprecated
+- Status: Accepted
 - Date: 2026-05-25
 
 ## Context
 
-The project has decisions for a Symfony API, React web app, PostgreSQL persistence, Docker-based runtime, nginx serving, and JWT authentication. The next implementation step needs the smallest useful product behaviour that proves these layers work together without building a complete authentication product too early.
+The project has a Symfony API, React web app, PostgreSQL persistence, Docker runtime, nginx serving, and JWT authentication. It needs the smallest useful behaviour that proves these layers work together without building full authentication too early.
 
 A walking skeleton should exercise the full stack end to end:
 
@@ -16,7 +16,7 @@ A walking skeleton should exercise the full stack end to end:
 - Cookie delivery through the browser
 - Authenticated frontend state after the cookie is set
 
-This flow is intentionally not a full account, login, password, verification, profile, or session-management feature. It exists to validate vertical integration and establish the first observable user journey.
+This is not full account, login, password, verification, profile, or session management. It validates vertical integration and creates the first observable user journey.
 
 ## Decision
 
@@ -39,31 +39,18 @@ The API contract should remain intentionally small:
 - One endpoint to submit an email address and create-or-authenticate the user.
 - One endpoint to return the current authenticated user from the JWT cookie.
 
-The walking skeleton must use the existing Docker, nginx, Symfony, React, PostgreSQL, and JWT decisions. It must not introduce host-level runtime requirements, a second authentication mechanism, password handling, email verification, refresh tokens, logout, roles, or account-management screens.
+The walking skeleton must use Docker, nginx, Symfony, React, PostgreSQL, and JWT. It must not introduce host-level runtime requirements, a second authentication mechanism, password handling, email verification, refresh tokens, logout, roles, or account-management screens.
 
 ## Consequences
-
-Positive outcomes:
 
 - Proves the repository can deliver one complete browser-to-database-to-browser product slice.
 - Exercises frontend rendering, API transport, persistence, JWT creation, cookie delivery, and authenticated readback.
 - Keeps first user journey small enough to build, test, and change safely.
 - Establishes reusable seams for future authentication and account features without committing to full auth complexity now.
-
-Tradeoffs:
-
 - Email-only create-or-login is not production-grade authentication.
 - Anyone who knows an email address can obtain a token for that address until a stronger auth flow is introduced.
 - No logout, token refresh, password, verification, or account recovery behaviour exists in this skeleton.
 - Future authentication work must replace or harden this flow before any real user data is protected.
-
-Follow-ups:
-
 - Add automated tests that cover unauthenticated homepage rendering, existing-user login, new-user creation, JWT cookie issuance, and authenticated hello rendering.
 - Document the walking skeleton as a development-only or pre-production authentication flow until a stronger authentication ADR supersedes it.
 - Create a new ADR before adding passwords, magic links, OAuth, email verification, token refresh, logout, or account recovery.
-- Update `specs/features/` when this walking skeleton is implemented because it creates observable developer and user-facing behaviour.
-
-## Deprecation
-
-Deprecated on 2026-06-03 after the walking skeleton was implemented and verified. No superseding ADR exists yet; create a new ADR before replacing or hardening this development-only authentication flow.

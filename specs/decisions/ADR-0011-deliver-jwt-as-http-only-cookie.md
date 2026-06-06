@@ -5,7 +5,7 @@
 
 ## Context
 
-After successful registration (and future login), the API issues a JWT to the client. The token must be stored in the browser and transmitted automatically on subsequent requests. The choice of storage mechanism has direct security implications.
+After successful registration and future login, the API issues a JWT to the browser. Storage must limit token exposure while allowing automatic transmission on later requests.
 
 Options considered:
 - `localStorage` / `sessionStorage`: accessible to JavaScript, vulnerable to XSS.
@@ -22,7 +22,7 @@ Deliver the JWT as an `httpOnly` cookie with the following flags:
 
 The cookie name is `token`. The frontend never reads or manages the token value; it relies on the browser to transmit it automatically. The `lexik/jwt-authentication-bundle` is configured to extract the token from this cookie.
 
-Because the `Secure` cookie flag requires HTTPS, local development must provide trusted TLS certificates. Development certificates should be generated with `mkcert` (using `docker run alpine/mkcert`).
+Because the `Secure` cookie flag requires HTTPS, local development must provide trusted TLS certificates generated with `mkcert` via Docker.
 
 Existing nginx configuration must be updated to serve HTTPS with the generated TLS certificates. nginx must also listen on HTTP and redirect all HTTP requests to the equivalent HTTPS URL so browser requests consistently use the secure origin required for cookie delivery.
 
@@ -30,25 +30,17 @@ Frontend dev server must be updated to serve HTTPS with the generated TLS certif
 
 ## Consequences
 
-Positive outcomes:
-
 - Token is immune to XSS; no JavaScript can read or exfiltrate it.
 - Browser transmits the cookie automatically; no frontend token management required.
 - `SameSite=Strict` eliminates classical CSRF risk for this cookie.
 - Local development can exercise the same `Secure` cookie behaviour as production by using trusted TLS certificates.
 - HTTP-to-HTTPS redirection prevents accidental insecure local access paths where the cookie would not be sent.
-
-Tradeoffs:
-
 - `Secure` flag requires HTTPS in production; local development must use a self-signed certificate.
 - Local development requires `mkcert` installation and a generated local certificate before secure cookie flows can be tested.
 - nginx configuration must maintain both HTTPS serving and HTTP redirection paths.
 - `SameSite=Strict` may break OAuth redirect flows or cross-origin scenarios in future features; an ADR must be created to change this flag.
 - Cookie-bound tokens are not usable by non-browser API clients without custom header extraction.
-
-Follow-ups:
-
-- Generate local development certificates with `mkcert` and mount them into nginx.
+- Generate local development certificates once with `mkcert` and mount them into nginx.
 - Update existing nginx configuration to serve HTTPS and redirect HTTP traffic to HTTPS.
 - Verify `Secure` flag behaviour in the Docker development environment before production deployment.
 - Document the HTTPS requirement in the deployment checklist.

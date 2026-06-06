@@ -5,50 +5,30 @@
 
 ## Context
 
-The repository currently contains framework, agent, and specification governance files, but no application package structure yet. Before adding implementation code, the project needs a clear repository layout that can support multiple deployable applications, shared libraries, canonical specs, ADRs, and consistent standards.
-
-A monorepo would make cross-cutting changes easier to coordinate, keep specs and implementation close together, and allow shared standards for testing, linting, architecture boundaries, and documentation.
+The repository needs one layout for deployable apps, shared packages, specs, ADRs, tooling, and generated artefacts. Keeping these in one repo makes cross-cutting changes, shared standards, and architecture boundaries easier to maintain.
 
 ## Decision
 
-Adopt a monorepo structure for this project.
-
-The repository should organise code into top-level workspace areas such as:
+Adopt a monorepo with these top-level areas:
 
 - `apps/` for deployable applications
 - `packages/` for shared libraries and reusable modules
 - `specs/` as the canonical specification and decision record location
-- `docker/` if docker is installed for containers configuration files
+- `docker/` for container configuration when needed
 
-Each application or package must keep ownership boundaries explicit. Code inside `packages/` SHOULD not depend on code inside `apps/`, the opposite is truth.
+Each app or package must keep ownership boundaries explicit. Shared packages must not depend on deployable apps.
 
-Workspace-level commands should be introduced only when implementation code exists and should match the chosen language/runtime stack.
+Add workspace-level commands only when implementation code exists and the runtime stack is known.
 
-Executable tooling SHOULD be installed or invoked through official Docker Hub images when practical, rather than installed directly on the host. For example, PHP dependency commands should prefer the official `composer` image for Composer execution. Host-level installs may still be used when no suitable official image exists, when Docker is unavailable, or when local developer ergonomics require it.
-
-Every time a new repository artifact is added, including an application, package, tooling configuration, generated output, or runtime-specific file set, the root `.gitignore` must be reviewed and updated with sensible ignore rules for that artifact. Ignore rules should cover generated files, build outputs, caches, local environment files, editor state, and tool-specific temporary data that should not be versioned.
+When adding an app, package, tool, generated output, or runtime files, update root `.gitignore` for build output, caches, local env files, editor state, and temporary data.
 
 ## Consequences
-
-Positive outcomes:
 
 - Enables multiple apps and shared packages under one governed repo.
 - Keeps specs, ADRs, and implementation decisions visible in one place.
 - Supports consistent CI, linting, testing, and dependency policy.
-- Reduces duplicated setup across future applications.
 - Reduces host-machine tooling drift by preferring official containerized executables.
-
-Tradeoffs:
-
 - Requires clear package ownership to avoid accidental coupling.
 - CI must be scoped carefully as project size grows.
-- Workspace command conventions should be deferred until first real application/runtime is known.
 - Docker availability becomes more important for consistent local and CI tooling workflows.
-- Each new artifact introduces a small maintenance step to keep repository hygiene explicit in the root `.gitignore`.
-
-Follow-ups:
-
-- Define initial workspace layout when first app/package is added.
-- Add workspace-level lint/test/build commands once runtime stack is selected.
-- Review and extend the root `.gitignore` whenever a new app, package, tool, artifact or ADR specification is created.
-- Update `specs/features/` when repo structure creates observable developer workflow behaviour.
+- New artefacts require `.gitignore` review.

@@ -5,7 +5,7 @@
 
 ## Context
 
-The web application (ADR-0006) has no design system. UI components are rendered as unstyled raw HTML elements with no shared colour palette, typography scale, spacing system, or accessible component library. As product features grow, building consistent and accessible UI without a component library becomes expensive, error-prone, and inconsistent.
+The web app needs a shared design system. Raw HTML with no colour palette, typography scale, spacing system, or accessible component primitives will become inconsistent and costly as product features grow.
 
 The project needs a design system that:
 
@@ -29,27 +29,13 @@ UI components across the application SHALL prefer shadcn/ui primitives and compo
 
 ## Consequences
 
-Positive outcomes:
-
 - Provides accessible component primitives while keeping implementation code visible and editable in the repository.
 - Centralised CSS variables make brand colour, typography, radius, and dark-mode decisions explicit.
 - Tailwind utility classes and semantic tokens support custom visual design.
 - Generated source components can be adapted to project needs through normal code review instead of opaque package overrides.
 - shadcn/ui's Radix-based composition patterns improve accessibility for dialogs, menus, selects, tabs, and related primitives.
-
-Tradeoffs:
-
 - shadcn/ui adds Tailwind CSS and a global CSS token file, so the project must enforce discipline to avoid feature-level global styling.
 - Components are copied into the repository, so upstream updates require deliberate CLI-driven review rather than automatic package upgrades.
 - Tailwind utility classes can become noisy if product components are not kept small and composed carefully.
 - Accessibility defaults depend on correct component composition; misusing primitives can still create inaccessible UI.
 - The project must establish linting and review conventions for semantic tokens, component placement, and Tailwind class usage.
-
-Follow-ups:
-
-- Initialise shadcn/ui in the web application when the first styled frontend implementation begins.
-- Configure Tailwind CSS and the shadcn/ui theme variables in the web application's existing global stylesheet entrypoint.
-- Place generated shared primitives under the FSD shared UI area and expose them through a clear public API.
-- Define final brand tokens once visual identity is confirmed; replace placeholder theme defaults.
-- Add frontend linting or review rules that prefer installed shadcn/ui primitives over raw HTML where applicable.
-- Establish a process for reviewing shadcn/ui upstream component updates with CLI diff or dry-run output before applying changes.
