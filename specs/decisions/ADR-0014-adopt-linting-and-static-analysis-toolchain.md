@@ -36,7 +36,15 @@ Configure Easy Coding Standard with sensible Symfony/PHP defaults. Easy Coding S
 
 Use **xdebug** for PHP debugging and coverage instrumentation.
 
-Xdebug is the canonical PHP runtime extension for step debugging and coverage collection. It should be available in development and test containers via `xdebug.start_with_request=trigger`.
+Xdebug is the canonical PHP runtime extension for step debugging, coverage collection, and profiling. It should be available in development and test containers with this runtime configuration:
+
+```ini
+xdebug.mode=debug,coverage,profile
+xdebug.start_with_request=trigger
+xdebug.client_host = ${XDEBUG_REMOTE_HOST}
+xdebug.client_port = ${XDEBUG_REMOTE_PORT}
+xdebug.output_dir =  ${XDEBUG_DIR}
+```
 
 PHP tool dependencies must be declared in the relevant Composer manifests or container images. At minimum, PHP packages that participate in the backend quality gate must have access to `deptrac/deptrac`, `phpstan/phpstan`, `symplify/easy-coding-standard`, and the `xdebug` extension in development or test runtime images.
 

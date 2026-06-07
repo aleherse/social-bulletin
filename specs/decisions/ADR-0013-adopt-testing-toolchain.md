@@ -23,6 +23,8 @@ Use **PHPSpec** for unit tests in the `core` package.
 
 PHPSpec encourages behaviour-first specification of PHP objects. It is well-suited to the domain layer because `core` has no framework dependency and all behaviour is expressed through PHP classes with explicit collaborators.
 
+Add `php-unit` entry to Makefile.
+
 ### Backend — `apps/api`
 
 Use **Behat** with the **friends-of-behat/symfony-extension** for integration and end-to-end tests in the `api` package.
@@ -35,6 +37,8 @@ Behat scenarios describe observable API behaviour in plain language. The Symfony
 Install **mtdowling/jmespath.php**, create a `JmespathContext.php` Behat context file and use it to add generic `Then` steps that check response data.
 
 All scenario `Given` steps must create state through already implemented application code. They must not write directly to database tables with raw SQL or DBAL inserts that bypass the application boundary. If required setup cannot be expressed through existing code, implement the missing application capability first or keep the scenario smaller.
+
+Add `api-tests` entry to Makefile.
 
 ### Fixtures Strategy
 
@@ -93,6 +97,8 @@ Use the following toolchain for the React frontend:
 - **Playwright** for end-to-end journeys that run against the real API.
 
 Playwright scenarios restore the database snapshot via the same DSLR mechanism before each test so the frontend E2E suite operates against a known, consistent system state.
+
+Add `web-unit` (Vitest), `web-e2e` (Playwright) and `web-e2e-ui` (Playwright UI) entries to Makefile.
 
 ## Consequences
 

@@ -9,11 +9,17 @@ The project needs a browser-facing web app that compiles quickly, is served as s
 
 ## Decision
 
-Adopt React for the web application's UI layer.
-
-Adopt Vite as the frontend build tool and Vitest-compatible project foundation because it provides fast TypeScript and React builds with a small configuration surface. Use `public` folder for static assets copied as-is into the build output (including main entry point `index.html`). Vite's development server is enabled with `server.host: true` so the container can accept connections from the host. The `dev-web` Makefile target starts the Vite dev server with hot-module replacement on port 3000 by publishing the container port to the host. The `DEV_ALLOWED_HOST` environment variable controls Vite's `server.allowedHosts` so the dev server accepts requests arriving under a custom local hostname, defaulting to `FRONTEND_URL`, without hardcoding it in the configuration file.
-
 Adopt npm as the package manager for the web application. npm commands must run through the Docker Compose Node service and root Makefile targets, not through a required host-level Node.js installation. The Node tooling image should install the latest stable npm during image build so local and CI package-manager behaviour does not depend on the npm version bundled with the base Node image.
+
+Adopt Vite as the frontend build tool and Vitest-compatible project foundation because it provides fast TypeScript and React builds with a small configuration surface.
+
+Create the web application with npm using the latest stable Vite scaffolder and the React TypeScript template. The command form is:
+
+```sh
+npm create vite@latest apps/web -- --template react-ts
+```
+
+Vite's development server is enabled with `server.host: true` so the container can accept connections from the host. The `dev-web` Makefile target starts the Vite dev server with hot-module replacement on port 3000 by publishing the container port to the host. The `DEV_ALLOWED_HOST` environment variable controls Vite's `server.allowedHosts` so the dev server accepts requests arriving under a custom local hostname, defaulting to `FRONTEND_URL`, without hardcoding it in the configuration file.
 
 The compiled React application must be served in local development by nginx at `FRONTEND_URL`, mapped to `127.0.0.1` in `/etc/hosts`. nginx serves the Vite build output as static files. The Vite dev server remains available through `make dev-web` for hot-module replacement.
 
@@ -23,7 +29,7 @@ Install and use `@tanstack/react-query` for server state and data fetching.
 
 ## Consequences
 
-- Provides a standard browser UI foundation under the monorepo application boundary.
+- Provides a standard browser UI foundation scaffolded from the latest stable Vite React TypeScript template under the monorepo application boundary.
 - Keeps frontend dependency installation, tests, and builds reproducible through Docker Compose.
 - Gives future frontend work a clear source organisation model without adding premature empty structure.
 - Keeps the web application as an adapter boundary, separate from API and core package code.

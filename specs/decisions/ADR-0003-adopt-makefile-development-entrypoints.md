@@ -15,16 +15,17 @@ The `Makefile` provides stable targets for common workflows and delegates execut
 
 The initial command surface should include:
 
+- `make help` to list supported targets and their purpose (SHOULD discover targets at runtime).
 - `make init` to prepare the local development environment, including starting required containers, database services, and other infrastructure, and ensuring default local environment variables are available from versioned templates.
-- `make tests` to run the full automated test suite through all configured test tools.
+- `make buid` to install all the package managers dependencies.
 - `make up` to start the development stack without building containers.
 - `make down` to stop the development stack.
+- `make ps` to list running containers.
 - `make logs` to inspect all service logs or a specific service.
 - `make shell` or service-specific shell targets for interactive container access.
+- `make tests` to run the full automated test suite through all configured test tools.
 - `make clean` for safe removal of recreated local artefacts and dependencies.
-- `make help` to list supported targets and their purpose.
 - `make destroy` to delete all containers and artefacts.
-- `make ps` to list running containers.
 
 Targets should stay thin and intention-revealing. If a command becomes complex, the Makefile may delegate to versioned scripts, but the Makefile remains the primary public interface for local developer workflows.
 

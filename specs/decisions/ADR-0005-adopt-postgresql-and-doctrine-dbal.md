@@ -9,7 +9,7 @@ The API needs a relational database foundation for persistence adapters. Databas
 PostgreSQL is a mature relational database with strong transactional guarantees, broad operational support, and good compatibility with Doctrine DBAL. The latest stable PostgreSQL major release should be pinned explicitly in Docker Compose so local development is reproducible and does not drift through floating tags.
 
 ## Decision
-Adopt PostgreSQL 18 for the local development database using the `postgres:18-alpine` container image.
+Adopt the latest stable release of PostgreSQL for the local development database using the `postgres:18-alpine` container image.
 
 Install Doctrine DBAL in the Symfony API application and configure its connection through DoctrineBundle using `DATABASE_URL`.
 

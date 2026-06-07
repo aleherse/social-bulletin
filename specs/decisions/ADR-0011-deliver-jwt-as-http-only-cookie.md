@@ -22,7 +22,18 @@ Deliver the JWT as an `httpOnly` cookie with the following flags:
 
 The cookie name is `token`. The frontend never reads or manages the token value; it relies on the browser to transmit it automatically. The `lexik/jwt-authentication-bundle` is configured to extract the token from this cookie.
 
-Because the `Secure` cookie flag requires HTTPS, local development must provide trusted TLS certificates generated with `mkcert` via Docker.
+Because the `Secure` cookie flag requires HTTPS, local development must provide trusted TLS certificates generated via one-off Docker execution of mkcert with the certificate volume mounted as `/app`, `/app` as the working directory, and `CAROOT=/app` so the local certificate authority and generated certificates are written into the mounted volume.
+
+Run certificate generation with the host user's UID and GID so generated files remain writable by the developer on the host:
+
+```sh
+docker run --rm \
+  --volume <volume>:/app \
+  --workdir /app \
+  --env "CAROOT=/app" \
+  --user "$(id -u):$(id -g)" \
+  API_URL FRONTEND_URL
+```
 
 Existing nginx configuration must be updated to serve HTTPS with the generated TLS certificates. nginx must also listen on HTTP and redirect all HTTP requests to the equivalent HTTPS URL so browser requests consistently use the secure origin required for cookie delivery.
 
@@ -36,7 +47,8 @@ Frontend dev server must be updated to serve HTTPS with the generated TLS certif
 - Local development can exercise the same `Secure` cookie behaviour as production by using trusted TLS certificates.
 - HTTP-to-HTTPS redirection prevents accidental insecure local access paths where the cookie would not be sent.
 - `Secure` flag requires HTTPS in production; local development must use a self-signed certificate.
-- Local development requires `mkcert` installation and a generated local certificate before secure cookie flows can be tested.
+- Local development requires one-off mkcert execution through Docker and a generated local certificate before secure cookie flows can be tested.
+- Generated TLS files must be owned by the host developer user to avoid root-owned certificate files in mounted volumes.
 - nginx configuration must maintain both HTTPS serving and HTTP redirection paths.
 - `SameSite=Strict` may break OAuth redirect flows or cross-origin scenarios in future features; an ADR must be created to change this flag.
 - Cookie-bound tokens are not usable by non-browser API clients without custom header extraction.

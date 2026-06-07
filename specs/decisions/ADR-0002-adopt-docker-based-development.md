@@ -27,6 +27,8 @@ The local stack uses one shared nginx container as public HTTP(S) entrypoint. Ap
 
 Container processes must run as the host user's UID and GID so that files created inside a container are owned by the host user. This must be achieved by passing the host user identity into containers at runtime (e.g. via `user: "${UID}:${GID}"` in the compose service or equivalent), not by mapping files as root and relying on post-hoc permission fixes. Images must be built to support non-root execution where this is required.
 
+A git ignored compose override file should exist so developers could personalise ports and environment variables.
+
 ## Consequences
 
 - Makes local development reproducible across machines.

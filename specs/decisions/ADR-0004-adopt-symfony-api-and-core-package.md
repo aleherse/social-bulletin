@@ -13,7 +13,13 @@ API contracts must be machine-readable from controllers without a separate docum
 
 ## Decision
 
-Adopt a minimal Symfony 7.4 API application under `apps/api` and a separate framework-free core package under `packages/core`.
+Adopt a minimal Symfony application under `apps/api` and a separate framework-free core package under `packages/core`.
+
+Create the Symfony application with Composer using the Symfony Skeleton package pinned to the latest stable Symfony release branch:
+
+```sh
+composer create-project symfony/skeleton:"7.4.x-dev" apps/api
+```
 
 The Symfony application owns HTTP controllers, framework configuration, public runtime files, and API-level tests. The core package owns future domain and application code and must not depend on Symfony, HTTP, containers, or application-specific infrastructure.
 
@@ -36,7 +42,7 @@ A `make console` target must be added to the root Makefile to execute Symfony co
 
 ## Consequences
 
-- Provides an executable API foundation without requiring host PHP or Composer.
+- Provides an executable API foundation created from the Symfony Skeleton distribution for the selected stable Symfony branch without requiring host PHP or Composer.
 - Uses the official Composer image as the source of the Composer binary, reducing custom installer logic in the PHP Dockerfile.
 - Keeps framework glue isolated from future business rules.
 - Makes API and core test boundaries explicit from the first runtime commit.

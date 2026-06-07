@@ -15,6 +15,7 @@ Adopt a monorepo with these top-level areas:
 - `packages/` for shared libraries and reusable modules
 - `specs/` as the canonical specification and decision record location
 - `docker/` for container configuration when needed
+- `deploy/` for deployment scripts
 
 Each app or package must keep ownership boundaries explicit. Shared packages must not depend on deployable apps.
 
