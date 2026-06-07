@@ -22,15 +22,11 @@ Add these hosts to your machine's hosts file:
 127.0.0.1 api.bulletin.local app.bulletin.local
 ```
 
-Linux certificate trust:
-
-```sh
-docker compose run --rm mkcert mkcert -install
-```
-
 Windows certificate trust:
 
-Run the same command from a shell with access to Docker Desktop. If the browser still does not trust the certificate, import the generated mkcert root certificate into the Windows Trusted Root Certification Authorities store.
+```shell
+certutil.exe -user -addstore root '\\wsl$\Ubuntu\home\<user>\<path-to-repository>\docker\nginx\certs\ca\rootCA.pem'
+```
 
 ## API Localisation
 

@@ -1,6 +1,6 @@
 services:
   SocialBulletin\Api\Tests\Behat\:
-    resource: '../features/bootstrap/'
+    resource: '../tests/Behat'
     autowire: true
     autoconfigure: true
     tags:

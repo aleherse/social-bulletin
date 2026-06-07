@@ -3,7 +3,7 @@
   "type": "library",
   "license": "proprietary",
   "require": {
-    "php": "^8.2",
+    "php": "^8.4",
     "symfony/translation-contracts": "^3.7"
   },
   "autoload": {
@@ -20,6 +20,6 @@
     "sort-packages": true
   },
   "require-dev": {
-    "phpspec/phpspec": "^7"
+    "phpspec/phpspec": "^8"
   }
 }

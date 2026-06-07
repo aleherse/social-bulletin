@@ -12,3 +12,6 @@ default:
       kernel:
         class: SocialBulletin\Api\Kernel
         environment: test
+  gherkin:
+    filters:
+      tags: ~@fixtures
