@@ -4,16 +4,96 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  checks:
+  quality-gate:
+    name: Checks and tests
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP_ENV: test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Initialise stack
-        run: make init
+      - name: Detect UID and GID
+        run: |
+          echo "UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "GID=$(id -g)" >> "$GITHUB_ENV"
 
-      - name: Run tests
-        run: make tests
+      - name: Show Docker versions
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Build containers
+        run: docker compose build
+
+      - name: Install dependencies
+        run: |
+          cp --update=none .env .env.local
+          cp --update=none apps/api/.env apps/api/.env.local
+          docker compose run --rm --workdir /workspace/apps/api api composer install
+          docker compose run --rm --workdir /workspace/packages/core api composer install
+          docker compose run --rm --workdir /workspace/apps/web web npm install
+          docker compose run --rm --workdir /workspace/apps/web web npm run build
+          docker compose run --rm --workdir /workspace/deploy/aws web npm install
+
+      - name: Prepare test database snapshot
+        run: |
+          docker compose run --rm api php bin/console doctrine:database:drop --if-exists --force
+          docker compose run --rm api php bin/console doctrine:database:create --if-not-exists
+          docker compose run --rm api php bin/console doctrine:migrations:migrate --no-interaction
+          docker compose run --rm api vendor/bin/behat features/fixtures.feature --tags=@fixtures
+          docker compose run --rm api dslr snapshot fixtures --yes
+
+      - name: Run static checks
+        run: |
+          docker compose run --rm api vendor/bin/deptrac analyse --config-file=deptrac.yaml
+          docker compose run --rm api vendor/bin/phpstan analyse --configuration=phpstan.dist.neon
+          docker compose run --rm api vendor/bin/ecs check
+          docker compose run --rm api php bin/console lint:yaml translations
+          docker compose run --rm api php bin/console translation:extract en --force --format=yaml --domain=validators
+          docker compose run --rm web npm run typecheck
+          docker compose run --rm web npm run lint
+          docker compose run --rm web npm run knip
+          docker compose run --rm web npm run format:check
+
+      - name: Run automated tests
+        run: |
+          docker compose run --rm api vendor/bin/behat
+          docker compose run --rm --workdir /workspace/packages/core api vendor/bin/phpspec run --format=pretty
+          docker compose run --rm web npm run test:unit
+          docker compose run --rm web npm run build
+          docker compose up --detach nginx
+          docker compose run --rm playwright npx playwright test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: apps/web/test-results
+          if-no-files-found: ignore
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down --volumes --remove-orphans
