@@ -1,6 +1,8 @@
 SHELL := /bin/sh
 COMPOSE := docker compose
 SERVICE ?=
+UID := $(shell id -u)
+GID := $(shell id -g)
 
 .PHONY: help copy-env init build up down logs ps shell api-shell web-shell console db certs checks php-deptrac php-stan php-cs php-translation-lint ts-type ts-lint ts-knip ts-format hook-pre-commit hook-pre-push tests api-tests php-unit web-unit web-build web-e2e web-e2e-ui clean destroy
 
@@ -16,6 +18,7 @@ init: ## Prepare local environment and start containers
 	$(MAKE) copy-env
 	$(MAKE) certs
 	$(COMPOSE) build
+	$(COMPOSE) run --build --rm --volume .:/workspace --user $(UID):$(GID) --workdir /workspace/apps/web web npm install --loglevel=verbose
 	$(MAKE) up
 	$(MAKE) build
 	./apps/web/node_modules/lefthook-linux-x64/bin/lefthook install
@@ -67,7 +70,7 @@ db: up ## Create database, migrate, load fixtures, snapshot DB
 	$(COMPOSE) exec api dslr snapshot fixtures --yes
 
 certs: ## Generate local TLS certificates with mkcert
-	test -f docker/nginx/certs/bulletin.local.pem || docker run --volume ${PWD}/docker/nginx/certs:/app --workdir /app --env "CAROOT=/app" --user 1000:1000 alpine/mkcert -cert-file bulletin.local.pem -key-file bulletin.local-key.pem api.bulletin.local app.bulletin.local localhost 127.0.0.1
+	test -f docker/nginx/certs/bulletin.local.pem || docker run --volume ${PWD}/docker/nginx/certs:/app --workdir /app --env "CAROOT=/app" --user $(UID):$(GID) alpine/mkcert -cert-file bulletin.local.pem -key-file bulletin.local-key.pem api.bulletin.local app.bulletin.local localhost 127.0.0.1
 
 checks: up php-deptrac php-stan php-cs php-translation-lint ts-type ts-lint ts-knip ts-format ## Run all linting and static-analysis checks
 

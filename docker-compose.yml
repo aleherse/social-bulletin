@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/api/Dockerfile
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${UID}:${GID}"
     working_dir: /workspace/apps/api
     environment:
       APP_ENV: ${APP_ENV:-dev}
@@ -23,7 +23,7 @@ services:
     build:
       context: .
       dockerfile: docker/web/Dockerfile
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${UID}:${GID}"
     working_dir: /workspace/apps/web
     environment:
       DEV_ALLOWED_HOST: ${DEV_ALLOWED_HOST:-app.bulletin.local}
@@ -70,7 +70,7 @@ services:
     build:
       context: .
       dockerfile: docker/playwright/Dockerfile
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${UID}:${GID}"
     working_dir: /workspace/apps/web
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://socialbulletin:socialbulletin@postgres:5432/socialbulletin?serverVersion=18&charset=utf8}
