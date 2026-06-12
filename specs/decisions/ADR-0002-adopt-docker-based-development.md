@@ -1,7 +1,7 @@
 # ADR-0002: Adopt Docker-Based Development
 
 - Status: Accepted
-- Date: 2026-05-11
+- Date: 2026-06-12
 
 ## Context
 

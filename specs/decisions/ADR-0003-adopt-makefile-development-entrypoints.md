@@ -1,7 +1,7 @@
 # ADR-0003: Adopt Makefile Development Entrypoints
 
 - Status: Accepted
-- Date: 2026-05-11
+- Date: 2026-06-12
 
 ## Context
 

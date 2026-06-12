@@ -1,7 +1,7 @@
 # ADR-0004: Adopt Symfony API And Core Package
 
 - Status: Accepted
-- Date: 2026-05-13
+- Date: 2026-06-12
 
 ## Context
 

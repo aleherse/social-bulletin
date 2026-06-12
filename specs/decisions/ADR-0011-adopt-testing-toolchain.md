@@ -1,7 +1,7 @@
 # ADR-0011: Adopt Testing Toolchain
 
 - Status: Accepted
-- Date: 2026-05-18
+- Date: 2026-06-12
 
 ## Context
 

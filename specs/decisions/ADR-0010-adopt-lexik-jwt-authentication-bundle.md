@@ -1,7 +1,7 @@
 # ADR-0010: Adopt lexik/jwt-authentication-bundle and httpOnly Cookie JWT Delivery
 
 - Status: Accepted
-- Date: 2026-05-17
+- Date: 2026-06-12
 
 ## Context
 

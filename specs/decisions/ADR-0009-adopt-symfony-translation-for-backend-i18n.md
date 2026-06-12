@@ -1,7 +1,7 @@
 # ADR-0009: Adopt symfony/translation for Backend Internationalisation
 
 - Status: Accepted
-- Date: 2026-05-18
+- Date: 2026-06-12
 
 ## Context
 
