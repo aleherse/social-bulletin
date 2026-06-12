@@ -1,7 +1,7 @@
 # ADR-0006: Adopt React, Vite, npm, And Feature-Sliced Design
 
 - Status: Accepted
-- Date: 2026-05-14
+- Date: 2026-06-12
 
 ## Context
 

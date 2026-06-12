@@ -1,7 +1,7 @@
 # ADR-0007: Adopt shadcn/ui as the Frontend Design System
 
 - Status: Accepted
-- Date: 2026-05-16
+- Date: 2026-06-12
 
 ## Context
 

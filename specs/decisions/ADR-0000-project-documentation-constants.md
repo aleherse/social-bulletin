@@ -1,7 +1,7 @@
 # ADR-0000: Project Documentation Constants
 
 - Status: Accepted
-- Date: 2026-06-06
+- Date: 2026-06-12
 
 ## Context
 

@@ -1,7 +1,7 @@
 # ADR-0013: Adopt Walking Skeleton Registration Flow
 
 - Status: Accepted
-- Date: 2026-05-25
+- Date: 2026-06-12
 
 ## Context
 
@@ -30,8 +30,6 @@ The API contract should remain intentionally small:
 - One endpoint to submit an email address and create-or-authenticate the user.
 - One endpoint to return the current authenticated user from the JWT cookie.
 - One endpoint to clear the JWT cookie.
-
-The walking skeleton must use Docker, nginx, Symfony, React, PostgreSQL, and JWT. It must not introduce host-level runtime requirements, a second authentication mechanism, password handling, email verification, refresh tokens, logout, roles, or account-management screens.
 
 ## Consequences
 
