@@ -109,18 +109,20 @@ Treat these as steering ratios, not coverage gates.
 
 ### Frontend Defaults
 
-When the project has a frontend, prefer this default toolchain unless the repository already standardises on something else:
+When the project has a frontend, apply these test layers:
 
-- **Vitest** for unit and component-level execution.
-- **Testing Library** for behaviour-driven UI tests through accessible queries.
-- **Playwright** for browser-level end-to-end coverage.
+- **Unit tests** for pure functions, hooks, and isolated component logic with meaningful branching.
+- **Component tests** for behaviour-driven UI interaction through accessible queries.
+- **End-to-end tests** for critical user journeys, production wiring, and cross-page regressions.
 
 Frontend testing rules:
 
 - Test user-observable behaviour, not component internals.
-- Prefer Testing Library queries by role, label, and visible text before falling back to test IDs.
-- Keep Playwright focused on high-value journeys such as authentication, checkout, onboarding, critical CRUD flows, or cross-page regressions.
+- Prefer queries by role, label, and visible text before falling back to test IDs.
+- Keep end-to-end tests focused on high-value journeys such as authentication, checkout, onboarding, critical CRUD flows, or cross-page regressions.
 - Avoid large snapshot suites with low signal.
+
+Consult the project ADRs for the specific toolchain adopted for each test layer.
 
 ### Backend Defaults
 
@@ -130,6 +132,8 @@ Backend services must always include:
 - **Integration tests** for adapters, data access, transport layers, and boundary contracts.
 
 Language and framework-specific tools may vary by repository, but these expectations do not.
+
+Consult the project ADRs for the specific toolchain adopted for each package and test layer.
 
 ### Test Quality Rules
 
@@ -393,7 +397,7 @@ While executing work:
 - Testing strategy is enabled. Choose the smallest test layer that can prove the behaviour with confidence.
 - Write the failing test first when automated coverage is feasible.
 - Prefer a test pyramid with many unit tests, fewer integration tests, and only a small number of critical E2E tests.
-- Frontend code should default to Vitest for unit or component tests, Testing Library for user-facing UI behaviour, and Playwright for critical end-to-end journeys unless the repo already enforces another stack.
+- Frontend code must have unit tests, component tests, and end-to-end tests at the appropriate layer for each behaviour. Consult the project ADRs for the specific toolchain.
 - Backend code MUST include unit tests and integration tests, even when the exact framework varies by language.
 - Structure tests clearly with Given-When-Then or Arrange-Act-Assert.
 - Prefer behaviour-focused assertions through public interfaces and accessible UI queries over internal implementation checks.

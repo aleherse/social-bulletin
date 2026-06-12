@@ -31,8 +31,6 @@ The API contract should remain intentionally small:
 - One endpoint to return the current authenticated user from the JWT cookie.
 - One endpoint to clear the JWT cookie.
 
-The walking skeleton must use Docker, nginx, Symfony, React, PostgreSQL, and JWT. It must not introduce host-level runtime requirements, a second authentication mechanism, password handling, email verification, refresh tokens, logout, roles, or account-management screens.
-
 ## Consequences
 
 - Proves the main stack with one small user journey.
