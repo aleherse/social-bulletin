@@ -1,0 +1,3 @@
+database_url: "${DATABASE_URL}"
+schema: "${DATABASE_SCHEMA:-bulletin}"
+snapshots_dir: "/tmp/dslr-snapshots"

@@ -1,0 +1,26 @@
+default:
+    extensions:
+        FriendsOfBehat\SymfonyExtension:
+            bootstrap: config/bootstrap.php
+            kernel:
+                class: App\Kernel
+                environment: test
+                debug: false
+        Behat\MinkExtension:
+            base_url: 'http://localhost'
+            sessions:
+                default:
+                    symfony: ~
+
+    suites:
+        default:
+            paths:
+                - '%paths.base%/features'
+            filters:
+                tags: '~@fixtures'
+            contexts:
+                - App\Tests\Behat\FeatureContext
+
+    gherkin:
+        filters:
+            tags: '~@fixtures'

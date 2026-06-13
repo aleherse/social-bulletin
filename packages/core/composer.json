@@ -1,0 +1,28 @@
+{
+    "name": "socialbulletin/core",
+    "description": "Framework-free domain and application logic for SocialBulletin",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.3",
+        "webmozart/assert": "^1.11"
+    },
+    "require-dev": {
+        "phpspec/phpspec": "^7.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "SocialBulletin\\Core\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "spec\\": "spec/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

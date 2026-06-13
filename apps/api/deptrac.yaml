@@ -1,0 +1,49 @@
+parameters:
+    paths:
+        - ./src
+    exclude_files:
+        - '#.*test.*#i'
+    layers:
+        - name: Domain
+          collectors:
+              - type: namespace
+                regex: 'App\\Domain\\.*'
+        - name: Application
+          collectors:
+              - type: namespace
+                regex: 'App\\Application\\.*'
+        - name: Infrastructure
+          collectors:
+              - type: namespace
+                regex: 'App\\Infrastructure\\.*'
+        - name: HttpApi
+          collectors:
+              - type: namespace
+                regex: 'App\\Controller\\.*'
+        - name: Entity
+          collectors:
+              - type: namespace
+                regex: 'App\\Entity\\.*'
+        - name: Security
+          collectors:
+              - type: namespace
+                regex: 'App\\Security\\.*'
+        - name: EventListener
+          collectors:
+              - type: namespace
+                regex: 'App\\EventListener\\.*'
+    ruleset:
+        Domain: []
+        Application:
+            - Domain
+        Infrastructure:
+            - Domain
+            - Application
+        HttpApi:
+            - Application
+            - Domain
+        Security:
+            - Domain
+            - Entity
+        EventListener: []
+        Entity: []

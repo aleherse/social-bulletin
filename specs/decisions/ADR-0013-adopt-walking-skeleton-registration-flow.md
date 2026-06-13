@@ -1,7 +1,8 @@
 # ADR-0013: Adopt Walking Skeleton Registration Flow
 
-- Status: Accepted
+- Status: Deprecated
 - Date: 2026-06-12
+- Deprecated: 2026-06-13 (walking skeleton implemented; ADR fulfilled)
 
 ## Context
 

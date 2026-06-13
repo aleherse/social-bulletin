@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  php-spec:
+    name: PHPSpec
+    if: contains(github.event.pull_request.body, '- [x] PHPSpec')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build PHP image
+        run: docker compose build php
+      - name: Run PHPSpec
+        run: make php-unit
+
+  behat:
+    name: Behat
+    if: contains(github.event.pull_request.body, '- [x] Behat')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start stack
+        run: docker compose up -d --wait
+      - name: Run migrations and fixtures
+        run: make db
+      - name: Run Behat
+        run: make api-tests
+
+  vitest:
+    name: Vitest
+    if: contains(github.event.pull_request.body, '- [x] Vitest')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Node image
+        run: docker compose build node
+      - name: Run Vitest
+        run: make web-unit
+
+  playwright:
+    name: Playwright
+    if: contains(github.event.pull_request.body, '- [x] Playwright')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start stack
+        run: docker compose up -d --wait
+      - name: Run migrations and fixtures
+        run: make db
+      - name: Run Playwright
+        run: make web-e2e

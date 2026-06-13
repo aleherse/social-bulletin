@@ -1,0 +1,8 @@
+framework:
+    router:
+        default_uri: 'https://api.dev.social.aleherse.com:8000'
+
+when@prod:
+    framework:
+        router:
+            strict_requirements: null

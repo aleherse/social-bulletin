@@ -1,0 +1,17 @@
+{
+  "registration": {
+    "title": "Welcome to SocialBulletin",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "submitButton": "Continue",
+    "submitting": "Please wait..."
+  },
+  "hello": {
+    "greeting": "Hello, {{email}}!",
+    "logoutButton": "Log out"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "invalidEmail": "Please enter a valid email address."
+  }
+}

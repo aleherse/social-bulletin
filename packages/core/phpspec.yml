@@ -1,0 +1,4 @@
+suites:
+    core:
+        namespace: SocialBulletin\Core
+        src_path: src

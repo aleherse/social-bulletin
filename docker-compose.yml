@@ -1,0 +1,68 @@
+services:
+  php:
+    build:
+      context: ./docker/php
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    volumes:
+      - .:/var/www/app
+      - api_vendor:/var/www/app/apps/api/vendor
+    working_dir: /var/www/app/apps/api
+    ports:
+      - "${PHP_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: "${DATABASE_URL:-postgresql://app:app@postgres:5432/socialbulletin?serverVersion=16&charset=utf8}"
+      DATABASE_SCHEMA: "${DATABASE_SCHEMA:-bulletin}"
+      DEV_FRONT_URL: "${DEV_FRONT_URL:-https://app.dev.social.aleherse.com:3000}"
+      DEV_FRONT_URL_DOMAIN: "${DEV_FRONT_URL_DOMAIN:-app.dev.social.aleherse.com}"
+      APP_ENV: "${APP_ENV:-dev}"
+      APP_SECRET: "${APP_SECRET:-changeme}"
+      JWT_SECRET_KEY: "%kernel.project_dir%/config/jwt/private.pem"
+      JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
+      JWT_PASSPHRASE: "${JWT_PASSPHRASE:-}"
+      XDEBUG_REMOTE_HOST: "${XDEBUG_REMOTE_HOST:-host.docker.internal}"
+      XDEBUG_REMOTE_PORT: "${XDEBUG_REMOTE_PORT:-9003}"
+      XDEBUG_DIR: "${XDEBUG_DIR:-/tmp}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  node:
+    build:
+      context: ./docker/node
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    volumes:
+      - .:/var/www/app
+      - web_node_modules:/var/www/app/apps/web/node_modules
+    working_dir: /var/www/app/apps/web
+    ports:
+      - "${NODE_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: "${DEV_API_URL:-https://api.dev.social.aleherse.com:8000}"
+
+  postgres:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-socialbulletin}"
+      POSTGRES_USER: "${POSTGRES_USER:-app}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-app}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-socialbulletin}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  api_vendor:
+  web_node_modules:
+  postgres_data:

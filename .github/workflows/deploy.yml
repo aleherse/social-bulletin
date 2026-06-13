@@ -1,0 +1,46 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - live
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to live
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: infrastructure/package-lock.json
+
+      - name: Install CDK dependencies
+        run: npm ci
+        working-directory: infrastructure
+
+      - name: Build frontend
+        run: |
+          npm ci
+          npm run build
+        working-directory: apps/web
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - name: CDK deploy (live)
+        run: npx cdk deploy SocialBulletinStack-live --require-approval never
+        working-directory: infrastructure
+        env:
+          HOSTED_ZONE_ID: ${{ secrets.HOSTED_ZONE_ID }}
+          HOSTED_ZONE_NAME: ${{ secrets.HOSTED_ZONE_NAME }}

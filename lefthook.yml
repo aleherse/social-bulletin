@@ -1,0 +1,31 @@
+pre-commit:
+  parallel: true
+  commands:
+    ts-format:
+      run: docker compose run --rm --no-deps node npx prettier --check apps/web/src
+      glob: "apps/web/src/**/*.{ts,tsx}"
+    ts-lint:
+      run: docker compose run --rm --no-deps node npx eslint apps/web/src
+      glob: "apps/web/src/**/*.{ts,tsx}"
+    ts-check:
+      run: docker compose run --rm --no-deps node npx tsc --noEmit
+      glob: "apps/web/src/**/*.{ts,tsx}"
+    php-cs:
+      run: docker compose run --rm --no-deps php bash -c "cd /var/www/app/apps/api && php vendor/bin/ecs check"
+      glob: "apps/api/src/**/*.php"
+
+commit-msg:
+  commands:
+    conventional-commits:
+      run: |
+        MSG=$(cat {1})
+        echo "$MSG" | grep -qE '^(\w+-\d+ )?((feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .{1,100})' || \
+        (echo "Commit message must follow Conventional Commits format (optionally prefixed with task-tool ID like PROJ-123)" && exit 1)
+
+pre-push:
+  parallel: true
+  commands:
+    php-unit:
+      run: docker compose run --rm --no-deps php bash -c "cd /var/www/app/packages/core && php vendor/bin/phpspec run --no-interaction"
+    ts-check:
+      run: docker compose run --rm --no-deps node npx tsc --noEmit

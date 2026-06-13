@@ -1,0 +1,27 @@
+services:
+  php:
+    environment:
+      # Match your host UID/GID to avoid file ownership issues
+      # UID: 1000
+      # GID: 1000
+      # Xdebug — set to your host IP or use host.docker.internal
+      XDEBUG_REMOTE_HOST: host.docker.internal
+      XDEBUG_REMOTE_PORT: 9003
+      XDEBUG_DIR: /tmp/xdebug
+      # Override app secret for local development
+      APP_SECRET: local-dev-secret-change-me
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: app
+
+  # Uncomment to expose different host ports
+  # php:
+  #   ports:
+  #     - "8080:8000"
+  # node:
+  #   ports:
+  #     - "3001:3000"
+  # postgres:
+  #   ports:
+  #     - "5433:5432"

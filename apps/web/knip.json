@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": [
+    "src/app/main.tsx",
+    "src/app/App.tsx",
+    "vite.config.ts",
+    "eslint.config.js",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "e2e/**/*.{ts,tsx}"],
+  "ignore": ["src/components/ui/**", "src/lib/**"],
+  "ignoreDependencies": ["@types/node"]
+}
