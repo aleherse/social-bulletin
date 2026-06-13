@@ -1,0 +1,8 @@
+doctrine_migrations:
+  migrations_paths:
+    'SocialBulletin\Api\Migrations': '%kernel.project_dir%/migrations'
+  enable_profiler: false
+  all_or_nothing: true
+  storage:
+    table_storage:
+      table_name: 'bulletin.doctrine_migration_versions'

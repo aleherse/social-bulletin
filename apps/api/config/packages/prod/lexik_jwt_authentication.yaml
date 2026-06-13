@@ -1,0 +1,8 @@
+lexik_jwt_authentication:
+  set_cookies:
+    token:
+      lifetime: 3600
+      samesite: strict
+      path: /
+      secure: true
+      httpOnly: true

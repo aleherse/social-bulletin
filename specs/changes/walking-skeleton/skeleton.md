@@ -1,0 +1,40 @@
+# Walking Skeleton tasks:
+
+- [x] [T01] [ADR-0000] Add versioned environment templates and documentation comments that expose project constants for local setup.
+- [x] [T02] [ADR-0001] Create monorepo directories `apps/`, `packages/`, `docker/`, `infrastructure/`, and `scripts/`.
+- [x] [T03] [ADR-0001] Update root `.gitignore` for apps, packages, dependency directories, build outputs, generated secrets, local environment files, caches, and compose overrides.
+- [x] [T04] [ADR-0002] Add Docker Compose services for nginx, PHP API, Node web, PostgreSQL, and shared project network/volumes.
+- [x] [T05] [ADR-0002] Add Dockerfiles and entrypoints for PHP and Node containers with dependency install and non-root ownership handling via `gosu`.
+- [x] [T06] [ADR-0010] Add local HTTPS certificate and JWT key generation paths to container setup and ignore generated certificate/key artefacts.
+- [x] [T07] [ADR-0003] Add root `Makefile` with discoverable `help`, `init`, `buid`, `build`, `up`, `down`, `ps`, `logs`, `shell`, `clean`, and `destroy` targets.
+- [x] [T08] [ADR-0004] Add `make console` for Symfony console commands inside the API container.
+- [x] [T09] [ADR-0011] Add `make php-unit`, `api-tests`, `web-unit`, `web-e2e`, and `web-e2e-ui` test targets.
+- [x] [T10] [ADR-0012] Add Make targets for all lint/static checks, Deptrac, PHPStan, Easy Coding Standard, TypeScript typecheck, ESLint, Prettier, and Knip.
+- [x] [T11] [ADR-0014] Add hook-safe Make targets for Lefthook pre-commit and pre-push checks using `docker compose run --rm`.
+- [x] [T12] [ADR-0004] Create minimal Symfony LTS API application structure under `apps/api` with Composer metadata and public entrypoint.
+- [x] [T13] [ADR-0004] Create framework-free `packages/core` PHP package with Composer metadata and namespace `SocialBulletin`.
+- [x] [T14] [ADR-0005] Configure Doctrine DBAL and migrations to use PostgreSQL schema `bulletin` via environment variable.
+- [x] [T15] [ADR-0006] Create React Vite TypeScript app under `apps/web` with npm metadata and Vite HTTPS dev server on port 3000.
+- [x] [T16] [ADR-0006] Add initial Feature-Sliced Design structure only for layers required by the walking skeleton.
+- [x] [T17] [ADR-0007] Initialise shadcn-compatible Tailwind setup, semantic CSS variables, and shared UI primitive location.
+- [x] [T18] [ADR-0008] Add frontend i18n adapter, provider, locale files, and shared public API for translation usage.
+- [x] [T19] [ADR-0009] Add backend translation catalogues, locale negotiation listener, and core dependency on translation contracts only.
+- [x] [T20] [ADR-0010] Configure stateless JWT cookie authentication using httpOnly `token` cookie and disabled Authorization header extraction.
+- [x] [T21] [ADR-0013] Add core user registration/authentication use cases for email-only create-or-login, current user lookup, and logout intent.
+- [x] [T22] [ADR-0013] Add database migration for users table in PostgreSQL schema `bulletin`.
+- [x] [T23] [ADR-0013] Add API endpoints for email create-or-login, current authenticated user, and logout cookie clearing.
+- [x] [T24] [ADR-0013] Add frontend homepage flow that checks current user, renders email form when anonymous, greets authenticated user, and supports logout.
+- [x] [T25] [ADR-0004] Configure JSON structured logging to `stderr`, CORS for `api.dev.social.aleherse.com` callers from `app.dev.social.aleherse.com`, and OpenAPI JSON route.
+- [x] [T26] [ADR-0012] Add PHP static analysis, dependency analysis, coding-standard, and xdebug configuration files.
+- [x] [T27] [ADR-0012] Add TypeScript ESLint, Prettier, Knip, TypeScript, and editor configuration files.
+- [x] [T28] [ADR-0011] Add PHPSpec tests for core registration/authentication behaviour.
+- [x] [T29] [ADR-0011] Add Behat API feature tests, fixture feature, `behat.yml.dist`, JMESPath assertions, and DSLR snapshot restore hooks.
+- [x] [T30] [ADR-0011] Add Vitest and Testing Library tests for frontend registration/authenticated/logout states.
+- [x] [T31] [ADR-0011] Add Playwright E2E journey for create-or-login, current-user readback, and logout against the real API.
+- [x] [T32] [ADR-0014] Add Lefthook config, Conventional Commit message validation, pull request template, and optional PR-check GitHub Actions workflow.
+- [x] [T33] [ADR-0015] Add AWS CDK infrastructure skeleton for live and preview environments, CloudFront/S3 frontend, Bref API, console Lambda, Aurora Serverless v2, Route53/ACM, and SSM paths.
+- [x] [T34] [ADR-0015] Add GitHub Actions deployment workflow triggered on merge into `live`.
+- [x] [T35] [ADR-0013] Update canonical feature specs for the registration walking skeleton observable behaviour.
+- [x] [T36] [ADR-0007] Add or update `specs/ui/style-guide.md` with detected Tailwind/shadcn tokens and interaction states.
+- [x] [T37] [ADR-0013] Remove superfluous generated placeholder code and unused files from apps/packages.
+- [x] [T38] [ADR-0013] Deprecate ADR-0013 without superseding after the walking skeleton is complete.

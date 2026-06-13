@@ -1,7 +1,9 @@
 # ADR-0013: Adopt Walking Skeleton Registration Flow
 
-- Status: Accepted
+- Status: Deprecated
 - Date: 2026-05-25
+- Deprecated: 2026-06-12
+- Superseded by: None
 
 ## Context
 
@@ -35,6 +37,8 @@ The walking skeleton must use Docker, nginx, Symfony, React, PostgreSQL, and JWT
 
 ## Consequences
 
+- Deprecated after the walking skeleton was implemented; keep this ADR as the historical decision that drove the initial slice.
+- No superseding ADR exists because this decision describes a completed delivery scaffold rather than a continuing architectural direction.
 - Proves the main stack with one small user journey.
 - Supports email-only create-or-login, current-user readback, and logout.
 - Keeps the API surface intentionally small.

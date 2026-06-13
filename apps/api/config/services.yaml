@@ -1,0 +1,24 @@
+parameters:
+  app.default_locale: 'en'
+  app.supported_locales: ['en']
+
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  SocialBulletin\Api\:
+    resource: '../src/'
+
+  SocialBulletin\Core\:
+    resource: '../../../packages/core/src/'
+
+  SocialBulletin\Api\EventListener\LocaleListener:
+    arguments:
+      $supportedLocales: '%app.supported_locales%'
+      $fallbackLocale: '%app.default_locale%'
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }
+
+  SocialBulletin\Core\UserRepository:
+    alias: SocialBulletin\Api\Repository\DbalUserRepository

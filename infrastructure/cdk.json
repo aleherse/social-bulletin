@@ -1,0 +1,15 @@
+{
+  "app": "node --loader ts-node/esm bin/socialbulletin.ts",
+  "context": {
+    "environments": {
+      "live": {
+        "frontHostname": "app.social.aleherse.com",
+        "apiHostname": "api.social.aleherse.com"
+      },
+      "preview": {
+        "frontHostname": "preview.app.social.aleherse.com",
+        "apiHostname": "preview.api.social.aleherse.com"
+      }
+    }
+  }
+}

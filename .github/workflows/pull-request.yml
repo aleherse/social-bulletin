@@ -1,0 +1,42 @@
+name: Pull request checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  phpspec:
+    if: contains(github.event.pull_request.body, '- [x] PHPSpec')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env
+      - run: make build
+      - run: make php-unit
+
+  behat:
+    if: contains(github.event.pull_request.body, '- [x] Behat')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env
+      - run: make init
+      - run: make api-tests
+
+  vitest:
+    if: contains(github.event.pull_request.body, '- [x] Vitest')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env
+      - run: make build
+      - run: make web-unit
+
+  playwright:
+    if: contains(github.event.pull_request.body, '- [x] Playwright')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env
+      - run: make init
+      - run: make web-e2e

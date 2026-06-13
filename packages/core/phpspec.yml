@@ -1,0 +1,6 @@
+suites:
+  core:
+    namespace: SocialBulletin\Core
+    psr4_prefix: SocialBulletin\Core
+    src_path: src
+    spec_path: .

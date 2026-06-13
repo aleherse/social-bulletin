@@ -1,0 +1,30 @@
+{
+  "name": "socialbulletin/core",
+  "type": "library",
+  "license": "proprietary",
+  "require": {
+    "php": ">=8.3",
+    "symfony/translation-contracts": "^3.5",
+    "symfony/uid": "^7.0",
+    "webmozart/assert": "^1.11"
+  },
+  "require-dev": {
+    "phpspec/phpspec": "^7.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "SocialBulletin\\Core\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "spec\\": "spec/"
+    }
+  },
+  "scripts": {
+    "phpspec": "phpspec run --format=pretty"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

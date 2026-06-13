@@ -1,0 +1,11 @@
+framework:
+  secret: '%env(APP_SECRET)%'
+  http_method_override: false
+  handle_all_throwables: true
+  session:
+    enabled: false
+  php_errors:
+    log: true
+  translator:
+    default_path: '%kernel.project_dir%/translations'
+    fallbacks: ['en']

@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/**/*.test.{ts,tsx}", "e2e/**/*.spec.ts"],
+  "ignoreIssues": {
+    "src/shared/ui/**": ["exports", "types"]
+  }
+}

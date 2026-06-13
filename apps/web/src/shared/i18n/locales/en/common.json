@@ -1,0 +1,14 @@
+{
+  "app.title": "SocialBulletin",
+  "auth.form.title": "Join SocialBulletin",
+  "auth.form.description": "Enter your email address to continue.",
+  "auth.form.emailLabel": "Email address",
+  "auth.form.emailHelp": "No password is required for this walking skeleton.",
+  "auth.form.submit": "Continue",
+  "auth.form.submitting": "Continuing…",
+  "auth.form.error": "We could not continue with that email address. Please try again.",
+  "auth.hello.title": "Hello, {{email}}",
+  "auth.hello.description": "You are signed in with a secure cookie.",
+  "auth.logout": "Log out",
+  "auth.loading": "Checking your session…"
+}

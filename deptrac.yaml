@@ -1,0 +1,28 @@
+deptrac:
+  paths:
+    - ./apps/api/src
+    - ./packages/core/src
+  layers:
+    - name: Api
+      collectors:
+        - type: classNameRegex
+          value: '/^SocialBulletin\\Api\\.*/'
+    - name: Core
+      collectors:
+        - type: classNameRegex
+          value: '/^SocialBulletin\\Core\\.*/'
+    - name: Symfony
+      collectors:
+        - type: classNameRegex
+          value: '/^Symfony\\.*/'
+    - name: Doctrine
+      collectors:
+        - type: classNameRegex
+          value: '/^Doctrine\\.*/'
+  ruleset:
+    Api:
+      - Core
+      - Symfony
+      - Doctrine
+    Core:
+      - Symfony

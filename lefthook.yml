@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: false
+  commands:
+    fast-checks:
+      run: make hook-pre-commit
+
+commit-msg:
+  commands:
+    conventional-commit:
+      run: make hook-commit-msg MSG_FILE={1}
+
+pre-push:
+  parallel: false
+  commands:
+    medium-checks:
+      run: make hook-pre-push

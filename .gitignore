@@ -88,3 +88,45 @@ http-client.private.env.json
 
 # Aircury AI Framework
 specs/changes/
+
+# Local environment
+.env
+.env.*
+!.env.example
+compose.override.yml
+docker-compose.override.yml
+
+# Dependencies
+node_modules/
+vendor/
+apps/*/node_modules/
+apps/*/vendor/
+packages/*/node_modules/
+packages/*/vendor/
+
+# Build, cache, and coverage output
+dist/
+build/
+coverage/
+.var/
+.cache/
+.vite/
+.phpunit.cache/
+.phpstan.cache/
+apps/*/var/
+apps/*/public/bundles/
+apps/*/dist/
+packages/*/build/
+packages/*/coverage/
+
+# Generated secrets and certificates
+apps/api/config/jwt/
+docker/php/certs/
+
+# Test/runtime artefacts
+playwright-report/
+test-results/
+.dslr/
+
+# Infrastructure generated output
+infrastructure/cdk.out/
