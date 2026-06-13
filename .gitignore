@@ -27,19 +27,6 @@
 .idea/**/gradle.xml
 .idea/**/libraries
 
-# Gradle and Maven with auto-import
-# When using Gradle or Maven with auto-import, you should exclude module files,
-# since they will be recreated, and may cause churn.  Uncomment if using
-# auto-import.
-# .idea/artifacts
-# .idea/compiler.xml
-# .idea/jarRepositories.xml
-# .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
-# *.iml
-# *.ipr
-
 # CMake
 cmake-build-*/
 
@@ -63,7 +50,6 @@ atlassian-ide-plugin.xml
 
 # SonarLint plugin
 .idea/sonarlint/
-# see https://community.sonarsource.com/t/is-the-file-idea-idea-idea-sonarlint-xml-intended-to-be-under-source-control/121119
 .idea/sonarlint.xml
 
 # Crashlytics plugin (for Android Studio and IntelliJ)
@@ -83,8 +69,51 @@ http-client.private.env.json
 .idea/.cache/.Apifox_Helper
 .idea/ApifoxUploaderProjectSetting.xml
 
-# Github Copilot persisted session migrations, see: https://github.com/microsoft/copilot-intellij-feedback/issues/712#issuecomment-3322062215
+# Github Copilot persisted session migrations
 .idea/**/copilot.data.migration.*.xml
 
 # Aircury AI Framework
 specs/changes/
+
+# Monorepo — runtime, build, and local env (ADR-0001)
+/vendor/
+**/vendor/
+**/node_modules/
+**/dist/
+**/build/
+**/coverage/
+**/.vite/
+**/.phpunit.cache/
+**/.phpunit.result.cache/
+**/var/cache/
+**/var/log/
+**/.env
+**/.env.local
+**/.env.*.local
+!.env.dist
+!.env.example
+
+# Docker local overrides (ADR-0002)
+docker-compose.override.yml
+
+# JWT keys (ADR-0010)
+apps/api/config/jwt/
+
+# HTTPS certificates (ADR-0010)
+docker/php/certs/*
+!docker/php/certs/.gitkeep
+
+# Database snapshots (ADR-0011)
+**/.dslr/
+**/snapshots/
+
+# CDK synth output (ADR-0015)
+infrastructure/cdk.out/
+
+# Xdebug output (ADR-0012)
+**/xdebug/
+
+# Playwright
+**/playwright-report/
+**/test-results/
+**/blob-report/

@@ -1,0 +1,37 @@
+monolog:
+    channels:
+        - deprecation
+
+when@dev:
+    monolog:
+        handlers:
+            main:
+                type: stream
+                path: php://stderr
+                level: debug
+                formatter: monolog.formatter.json
+                channels: ['!event', '!doctrine']
+
+when@test:
+    monolog:
+        handlers:
+            main:
+                type: stream
+                path: php://stderr
+                level: debug
+                formatter: monolog.formatter.json
+
+when@prod:
+    monolog:
+        handlers:
+            main:
+                type: stream
+                path: php://stderr
+                level: info
+                formatter: monolog.formatter.json
+                channels: ['!event', '!doctrine']
+            deprecation:
+                type: stream
+                channels: [deprecation]
+                path: php://stderr
+                formatter: monolog.formatter.json

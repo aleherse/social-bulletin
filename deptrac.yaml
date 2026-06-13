@@ -1,0 +1,24 @@
+parameters:
+    paths:
+        - apps/api/src
+        - packages/core/src
+    exclude_files:
+        - '#.*Test\.php#'
+
+deptrac:
+    paths:
+        - apps/api/src
+        - packages/core/src
+    layers:
+        - name: Core
+          collectors:
+              - type: className
+                regex: SocialBulletin\\Core\\
+        - name: Api
+          collectors:
+              - type: className
+                regex: App\\
+    ruleset:
+        Api:
+            - Core
+        Core: []

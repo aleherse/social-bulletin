@@ -1,0 +1,41 @@
+# Walking Skeleton tasks:
+
+- [x] [T01] [ADR-0001] Create monorepo top-level directories: `apps/`, `docker/`, `infrastructure/`, `packages/`, `scripts/`
+- [x] [T02] [ADR-0001] Extend root `.gitignore` for monorepo build output, runtime files, caches, local env, JWT keys, and certs
+- [x] [T03] [ADR-0002] Create `docker-compose.yml` with `php`, `node`, and `postgres` services on a shared network
+- [x] [T04] [ADR-0002] [ADR-0004] Create `docker/php/Dockerfile`, `entrypoint.sh` with gosu, dependency install, and Symfony CLI `CMD`
+- [x] [T05] [ADR-0002] [ADR-0006] Create `docker/node/Dockerfile`, `entrypoint.sh` with dependency install and Vite dev `CMD`
+- [x] [T06] [ADR-0002] Add `docker-compose.override.yml.example` and ensure `docker-compose.override.yml` is gitignored
+- [x] [T07] [ADR-0010] Create `docker/php/certs/` directory placeholder and gitignore generated CA certificates
+- [x] [T08] [ADR-0003] Create root `Makefile` with `help`, `init`, `build`, `up`, `down`, `ps`, `logs`, `shell`, `tests`, `clean`, `destroy` targets
+- [x] [T09] [ADR-0004] Scaffold Symfony LTS app at `apps/api` and framework-free `packages/core` Composer package
+- [x] [T10] [ADR-0004] Install Symfony packages: nelmio/api-doc-bundle, monolog-bundle, cors-bundle, symfony/uid, webmozart/assert
+- [x] [T11] [ADR-0004] Configure structured JSON Monolog to stderr, CORS for `app.dev.social.aleherse.com`, and `make console` target
+- [x] [T12] [ADR-0005] Install and configure doctrine/dbal and doctrine-migrations-bundle with `bulletin` schema
+- [x] [T13] [ADR-0006] Create React+TS Vite app at `apps/web`, configure HTTPS on port 3000 for `app.dev.social.aleherse.com`
+- [x] [T14] [ADR-0006] Install `@tanstack/react-query` and scaffold FSD layer directories in `apps/web/src`
+- [x] [T15] [ADR-0007] Initialise shadcn/ui with Tailwind CSS and add base UI primitives to `apps/web/src/shared/ui`
+- [x] [T16] [ADR-0008] Set up react-i18next with locale JSON, `I18nProvider`, and shared public API re-exporting `useTranslation`
+- [x] [T17] [ADR-0009] Configure symfony/translation with ICU YAML domains, Accept-Language listener, and core translation-contracts dependency
+- [x] [T18] [ADR-0010] Install lexik/jwt-authentication-bundle with RSA keys, httpOnly cookie auth, and HTTPS cert generation in init
+- [x] [T19] [P] [ADR-0012] Configure PHP Deptrac, PHPStan, Easy Coding Standard, and Xdebug in PHP container
+- [x] [T20] [P] [ADR-0012] Configure ESLint, Prettier, Knip, and root `.editorconfig` for frontend
+- [x] [T21] [ADR-0012] Add Makefile lint targets for all PHP and TypeScript checks
+- [x] [T22] [ADR-0013] Create users table migration and core domain/application code for email-only user create-or-login
+- [x] [T23] [ADR-0013] Implement API endpoints: POST register-or-login, GET current user, POST logout with cookie JWT delivery
+- [x] [T24] [ADR-0013] Implement frontend registration form, authenticated hello view, auth check on load, and logout link
+- [x] [T25] [ADR-0011] Set up PHPSpec in `packages/core` and add `make php-unit` target
+- [x] [T26] [ADR-0011] Set up Behat with symfony-extension, JMESPath assertions, fixtures.feature, and `make api-tests` target
+- [x] [T27] [ADR-0011] Configure DSLR snapshot workflow, `make db` sequence, and snapshot restore in Behat/Playwright
+- [x] [T28] [ADR-0011] Set up Vitest, Testing Library, Playwright, and Makefile targets `web-unit`, `web-e2e`, `web-e2e-ui`, `tests`
+- [x] [T29] [ADR-0011] Write walking skeleton tests: PHPSpec unit, Behat API, Vitest component, Playwright E2E registration flow
+- [x] [T30] [ADR-0014] Configure Lefthook with pre-commit, commit-msg, pre-push hooks and hook-safe `docker compose run --rm` Make targets
+- [x] [T31] [ADR-0014] Add PR template and GitHub Actions workflow with optional checkbox-gated CI jobs
+- [x] [T32] [ADR-0015] Scaffold AWS CDK app under `infrastructure/` with live and preview environment stacks
+- [x] [T33] [ADR-0015] Add GitHub Actions deploy workflow triggered on merge to `live` branch
+- [x] [T34] [ADR-0013] Sync `specs/features/` with walking skeleton registration flow behaviour
+- [x] [T35] Delete all installed dependencies, destroy containers, regenerate containers, reinstall dependencies, run full test suite
+- [x] [T36] Remove superfluous or dead code from generated files and run full test suite again
+- [x] [T37] [ADR-0013] Deprecate ADR-0013 without superseding
+
+**Task count: 37**

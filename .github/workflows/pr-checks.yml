@@ -1,0 +1,34 @@
+name: Optional PR checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  phpspec:
+    if: contains(github.event.pull_request.body, '- [x] PHPSpec')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make php-unit
+
+  behat:
+    if: contains(github.event.pull_request.body, '- [x] Behat')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make api-tests
+
+  vitest:
+    if: contains(github.event.pull_request.body, '- [x] Vitest')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make web-unit
+
+  playwright:
+    if: contains(github.event.pull_request.body, '- [x] Playwright')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make web-e2e

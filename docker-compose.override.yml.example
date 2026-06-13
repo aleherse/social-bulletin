@@ -1,0 +1,15 @@
+# Copy to docker-compose.override.yml and customise ports or env vars locally.
+services:
+  php:
+    ports:
+      - '443:443'
+    environment:
+      APP_ENV: dev
+
+  node:
+    ports:
+      - '3000:3000'
+
+  postgres:
+    ports:
+      - '5432:5432'

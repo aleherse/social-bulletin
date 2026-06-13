@@ -1,0 +1,2 @@
+formatter: pretty
+spec_paths: [spec]

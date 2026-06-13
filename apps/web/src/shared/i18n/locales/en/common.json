@@ -1,0 +1,7 @@
+{
+  "app.title": "SocialBulletin",
+  "auth.emailLabel": "Email address",
+  "auth.submit": "Continue",
+  "auth.logout": "Log out",
+  "hello.greeting": "Hello, {{email}}"
+}

@@ -1,0 +1,4 @@
+401:
+  unauthenticated: 'Authentication required.'
+404:
+  not_found: 'Resource not found.'

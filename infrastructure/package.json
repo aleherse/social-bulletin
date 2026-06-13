@@ -1,0 +1,16 @@
+{
+  "name": "@socialbulletin/infrastructure",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "tsc",
+    "deploy": "cdk deploy --all",
+    "synth": "cdk synth"
+  },
+  "devDependencies": {
+    "aws-cdk": "^2.1029.2",
+    "aws-cdk-lib": "^2.214.0",
+    "constructs": "^10.4.2",
+    "typescript": "^5.9.2"
+  }
+}

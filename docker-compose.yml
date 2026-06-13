@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: socialbulletin
+      POSTGRES_PASSWORD: socialbulletin
+      POSTGRES_DB: socialbulletin
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U socialbulletin']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - php_certs:/app/docker/php/certs
+    environment:
+      DATABASE_URL: postgresql://socialbulletin:socialbulletin@postgres:5432/socialbulletin?serverVersion=17&charset=utf8
+      APP_ENV: dev
+      APP_SECRET: change-me-in-local-env
+      XDEBUG_REMOTE_HOST: host.docker.internal
+      XDEBUG_REMOTE_PORT: 9003
+      XDEBUG_DIR: /app/xdebug
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  node:
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile
+    depends_on:
+      - php
+    volumes:
+      - .:/app
+      - php_certs:/app/docker/php/certs:ro
+    environment:
+      VITE_API_URL: https://api.dev.social.aleherse.com
+
+volumes:
+  postgres_data:
+  php_certs:

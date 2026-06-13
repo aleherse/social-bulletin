@@ -1,0 +1,15 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      run: make hook-pre-commit
+
+commit-msg:
+  commands:
+    conventional:
+      run: make hook-commit-msg MSG_FILE={1}
+
+pre-push:
+  commands:
+    tests:
+      run: make hook-pre-push
