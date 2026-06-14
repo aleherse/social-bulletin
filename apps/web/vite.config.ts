@@ -4,9 +4,9 @@ import tailwindcss from '@tailwindcss/vite';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 
-const certsDir = resolve(__dirname, '../../docker/php/certs');
-const certPath = resolve(certsDir, 'vite.crt');
-const keyPath = resolve(certsDir, 'vite.key');
+const certsDir = resolve(__dirname, '../../docker/certs');
+const certPath = resolve(certsDir, 'web.pem');
+const keyPath = resolve(certsDir, 'web-key.pem');
 
 const httpsConfig =
   existsSync(certPath) && existsSync(keyPath)

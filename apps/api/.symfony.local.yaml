@@ -1,0 +1,14 @@
+proxy:
+  domains:
+    - app.dev.social.aleherse.com
+
+http:
+  document_root: public/
+  passthru: index.php
+  port: 8000
+  allow_http: false
+  no_tls: false
+  use_gzip: true
+  allow_cors: true
+
+daemon: false

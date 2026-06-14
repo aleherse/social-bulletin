@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     unzip \
     gosu \
-    openssl \
     python3-pip \
     python3-full \
     libpq-dev \
@@ -20,6 +19,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+RUN curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64" \
+    && chmod +x mkcert-v*-linux-amd64 \
+    && cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert \
+    && rm mkcert-v*-linux-amd64
 
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | bash \
     && apt-get install -y symfony-cli \

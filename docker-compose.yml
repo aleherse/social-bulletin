@@ -14,6 +14,7 @@ services:
     environment:
       DATABASE_URL: "${DATABASE_URL:-postgresql://app:app@postgres:5432/socialbulletin?serverVersion=16&charset=utf8}"
       DATABASE_SCHEMA: "${DATABASE_SCHEMA:-bulletin}"
+      DEV_API_URL_DOMAIN: "${DEV_API_URL_DOMAIN:-api.dev.social.aleherse.com}"
       DEV_FRONT_URL: "${DEV_FRONT_URL:-https://app.dev.social.aleherse.com:3000}"
       DEV_FRONT_URL_DOMAIN: "${DEV_FRONT_URL_DOMAIN:-app.dev.social.aleherse.com}"
       APP_ENV: "${APP_ENV:-dev}"
@@ -44,6 +45,7 @@ services:
       - "${NODE_PORT:-3000}:3000"
     environment:
       NODE_ENV: development
+      DEV_FRONT_URL_DOMAIN: "${DEV_FRONT_URL_DOMAIN:-app.dev.social.aleherse.com}"
       VITE_API_URL: "${DEV_API_URL:-https://api.dev.social.aleherse.com:8000}"
 
   postgres:
