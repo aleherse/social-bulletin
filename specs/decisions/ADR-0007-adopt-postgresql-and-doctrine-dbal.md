@@ -1,4 +1,4 @@
-# ADR-0005: Adopt PostgreSQL And Doctrine DBAL
+# ADR-0007: Adopt PostgreSQL And Doctrine DBAL
 
 - Status: Accepted
 - Date: 2026-06-12

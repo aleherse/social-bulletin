@@ -9,9 +9,7 @@ The project needs an HTTP API and a framework-free place for domain and applicat
 
 ## Decision
 
-Symfony CLI SHALL be installed in the PHP container, Symfony CLI SHALL be configured in `CMD` to serve the main application.
-
-A minimal Symfony application SHALL be installed under `apps/api` via `symfony new apps/api --version=lts`.
+A minimal Symfony skeleton SHALL be installed under `apps/api` via `composer create-project symfony/skeleton apps/api` using the latest LTS version.
 
 and a separate framework-free PHP core package under `packages/core`.
 
@@ -26,9 +24,9 @@ These Symfony packages SHALL be installed:
 
 CORS SHALL be configured to accept connections from `DEV_FRONT_URL`.
 
-Docker PHP container `CMD` SHALL use `symfony` to serve the API entrypoint.
+Docker PHP container `CMD` SHALL execute `php-fpm`.
 
-Docker entrypoint SHALL install the dependencies if not already installed.
+Docker PHP entrypoint SHALL install the dependencies if not already installed.
 
 A `make console` target SHALL be added to execute Symfony console commands inside the API container.
 

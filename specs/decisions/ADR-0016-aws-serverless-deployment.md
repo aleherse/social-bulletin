@@ -1,4 +1,4 @@
-# ADR-0015: AWS serverless deployment
+# ADR-0016: AWS serverless deployment
 
 - Status: Accepted
 - Date: 2026-06-12

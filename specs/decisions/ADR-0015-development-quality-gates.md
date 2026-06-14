@@ -1,4 +1,4 @@
-# ADR-0014: Development quality gates
+# ADR-0015: Development quality gates
 
 - Status: Accepted
 - Date: 2026-06-12

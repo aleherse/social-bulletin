@@ -1,4 +1,4 @@
-# ADR-0011: Adopt Testing Toolchain
+# ADR-0012: Adopt Testing Toolchain
 
 - Status: Accepted
 - Date: 2026-06-12
@@ -68,9 +68,11 @@ Use the following toolchain for the React frontend:
 - **Testing Library** for component-level behaviour tests via accessible queries (role, label, visible text).
 - **Playwright** for end-to-end journeys that run against the real API.
 
-Playwright SHALL restore the snapshot before each scenario.
+A docker Playwright container SHALL be added to run the tests and finish execution.
 
 Entry `web-unit` (Vitest), `web-e2e` (Playwright) and `web-e2e-ui` (Playwright UI) SHALL be added to Makefile.
+
+Playwright tests SHALL build the frontend before execution and restore the snapshot before each scenario.
 
 ## Consequences
 

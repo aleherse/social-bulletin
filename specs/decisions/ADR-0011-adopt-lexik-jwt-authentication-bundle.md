@@ -1,4 +1,4 @@
-# ADR-0010: Adopt lexik/jwt-authentication-bundle and httpOnly Cookie JWT Delivery
+# ADR-0011: Adopt lexik/jwt-authentication-bundle and httpOnly Cookie JWT Delivery
 
 - Status: Accepted
 - Date: 2026-06-12
@@ -22,11 +22,19 @@ Deliver the JWT as an `httpOnly` cookie named `token` with these flags:
 
 The frontend never reads or manages the token value. The browser sends it automatically on same-site requests. The `Authorization` header extractor is disabled, and Lexik reads tokens only from the `token` cookie.
 
-Docker PHP entrypoint SHALL generate a CA root certificate via `symfony server:ca:install` if not generated already.
+`mkcert` SHALL be installed inside the nginx container image.
 
-Generated certificates SHALL be available with no root ownership in `docker/php/certs` and the folder added to `.gitignore`.
+The nginx entrypoint SHALL, on startup, run `mkcert -install` once and then issue a TLS certificate if it doesn't already exist:
 
-Vite development environment SHALL serve HTTPS using the generated certificate.
+- `mkcert -cert-file docker/certs/cert.pem -key-file docker/certs/cert-key.pem <DEV_TLS_HOSTNAME> localhost 127.0.0.1` for the API hostname.
+- Copy `$(mkcert -CAROOT)/rootCA.pem` to `docker/certs/`
+- Ensure files in `dockers/cert` have the right ownership
+
+Nginx configuration SHALL server HTTPS using the generated certificate and redirect HTTP to HTTPS requests.
+
+The `docker/certs/` directory SHALL be added to `.gitignore`.
+
+Vite development environment SHALL serve HTTPS using `docker/certs/cert.pem` and `docker/certs/cert-key.pem`.
 
 ## Consequences
 
@@ -34,6 +42,8 @@ Vite development environment SHALL serve HTTPS using the generated certificate.
 - Security remains stateless.
 - JWTs are stored only in an `httpOnly` cookie.
 - The frontend never reads or manages token values.
-- Local development needs generated HTTPS certificates.
+- Local development needs `mkcert` installed in the nginx container image; the Node container consumes the certificates it produces.
+- Both containers share `docker/certs/` via a bind mount so one CA root covers all local hostnames.
+- The nginx container must start (or have run its entrypoint) before Vite attempts to read the web certificate.
 - JWT keys and certificates must stay out of version control.
 - Key rotation, cookie flags, and CSRF assumptions need ongoing review.

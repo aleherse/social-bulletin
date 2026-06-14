@@ -1,4 +1,4 @@
-# ADR-0012: Adopt Linting and Static Analysis Toolchain
+# ADR-0013: Adopt Linting and Static Analysis Toolchain
 
 - Status: Accepted
 - Date: 2026-06-12

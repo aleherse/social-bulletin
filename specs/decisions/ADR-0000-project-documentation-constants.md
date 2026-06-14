@@ -20,6 +20,7 @@ Adopt these documentation constants.
 | `DATABASE_SCHEMA`   | `bulletin`                    | Default PostgreSQL schema for application-owned database objects. |
 | `DEV_API_URL`       | `api.dev.social.aleherse.com` | Local development API hostname.                                   |
 | `DEV_FRONT_URL`     | `app.dev.social.aleherse.com` | Local development frontend hostname.                              |
+| `DEV_TLS_HOSTNAME`  | `*.dev.social.aleherse.com`   | TLS certificate hostname                                          |
 | `LIVE_API_URL`      | `api.social.aleherse.com`     | Live API URL.                                                     |
 | `LIVE_FRONT_URL`    | `app.social.aleherse.com`     | Live frontend URL.                                                |
 

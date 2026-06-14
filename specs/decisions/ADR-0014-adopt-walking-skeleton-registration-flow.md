@@ -1,4 +1,4 @@
-# ADR-0013: Adopt Walking Skeleton Registration Flow
+# ADR-0014: Adopt Walking Skeleton Registration Flow
 
 - Status: Accepted
 - Date: 2026-06-12

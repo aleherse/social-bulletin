@@ -1,4 +1,4 @@
-# ADR-0008: Adopt react-i18next for Frontend Internationalisation
+# ADR-0009: Adopt react-i18next for Frontend Internationalisation
 
 - Status: Accepted
 - Date: 2026-06-12
