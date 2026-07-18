@@ -39,3 +39,7 @@ Thumbs.db
 apps/api/behat.yml
 test-results/
 playwright-report/
+
+# Claude Code generated symlinks
+/CLAUDE.md
+/.claude/skills/

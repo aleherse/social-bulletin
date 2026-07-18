@@ -1,1 +1,0 @@
-/home/aleherse/work/SocialBulletin/AGENTS.md
