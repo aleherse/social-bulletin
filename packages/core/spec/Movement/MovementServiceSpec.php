@@ -11,6 +11,7 @@ use SocialBulletin\Core\Movement\Area;
 use SocialBulletin\Core\Movement\Categories;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\Movement;
+use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementNotFound;
 use SocialBulletin\Core\Movement\MovementRepository;
 use SocialBulletin\Core\Movement\MovementStatus;
@@ -189,5 +190,64 @@ final class MovementServiceSpec extends ObjectBehavior
 
         $this->shouldThrow(MovementNotFound::class)
             ->during('authorMovement', [self::ID, self::AUTHOR_ID]);
+    }
+
+    public function it_submits_the_authors_described_draft(
+        MovementRepository $movements,
+    ): void {
+        $movement = $this->describedDraft();
+        $movements->byId(self::ID)->willReturn($movement);
+        $movements->save($movement)->shouldBeCalled();
+
+        $this->submit(self::ID, self::AUTHOR_ID)->status()->shouldBe(MovementStatus::Proposed);
+    }
+
+    public function it_refuses_to_submit_a_draft_without_a_description(
+        MovementRepository $movements,
+        TranslatorInterface $translator,
+    ): void {
+        $movement = Movement::draft(
+            self::ID,
+            self::AUTHOR_ID,
+            'Community Gardens for Everyone',
+            '',
+            'cooperative',
+            Area::Municipality,
+            'Sheffield',
+            new \DateTimeImmutable(),
+        );
+        $movements->byId(self::ID)->willReturn($movement);
+        $movements->save(Argument::any())->shouldNotBeCalled();
+        $translator->trans('movement.description.required', [], 'validators')
+            ->shouldBeCalled()->willReturn('A description is required to propose the movement.');
+
+        $this->shouldThrow(InvalidMovement::class)
+            ->during('submit', [self::ID, self::AUTHOR_ID]);
+    }
+
+    public function it_conflicts_when_submitting_a_movement_that_is_not_a_draft(
+        MovementRepository $movements,
+    ): void {
+        $movement = $this->describedDraft();
+        $movement->submit(new \DateTimeImmutable());
+        $movements->byId(self::ID)->willReturn($movement);
+        $movements->save(Argument::any())->shouldNotBeCalled();
+
+        $this->shouldThrow(MovementNotDraft::class)
+            ->during('submit', [self::ID, self::AUTHOR_ID]);
+    }
+
+    private function describedDraft(): Movement
+    {
+        return Movement::draft(
+            self::ID,
+            self::AUTHOR_ID,
+            'Community Gardens for Everyone',
+            "## Why\nGardens for all.",
+            'cooperative',
+            Area::Municipality,
+            'Sheffield',
+            new \DateTimeImmutable(),
+        );
     }
 }

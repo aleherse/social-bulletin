@@ -143,10 +143,10 @@ explanation; a second submit returns a conflict.
 
 ### Tests for User Story 2 (write first, must fail)
 
-- [ ] T024 [P] [US2] PHPSpec for `Movement::submit` (draft with
+- [X] T024 [P] [US2] PHPSpec for `Movement::submit` (draft with
       description → `proposed`; empty description rejected; non-draft
       rejected) in `packages/core/spec/Movement/MovementSpec.php`
-- [ ] T025 [P] [US2] Behat `Given` steps that create movements through
+- [X] T025 [P] [US2] Behat `Given` steps that create movements through
       application code (ADR-0015) in the Behat context under
       `apps/api/features/`, plus US2 scenarios (submit 200,
       empty-description 400, resubmit 409, another user's draft 404)
@@ -154,15 +154,15 @@ explanation; a second submit returns a conflict.
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Implement `Movement::submit()` guarding status and
+- [X] T026 [US2] Implement `Movement::submit()` guarding status and
       description (FR-006) in
       `packages/core/src/Movement/Movement.php`
-- [ ] T027 [US2] Implement `MovementService::submit` (author check +
+- [X] T027 [US2] Implement `MovementService::submit` (author check +
       persistence) in `packages/core/src/Movement/MovementService.php`
-- [ ] T028 [US2] Add `POST /api/movements/{id}/submit` mapping
+- [X] T028 [US2] Add `POST /api/movements/{id}/submit` mapping
       200/400/404/409 per contract in
       `apps/api/src/Controller/MovementController.php`
-- [ ] T029 [US2] Add the submit action and status display to the
+- [X] T029 [US2] Add the submit action and status display to the
       frontend (mutation hook in `apps/web/src/entities/movement/`,
       submit button + error message in
       `apps/web/src/features/propose-movement/`) with Vitest coverage

@@ -75,6 +75,31 @@ final readonly class MovementService
     }
 
     /**
+     * @throws MovementNotFound when unknown or owned by another user
+     * @throws MovementNotDraft when the movement already left `draft`
+     * @throws InvalidMovement  when the description is still empty
+     */
+    public function submit(string $id, string $authorId): Movement
+    {
+        $movement = $this->authorMovement($id, $authorId);
+
+        if (MovementStatus::Draft !== $movement->status()) {
+            throw new MovementNotDraft($this->trans('movement.not_draft'));
+        }
+
+        if ('' === trim($movement->description())) {
+            throw new InvalidMovement([
+                'description' => $this->trans('movement.description.required'),
+            ], $this->trans('movement.invalid'));
+        }
+
+        $movement->submit(new \DateTimeImmutable());
+        $this->movements->save($movement);
+
+        return $movement;
+    }
+
+    /**
      * @throws InvalidMovement
      */
     private function assertValidFields(

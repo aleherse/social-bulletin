@@ -39,10 +39,27 @@ final class MovementContext implements Context
         $this->createMovement($email, $title, "## Why\nBecause it matters.");
     }
 
+    #[Given(':email has a proposed movement titled :title')]
+    public function hasAProposedMovementTitled(string $email, string $title): void
+    {
+        $user = $this->userService->findOrCreateByEmail($email);
+        $this->createMovement($email, $title, "## Why\nBecause it matters.");
+        $this->movementService->submit($this->movementId($title), $user->id);
+    }
+
     #[When('I send a :method request to the movement titled :title')]
     public function iSendARequestToTheMovementTitled(string $method, string $title): void
     {
         $this->apiClient->request($method, sprintf('/api/movements/%s', $this->movementId($title)));
+    }
+
+    #[When('I submit the movement titled :title')]
+    public function iSubmitTheMovementTitled(string $title): void
+    {
+        $this->apiClient->request(
+            'POST',
+            sprintf('/api/movements/%s/submit', $this->movementId($title)),
+        );
     }
 
     #[Then('the JSON at :expression should be null')]
