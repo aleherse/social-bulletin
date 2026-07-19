@@ -237,6 +237,48 @@ final class MovementServiceSpec extends ObjectBehavior
             ->during('submit', [self::ID, self::AUTHOR_ID]);
     }
 
+    public function it_updates_the_authors_draft(
+        MovementRepository $movements,
+        Categories $categories,
+    ): void {
+        $movement = $this->describedDraft();
+        $categories->exists('animal_rights')->willReturn(true);
+        $movements->byId(self::ID)->willReturn($movement);
+        $movements->save($movement)->shouldBeCalled();
+
+        $updated = $this->update(
+            self::ID,
+            self::AUTHOR_ID,
+            'Save All the Bees',
+            'New description.',
+            'animal_rights',
+            'region',
+            'Yorkshire',
+        );
+
+        $updated->title()->shouldBe('Save All the Bees');
+        $updated->status()->shouldBe(MovementStatus::Draft);
+    }
+
+    public function it_conflicts_when_editing_a_movement_that_is_not_a_draft(
+        MovementRepository $movements,
+    ): void {
+        $movement = $this->describedDraft();
+        $movement->submit(new \DateTimeImmutable());
+        $movements->byId(self::ID)->willReturn($movement);
+        $movements->save(Argument::any())->shouldNotBeCalled();
+
+        $this->shouldThrow(MovementNotDraft::class)->during('update', [
+            self::ID,
+            self::AUTHOR_ID,
+            'Save All the Bees',
+            'New description.',
+            'cooperative',
+            'municipality',
+            'Sheffield',
+        ]);
+    }
+
     private function describedDraft(): Movement
     {
         return Movement::draft(

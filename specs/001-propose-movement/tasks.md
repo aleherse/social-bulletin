@@ -183,23 +183,23 @@ refused.
 
 ### Tests for User Story 3 (write first, must fail)
 
-- [ ] T030 [P] [US3] PHPSpec for edit behaviour (field updates allowed
+- [X] T030 [P] [US3] PHPSpec for edit behaviour (field updates allowed
       only in `draft`, same validation as creation, `updatedAt`
       touched) in `packages/core/spec/Movement/MovementSpec.php`
-- [ ] T031 [P] [US3] Behat scenarios for US3 (PATCH edits 200,
+- [X] T031 [P] [US3] Behat scenarios for US3 (PATCH edits 200,
       validation 400, non-draft 409, another user's movement 404) in
       `apps/api/features/movements.feature`
 
 ### Implementation for User Story 3
 
-- [ ] T032 [US3] Add edit methods to the `Movement` aggregate in
+- [X] T032 [US3] Add edit methods to the `Movement` aggregate in
       `packages/core/src/Movement/Movement.php`
-- [ ] T033 [US3] Implement `MovementService::update` in
+- [X] T033 [US3] Implement `MovementService::update` in
       `packages/core/src/Movement/MovementService.php`
-- [ ] T034 [US3] Add `PATCH /api/movements/{id}` mapping
+- [X] T034 [US3] Add `PATCH /api/movements/{id}` mapping
       200/400/404/409 per contract in
       `apps/api/src/Controller/MovementController.php`
-- [ ] T035 [US3] Add the edit route reusing the draft form (update
+- [X] T035 [US3] Add the edit route reusing the draft form (update
       hook in `apps/web/src/entities/movement/`, edit page in
       `apps/web/src/pages/movements/`) with Vitest coverage
 

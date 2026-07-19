@@ -14,6 +14,7 @@ vi.mock('@/entities/movement/api/client.ts', () => ({
   fetchMovement: vi.fn(),
   createMovement: vi.fn(),
   submitMovement: vi.fn(),
+  updateMovement: vi.fn(),
 }));
 
 function renderForm() {
