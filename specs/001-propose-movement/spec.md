@@ -108,8 +108,8 @@ confirming the changes persist while the movement is still a draft.
 - Area/location mismatches: a location must make sense for the chosen
   area level (for example a country for `national`, a neighbourhood
   name for `neighborhood`); `international` needs no specific location.
-- Very long titles or descriptions must be limited and the limit
-  communicated to the user.
+- Very long titles or descriptions are limited (200 and 20,000
+  characters, FR-010) and the limit is communicated to the user.
 - Two users creating movements with the same title at the same moment
   must both succeed.
 
@@ -137,15 +137,20 @@ confirming the changes persist while the movement is still a draft.
   any other transition MUST be rejected.
   Submitting a draft as `proposed` MUST be rejected while its
   description is empty.
-- **FR-007**: Only the author MUST be able to view and edit a movement
-  while it is in `draft` or `proposed`.
+- **FR-007**: Only the author MUST be able to view a movement while it
+  is in `draft` or `proposed`; editing MUST be possible only while the
+  movement is in `draft`, and only by its author.
 - **FR-008**: The system MUST validate presence of the fields required
   at each stage (title, category, area, and location from the first
-  save; description from submission onwards) and reject markdown
-  descriptions whose rendered output would execute scripts or embed
-  unsafe HTML.
+  save; description from submission onwards).
+  Markdown descriptions are stored as the author wrote them; whenever
+  the system renders one, the rendered output MUST NOT execute
+  scripts or embed raw HTML.
 - **FR-009**: The system MUST record who proposed each movement and when
   it was created and last updated.
+- **FR-010**: Titles MUST be limited to 200 characters and
+  descriptions to 20,000 characters; input beyond a limit MUST be
+  rejected with a message stating the limit.
 
 ### Key Entities
 
