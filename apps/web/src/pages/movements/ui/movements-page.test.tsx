@@ -4,7 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Movement } from '@/entities/movement';
-import { createMovement, fetchCategories, fetchMovements } from '@/entities/movement/api/client.ts';
+import {
+  createMovement,
+  fetchCategories,
+  fetchMovement,
+  fetchMovements,
+  updateMovement,
+} from '@/entities/movement/api/client.ts';
 import { ApiError } from '@/shared/api';
 import { I18nProvider } from '@/shared/i18n';
 
@@ -16,6 +22,7 @@ vi.mock('@/entities/movement/api/client.ts', () => ({
   fetchMovement: vi.fn(),
   createMovement: vi.fn(),
   submitMovement: vi.fn(),
+  updateMovement: vi.fn(),
 }));
 
 const draft: Movement = {
@@ -91,5 +98,37 @@ describe('MovementsPage', () => {
       area: 'municipality',
       location: 'Sheffield',
     });
+  });
+
+  it('edits a draft from the edit route', async () => {
+    vi.mocked(fetchMovement).mockResolvedValue(draft);
+    vi.mocked(updateMovement).mockResolvedValue({ ...draft, title: 'Save All the Bees' });
+
+    renderPage(`#/movements/${draft.id}/edit`);
+
+    const title = await screen.findByLabelText('Title');
+    expect(title).toHaveValue('Save the Bees');
+
+    await userEvent.clear(title);
+    await userEvent.type(title, 'Save All the Bees');
+    await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));
+
+    expect(vi.mocked(updateMovement).mock.calls[0]?.[0]).toBe(draft.id);
+    expect(vi.mocked(updateMovement).mock.calls[0]?.[1]).toEqual({
+      title: 'Save All the Bees',
+      description: '',
+      category: 'cooperative',
+      area: 'municipality',
+      location: 'Sheffield',
+    });
+  });
+
+  it('refuses to edit a movement that already left draft', async () => {
+    vi.mocked(fetchMovement).mockResolvedValue({ ...draft, status: 'proposed' });
+
+    renderPage(`#/movements/${draft.id}/edit`);
+
+    expect(await screen.findByText('This movement was not found.')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Title')).not.toBeInTheDocument();
   });
 });

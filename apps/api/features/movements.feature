@@ -172,3 +172,69 @@ Feature: Propose a movement
       """
     And I submit the movement titled "Save the Bees"
     Then the response status code should be 404
+
+  Scenario: Editing a draft changes its fields and keeps it a draft
+    Given "author@example.com" has a movement draft titled "Save the Bees" with a description
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I send a PATCH request to the movement titled "Save the Bees" with body:
+      """
+      {"title": "Save All the Bees", "category": "animal_rights"}
+      """
+    Then the response status code should be 200
+    And the JSON at "title" should equal "Save All the Bees"
+    And the JSON at "category" should equal "animal_rights"
+    And the JSON at "status" should equal "draft"
+
+  Scenario: Editing a draft to international clears its location
+    Given "author@example.com" has a movement draft titled "Save the Bees"
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I send a PATCH request to the movement titled "Save the Bees" with body:
+      """
+      {"area": "international", "location": null}
+      """
+    Then the response status code should be 200
+    And the JSON at "location" should be null
+
+  Scenario: Edits apply the creation validation rules
+    Given "author@example.com" has a movement draft titled "Save the Bees"
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I send a PATCH request to the movement titled "Save the Bees" with body:
+      """
+      {"title": ""}
+      """
+    Then the response status code should be 400
+    And the JSON at "errors.title" should not be empty
+
+  Scenario: A proposed movement cannot be edited
+    Given "author@example.com" has a proposed movement titled "Save the Bees"
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I send a PATCH request to the movement titled "Save the Bees" with body:
+      """
+      {"title": "Save All the Bees"}
+      """
+    Then the response status code should be 409
+    And the JSON at "message" should not be empty
+
+  Scenario: Another user's movement cannot be edited
+    Given "other@example.com" has a movement draft titled "Save the Bees"
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I send a PATCH request to the movement titled "Save the Bees" with body:
+      """
+      {"title": "Save All the Bees"}
+      """
+    Then the response status code should be 404

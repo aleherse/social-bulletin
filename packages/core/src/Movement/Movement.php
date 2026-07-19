@@ -83,6 +83,33 @@ final class Movement
     }
 
     /**
+     * FR-007: fields can only change while the movement is a `draft`.
+     *
+     * @throws MovementNotDraft when the movement already left `draft`
+     */
+    public function edit(
+        string $title,
+        string $description,
+        string $category,
+        Area $area,
+        ?string $location,
+        \DateTimeImmutable $now,
+    ): void {
+        if (MovementStatus::Draft !== $this->status) {
+            throw new MovementNotDraft('Only draft movements can be changed.');
+        }
+
+        self::assertValidFields($title, $description, $category, $area, $location);
+
+        $this->title = trim($title);
+        $this->description = $description;
+        $this->category = $category;
+        $this->area = $area;
+        $this->location = Area::International === $area ? null : trim((string) $location);
+        $this->updatedAt = $now;
+    }
+
+    /**
      * FR-006: `draft` -> `proposed`, only with a non-empty description.
      *
      * @throws MovementNotDraft when the movement already left `draft`

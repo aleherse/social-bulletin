@@ -77,6 +77,42 @@ final readonly class MovementService
     /**
      * @throws MovementNotFound when unknown or owned by another user
      * @throws MovementNotDraft when the movement already left `draft`
+     * @throws InvalidMovement  when any field fails stage validation
+     */
+    public function update(
+        string $id,
+        string $authorId,
+        string $title,
+        string $description,
+        string $category,
+        string $area,
+        ?string $location,
+    ): Movement {
+        $movement = $this->authorMovement($id, $authorId);
+
+        if (MovementStatus::Draft !== $movement->status()) {
+            throw new MovementNotDraft($this->trans('movement.not_draft'));
+        }
+
+        $this->assertValidFields($title, $description, $category, $area, $location);
+
+        $areaValue = Area::from($area);
+        $movement->edit(
+            $title,
+            $description,
+            $category,
+            $areaValue,
+            Area::International === $areaValue ? null : $location,
+            new \DateTimeImmutable(),
+        );
+        $this->movements->save($movement);
+
+        return $movement;
+    }
+
+    /**
+     * @throws MovementNotFound when unknown or owned by another user
+     * @throws MovementNotDraft when the movement already left `draft`
      * @throws InvalidMovement  when the description is still empty
      */
     public function submit(string $id, string $authorId): Movement

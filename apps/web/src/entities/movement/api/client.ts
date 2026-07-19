@@ -25,3 +25,11 @@ export function createMovement(input: MovementDraftInput): Promise<Movement> {
 export function submitMovement(id: string): Promise<Movement> {
   return apiJson<Movement>(`/api/movements/${id}/submit`, { method: 'POST' });
 }
+
+export function updateMovement(id: string, input: MovementDraftInput): Promise<Movement> {
+  return apiJson<Movement>(`/api/movements/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+}
