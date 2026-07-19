@@ -24,8 +24,9 @@ alternatives that were rejected.
 ## R2. Area storage: text column with CHECK constraint
 
 - **Decision**: `area` is a text column constrained by `CHECK` to the
-  seven values from FR-003, mirrored by a `SocialBulletin\Core\Area`
-  PHP enum and a TypeScript union type.
+  seven values from FR-003, mirrored by a
+  `SocialBulletin\Core\Movement\Area` PHP enum and a TypeScript union
+  type.
 - **Rationale**: The area list is closed and defined by the spec, not
   managed data; a constraint plus code enums keeps it in sync with
   domain logic without a join.
