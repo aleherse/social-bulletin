@@ -1,0 +1,46 @@
+// Social Bulletin database schema (PostgreSQL, schema `bulletin`).
+// Source of truth is the raw-SQL Doctrine migrations in
+// apps/api/migrations/ (ADR-0009); keep this document in sync.
+
+Project social_bulletin {
+  database_type: 'PostgreSQL'
+  Note: 'All application-owned objects live in the bulletin schema (ADR-0000)'
+}
+
+Table bulletin.users {
+  id         uuid         [pk]
+  email      varchar(320) [not null, note: 'unique on LOWER(email)']
+  created_at timestamptz  [not null]
+
+  indexes {
+    email [unique, name: 'users_email_unique', note: 'expression index on LOWER(email)']
+  }
+
+  Note: 'Email-only accounts; sessions issue a JWT cookie (ADR-0011)'
+}
+
+Table bulletin.categories {
+  id         text [pk, note: 'e.g. animal_rights, cooperative']
+  sort_order int  [not null, default: 0]
+
+  Note: 'Managed movement category list; seeded by migration'
+}
+
+Table bulletin.movements {
+  id          uuid         [pk]
+  author_id   uuid         [not null, ref: > bulletin.users.id]
+  title       varchar(200) [not null]
+  description text         [not null, default: '', note: 'raw markdown; empty allowed while draft; 20k-char limit enforced in domain']
+  category    text         [not null, ref: > bulletin.categories.id]
+  area        text         [not null, note: 'CHECK: international | national | state | province | region | municipality | neighborhood']
+  location    text         [note: 'CHECK: NULL iff area = international']
+  status      text         [not null, default: 'draft', note: 'CHECK: draft | proposed | published']
+  created_at  timestamptz  [not null]
+  updated_at  timestamptz  [not null]
+
+  indexes {
+    author_id [name: 'movements_author_idx']
+  }
+
+  Note: 'Movement proposals; draft -> proposed requires a non-empty description'
+}
