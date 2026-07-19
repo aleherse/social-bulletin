@@ -24,6 +24,18 @@ services:
     SocialBulletin\Core\UserService: ~
     SocialBulletin\Core\UserRepository: '@App\Repository\DbalUserRepository'
     SocialBulletin\Core\IdentityGenerator: '@App\Identity\UuidV7IdentityGenerator'
+    SocialBulletin\Core\Movement\MovementService: ~
+    SocialBulletin\Core\Movement\MovementRepository: '@App\Repository\DbalMovementRepository'
+    SocialBulletin\Core\Movement\Categories: '@App\Repository\DbalCategories'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true
+
+        # Shared HTTP machinery for the Behat contexts (ADR-0015).
+        App\Tests\Behat\ApiClient: ~

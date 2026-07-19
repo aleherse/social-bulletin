@@ -22,16 +22,16 @@ independently implementable and testable increment.
 **Purpose**: Database objects and schema documentation every story
 needs.
 
-- [ ] T001 Generate a Doctrine migration (via `make console` +
+- [X] T001 Generate a Doctrine migration (via `make console` +
       `doctrine:migrations:generate`) in `apps/api/migrations/` that
       creates `bulletin.categories` (seeded with `animal_rights`,
       `anti-racism`, `black_power`, `cooperative`) and
       `bulletin.movements` with the CHECK constraints and FK from
       data-model.md, raw SQL only (ADR-0009)
-- [ ] T002 [P] Create `db/schema.dbml` documenting `bulletin.users`,
+- [X] T002 [P] Create `db/schema.dbml` documenting `bulletin.users`,
       `bulletin.categories`, and `bulletin.movements` per
       data-model.md
-- [ ] T003 Rebuild the database and DSLR snapshot with `make db`;
+- [X] T003 Rebuild the database and DSLR snapshot with `make db`;
       confirm the migration applies cleanly on a fresh database
 
 ---
@@ -43,16 +43,16 @@ needs.
 **⚠️ CRITICAL**: No user story work can begin until this phase is
 complete.
 
-- [ ] T004 [P] Create `MovementStatus` enum (`draft`, `proposed`,
+- [X] T004 [P] Create `MovementStatus` enum (`draft`, `proposed`,
       `published`) in
       `packages/core/src/Movement/MovementStatus.php`
-- [ ] T005 [P] Create `Area` enum (seven FR-003 values) in
+- [X] T005 [P] Create `Area` enum (seven FR-003 values) in
       `packages/core/src/Movement/Area.php`
-- [ ] T006 [P] Create `Category` value object in
+- [X] T006 [P] Create `Category` value object in
       `packages/core/src/Movement/Category.php` and `Categories` port
       (`all()`, `exists()`) in
       `packages/core/src/Movement/Categories.php`
-- [ ] T007 [P] Create `MovementRepository` port (`save`, `byId`,
+- [X] T007 [P] Create `MovementRepository` port (`save`, `byId`,
       `byAuthor`) in
       `packages/core/src/Movement/MovementRepository.php`
 
@@ -72,15 +72,15 @@ author; invalid input and guests are rejected.
 
 ### Tests for User Story 1 (write first, must fail)
 
-- [ ] T008 [P] [US1] PHPSpec for creation rules (title required and
+- [X] T008 [P] [US1] PHPSpec for creation rules (title required and
       ≤ 200 chars, description ≤ 20,000 chars, valid category/area,
       location required unless `international`, empty description
       allowed, status starts `draft`) in
       `packages/core/spec/Movement/MovementSpec.php`
-- [ ] T009 [P] [US1] PHPSpec for `MovementService::create`
+- [X] T009 [P] [US1] PHPSpec for `MovementService::create`
       (id generation, category lookup, persistence) in
       `packages/core/spec/Movement/MovementServiceSpec.php`
-- [ ] T010 [P] [US1] Behat scenarios for US1 acceptance cases 1–5
+- [X] T010 [P] [US1] Behat scenarios for US1 acceptance cases 1–5
       (valid draft 201, empty-description draft 201, duplicate title
       coexists, missing fields 400 naming each field, guest 401) plus
       `GET /api/categories` and own-list visibility in
@@ -88,27 +88,27 @@ author; invalid input and guests are rejected.
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Implement the `Movement` aggregate (named constructor
+- [X] T011 [US1] Implement the `Movement` aggregate (named constructor
       enforcing creation rules from data-model.md) in
       `packages/core/src/Movement/Movement.php`
-- [ ] T012 [P] [US1] Add domain exceptions (`InvalidMovement`,
+- [X] T012 [P] [US1] Add domain exceptions (`InvalidMovement`,
       `MovementNotFound`) in `packages/core/src/Movement/`
-- [ ] T013 [US1] Implement `MovementService::create` using
+- [X] T013 [US1] Implement `MovementService::create` using
       `IdentityGenerator`, `Categories`, and `MovementRepository` in
       `packages/core/src/Movement/MovementService.php`
-- [ ] T014 [P] [US1] Implement `DbalCategories` adapter in
+- [X] T014 [P] [US1] Implement `DbalCategories` adapter in
       `apps/api/src/Repository/DbalCategories.php`
-- [ ] T015 [P] [US1] Implement `DbalMovementRepository` (`save`,
+- [X] T015 [P] [US1] Implement `DbalMovementRepository` (`save`,
       `byId`, `byAuthor`) in
       `apps/api/src/Repository/DbalMovementRepository.php`
-- [ ] T016 [US1] Implement `MovementController` with
+- [X] T016 [US1] Implement `MovementController` with
       `POST /api/movements`, `GET /api/movements`, and
       `GET /api/movements/{id}` mapping 201/400/401/404 per
       contracts/movements-api.md in
       `apps/api/src/Controller/MovementController.php`
-- [ ] T017 [P] [US1] Implement `GET /api/categories` in
+- [X] T017 [P] [US1] Implement `GET /api/categories` in
       `apps/api/src/Controller/CategoryController.php`
-- [ ] T018 [US1] Wire ports to adapters (service aliases if
+- [X] T018 [US1] Wire ports to adapters (service aliases if
       autowiring needs them) in `apps/api/config/services.yaml`
 - [ ] T019 [P] [US1] Add `react-markdown` to `apps/web` and create the
       `entities/movement` slice (types, TanStack Query hooks for
