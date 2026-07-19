@@ -73,9 +73,10 @@ author; invalid input and guests are rejected.
 ### Tests for User Story 1 (write first, must fail)
 
 - [ ] T008 [P] [US1] PHPSpec for creation rules (title required and
-      ≤ 200 chars, valid category/area, location required unless
-      `international`, empty description allowed, status starts
-      `draft`) in `packages/core/spec/Movement/MovementSpec.php`
+      ≤ 200 chars, description ≤ 20,000 chars, valid category/area,
+      location required unless `international`, empty description
+      allowed, status starts `draft`) in
+      `packages/core/spec/Movement/MovementSpec.php`
 - [ ] T009 [P] [US1] PHPSpec for `MovementService::create`
       (id generation, category lookup, persistence) in
       `packages/core/spec/Movement/MovementServiceSpec.php`
