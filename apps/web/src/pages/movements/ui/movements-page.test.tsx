@@ -15,6 +15,7 @@ vi.mock('@/entities/movement/api/client.ts', () => ({
   fetchMovements: vi.fn(),
   fetchMovement: vi.fn(),
   createMovement: vi.fn(),
+  submitMovement: vi.fn(),
 }));
 
 const draft: Movement = {
