@@ -109,16 +109,18 @@ specs/001-propose-movement/
 ```text
 packages/core/
 ├── src/
-│   ├── Movement.php              # Aggregate: fields + submit() rules
-│   ├── MovementStatus.php        # Enum: draft | proposed | published
-│   ├── Area.php                  # Enum: international … neighborhood
-│   ├── MovementRepository.php    # Port (save, byId, byAuthor)
-│   ├── Categories.php            # Port to read the managed list
-│   ├── MovementService.php       # Application service (create/edit/submit)
-│   └── MovementNotFound.php      # + validation exceptions as needed
+│   └── Movement/                 # SocialBulletin\Core\Movement
+│       ├── Movement.php          # Aggregate: fields + submit() rules
+│       ├── MovementStatus.php    # Enum: draft | proposed | published
+│       ├── Area.php              # Enum: international … neighborhood
+│       ├── MovementRepository.php # Port (save, byId, byAuthor)
+│       ├── Categories.php        # Port to read the managed list
+│       ├── MovementService.php   # Application service (create/edit/submit)
+│       └── MovementNotFound.php  # + validation exceptions as needed
 └── spec/
-    ├── MovementSpec.php
-    └── MovementServiceSpec.php
+    └── Movement/
+        ├── MovementSpec.php
+        └── MovementServiceSpec.php
 
 apps/api/
 ├── src/
@@ -142,9 +144,11 @@ db/
 ```
 
 **Structure Decision**: Follow the existing monorepo split (ADR-0001,
-ADR-0005): domain and application logic in `packages/core` (flat
-`SocialBulletin\Core` namespace, matching the existing `User` /
-`UserService` convention), HTTP + persistence adapters in `apps/api`,
+ADR-0005): domain and application logic in `packages/core`, grouped
+per aggregate — all Movement code lives in `src/Movement/` under the
+`SocialBulletin\Core\Movement` namespace (the existing flat `User`
+files predate this convention and are not touched by this feature),
+HTTP + persistence adapters in `apps/api`,
 and an FSD slice set in `apps/web` (`entities/movement` for the model
 and API access, `features/propose-movement` for the form behaviour,
 `pages/movements` for routing-level composition).
