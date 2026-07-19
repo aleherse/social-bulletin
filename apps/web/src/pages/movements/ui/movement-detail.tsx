@@ -1,4 +1,5 @@
 import { MovementDescription, useMovement } from '@/entities/movement';
+import { SubmitMovementButton } from '@/features/propose-movement';
 import { useTranslation } from '@/shared/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui';
 
@@ -39,6 +40,7 @@ export function MovementDetail({ id }: { id: string }) {
             {movement.data.description !== '' && (
               <MovementDescription markdown={movement.data.description} />
             )}
+            <SubmitMovementButton movement={movement.data} />
           </CardContent>
         </Card>
       )}
