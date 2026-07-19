@@ -209,15 +209,15 @@ refused.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T036 [P] Add reusable baseline movements to
+- [X] T036 [P] Add reusable baseline movements to
       `apps/api/features/fixtures.feature` (only genuinely shared
       data, ADR-0015) and refresh the snapshot with `make db`
-- [ ] T037 [P] Verify the nelmio OpenAPI JSON documents the five new
+- [X] T037 [P] Verify the nelmio OpenAPI JSON documents the five new
       endpoints; add attributes in
       `apps/api/src/Controller/` where missing
-- [ ] T038 Run `make lint` and the full `make tests` suite; fix any
+- [X] T038 Run `make lint` and the full `make tests` suite; fix any
       fallout across `packages/core`, `apps/api`, `apps/web`
-- [ ] T039 Walk through `specs/001-propose-movement/quickstart.md`
+- [X] T039 Walk through `specs/001-propose-movement/quickstart.md`
       end-to-end (browser + curl flows) and correct any drift
 
 ---
