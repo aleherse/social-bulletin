@@ -14,7 +14,52 @@
     "hello": {
       "greeting": "Hello, {{email}}!",
       "description": "You are signed in.",
+      "movements": "My movements",
       "logout": "Log out"
+    }
+  },
+  "movements": {
+    "title": "My movements",
+    "new": "New movement",
+    "empty": "You have not proposed any movements yet.",
+    "loading": "Loading…",
+    "notFound": "This movement was not found.",
+    "signInPrompt": "Sign in to propose a movement.",
+    "goHome": "Go to sign in",
+    "backToList": "Back to my movements",
+    "status": {
+      "draft": "Draft",
+      "proposed": "Proposed",
+      "published": "Published"
+    },
+    "form": {
+      "createTitle": "Propose a movement",
+      "titleLabel": "Title",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "Choose a category",
+      "areaLabel": "Area",
+      "areaPlaceholder": "Choose an area",
+      "locationLabel": "Location",
+      "locationPlaceholder": "e.g. Sheffield",
+      "descriptionLabel": "Description (markdown, optional while drafting)",
+      "save": "Save draft",
+      "required": "This field is required.",
+      "requestFailed": "Something went wrong. Please try again."
+    },
+    "area": {
+      "international": "International",
+      "national": "National",
+      "state": "State",
+      "province": "Province",
+      "region": "Region",
+      "municipality": "Municipality",
+      "neighborhood": "Neighborhood"
+    },
+    "category": {
+      "animal_rights": "Animal rights",
+      "anti-racism": "Anti-racism",
+      "black_power": "Black power",
+      "cooperative": "Cooperative"
     }
   }
 }
