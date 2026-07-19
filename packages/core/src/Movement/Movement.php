@@ -82,6 +82,26 @@ final class Movement
         );
     }
 
+    /**
+     * FR-006: `draft` -> `proposed`, only with a non-empty description.
+     *
+     * @throws MovementNotDraft when the movement already left `draft`
+     */
+    public function submit(\DateTimeImmutable $now): void
+    {
+        if (MovementStatus::Draft !== $this->status) {
+            throw new MovementNotDraft('Only draft movements can be submitted.');
+        }
+
+        Assert::stringNotEmpty(
+            trim($this->description),
+            'A description is required to propose the movement.',
+        );
+
+        $this->status = MovementStatus::Proposed;
+        $this->updatedAt = $now;
+    }
+
     public function title(): string
     {
         return $this->title;
