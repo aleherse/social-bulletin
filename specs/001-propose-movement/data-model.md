@@ -8,8 +8,8 @@
 |---------------|---------------------|-------------------------------------------------------------|
 | `id`          | string (UUID v7)    | Generated via the existing `IdentityGenerator` port         |
 | `authorId`    | string (UUID v7)    | The signed-in user who created the draft (FR-001, FR-009)   |
-| `title`       | string              | Required, non-empty, max 200 chars                          |
-| `description` | string              | May be empty while `draft`; required to submit (FR-006)     |
+| `title`       | string              | Required, non-empty, max 200 chars (FR-010)                 |
+| `description` | string              | Empty allowed in `draft`; required to submit (FR-006); max 20,000 chars (FR-010) |
 | `category`    | string              | Must exist in the managed category list (FR-002)            |
 | `area`        | `Area` enum         | One of the seven values (FR-003)                            |
 | `location`    | ?string             | Required unless area is `international`, then null (FR-004) |
@@ -92,6 +92,8 @@ Migration notes:
   above and the FK to `bulletin.users`.
 - `description` uses `NOT NULL DEFAULT ''` — "empty" means empty
   string, avoiding a null/empty ambiguity in code and SQL.
+  The 20,000-character limit (FR-010) is enforced in the domain, not
+  as a database constraint; the column stays `text`.
 - The submit rule (non-empty description when leaving `draft`) is
   domain logic, not a constraint: a draft may legitimately be empty,
   so only the transition guards it.
