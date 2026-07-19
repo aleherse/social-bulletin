@@ -110,20 +110,20 @@ author; invalid input and guests are rejected.
       `apps/api/src/Controller/CategoryController.php`
 - [X] T018 [US1] Wire ports to adapters (service aliases if
       autowiring needs them) in `apps/api/config/services.yaml`
-- [ ] T019 [P] [US1] Add `react-markdown` to `apps/web` and create the
+- [X] T019 [P] [US1] Add `react-markdown` to `apps/web` and create the
       `entities/movement` slice (types, TanStack Query hooks for
       categories/create/list/get, markdown description view) in
       `apps/web/src/entities/movement/`
-- [ ] T020 [US1] Build the draft form (category select fed by the API,
+- [X] T020 [US1] Build the draft form (category select fed by the API,
       area select, location hidden for `international`, optional
       description) in `apps/web/src/features/propose-movement/`
-- [ ] T021 [US1] Add the movements page slice (my-movements list +
+- [X] T021 [US1] Add the movements page slice (my-movements list +
       new-draft route) in `apps/web/src/pages/movements/` and wire
       routing in `apps/web/src/app/`
-- [ ] T022 [P] [US1] Add i18n strings for form, list, statuses, and
+- [X] T022 [P] [US1] Add i18n strings for form, list, statuses, and
       validation messages in
       `apps/web/src/shared/i18n/locales/en/common.json`
-- [ ] T023 [US1] Vitest tests for form validation behaviour and list
+- [X] T023 [US1] Vitest tests for form validation behaviour and list
       rendering in `apps/web/src/features/propose-movement/` and
       `apps/web/src/pages/movements/`
 
