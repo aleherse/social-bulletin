@@ -74,3 +74,12 @@ The common ones:
 
 `make setup-claude` symlinks `.agents/skills` into `.claude/skills`
 and links `CLAUDE.md` to this file.
+
+<!-- SPECKIT START -->
+## Active feature (Spec Kit)
+
+- Feature: Propose a Movement
+- Plan: [specs/001-propose-movement/plan.md](specs/001-propose-movement/plan.md)
+- Spec: [specs/001-propose-movement/spec.md](specs/001-propose-movement/spec.md)
+<!-- SPECKIT END -->
+
