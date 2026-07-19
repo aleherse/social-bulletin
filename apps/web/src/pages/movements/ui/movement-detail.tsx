@@ -15,6 +15,11 @@ export function MovementDetail({ id }: { id: string }) {
         <a className="text-sm underline" href="#/movements">
           {t('movements.backToList')}
         </a>
+        {movement.data?.status === 'draft' && (
+          <a className="text-sm underline" href={`#/movements/${id}/edit`}>
+            {t('movements.edit')}
+          </a>
+        )}
       </header>
       {movement.isPending ? (
         <p className="text-sm text-muted-foreground">{t('movements.loading')}</p>

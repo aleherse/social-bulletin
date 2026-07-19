@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { MovementDraftInput } from '../model/types.ts';
+
 import {
   createMovement,
   fetchCategories,
   fetchMovement,
   fetchMovements,
   submitMovement,
+  updateMovement,
 } from './client.ts';
 
 const movementsKey = ['movements'] as const;
@@ -41,6 +44,16 @@ export function useSubmitMovement() {
 
   return useMutation({
     mutationFn: submitMovement,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: movementsKey }),
+  });
+}
+
+export function useUpdateMovement() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: MovementDraftInput }) =>
+      updateMovement(id, input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: movementsKey }),
   });
 }
