@@ -175,6 +175,68 @@ final class MovementSpec extends ObjectBehavior
         $this->status()->shouldBe(MovementStatus::Proposed);
     }
 
+    public function it_edits_every_field_while_draft(): void
+    {
+        $editedAt = new \DateTimeImmutable('2026-07-19T13:00:00+00:00');
+
+        $this->edit(
+            'Save All the Bees',
+            'New description.',
+            'animal_rights',
+            Area::Region,
+            'Yorkshire',
+            $editedAt,
+        );
+
+        $this->title()->shouldBe('Save All the Bees');
+        $this->description()->shouldBe('New description.');
+        $this->category()->shouldBe('animal_rights');
+        $this->area()->shouldBe(Area::Region);
+        $this->location()->shouldBe('Yorkshire');
+        $this->status()->shouldBe(MovementStatus::Draft);
+        $this->updatedAt()->shouldBeLike($editedAt);
+    }
+
+    public function it_clears_the_location_when_edited_to_international(): void
+    {
+        $this->edit(
+            'Global Climate Strike',
+            '',
+            'cooperative',
+            Area::International,
+            null,
+            new \DateTimeImmutable(),
+        );
+
+        $this->location()->shouldBe(null);
+    }
+
+    public function it_applies_creation_rules_when_editing(): void
+    {
+        $this->shouldThrow(\InvalidArgumentException::class)->during('edit', [
+            '   ',
+            '',
+            'cooperative',
+            Area::Municipality,
+            'Sheffield',
+            new \DateTimeImmutable(),
+        ]);
+    }
+
+    public function it_refuses_to_edit_a_movement_that_is_not_a_draft(): void
+    {
+        $this->submit(new \DateTimeImmutable());
+
+        $this->shouldThrow(MovementNotDraft::class)->during('edit', [
+            'Save All the Bees',
+            'New description.',
+            'cooperative',
+            Area::Municipality,
+            'Sheffield',
+            new \DateTimeImmutable(),
+        ]);
+    }
+
     public function it_carries_no_location_when_international(): void
     {
         $this->beConstructedThrough('draft', [
