@@ -1,4 +1,9 @@
-import { useCreateMovement, useMovements } from '@/entities/movement';
+import {
+  useCreateMovement,
+  useMovement,
+  useMovements,
+  useUpdateMovement,
+} from '@/entities/movement';
 import type { Movement } from '@/entities/movement';
 import { MovementForm } from '@/features/propose-movement';
 import { ApiError } from '@/shared/api';
@@ -18,6 +23,7 @@ export function MovementsPage() {
       {route.view === 'list' && <MovementList />}
       {route.view === 'new' && <NewMovement />}
       {route.view === 'detail' && <MovementDetail id={route.id} />}
+      {route.view === 'edit' && <EditMovement id={route.id} />}
     </main>
   );
 }
@@ -123,6 +129,47 @@ function NewMovement() {
           createMovement.mutate(input, { onSuccess: goToMovements });
         }}
       />
+    </>
+  );
+}
+
+function EditMovement({ id }: { id: string }) {
+  const { t } = useTranslation();
+  const movement = useMovement(id);
+  const updateMovement = useUpdateMovement();
+
+  const apiError = updateMovement.error instanceof ApiError ? updateMovement.error : null;
+  const serverError = updateMovement.isError
+    ? apiError === null || Object.keys(apiError.fieldErrors).length === 0
+      ? (apiError?.message ?? t('movements.form.requestFailed'))
+      : null
+    : null;
+
+  return (
+    <>
+      <header className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">{t('movements.form.editTitle')}</h1>
+        <a className="text-sm underline" href="#/movements">
+          {t('movements.backToList')}
+        </a>
+      </header>
+      {movement.isPending ? (
+        <p className="text-sm text-muted-foreground">{t('movements.loading')}</p>
+      ) : movement.isError || movement.data.status !== 'draft' ? (
+        <p role="alert" className="text-sm text-destructive">
+          {t('movements.notFound')}
+        </p>
+      ) : (
+        <MovementForm
+          initial={movement.data}
+          pending={updateMovement.isPending}
+          serverError={serverError}
+          fieldErrors={apiError?.fieldErrors ?? {}}
+          onSubmit={(input) => {
+            updateMovement.mutate({ id, input }, { onSuccess: goToMovements });
+          }}
+        />
+      )}
     </>
   );
 }

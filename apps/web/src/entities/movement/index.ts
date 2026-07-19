@@ -4,6 +4,7 @@ export {
   useMovement,
   useMovements,
   useSubmitMovement,
+  useUpdateMovement,
 } from './api/hooks.ts';
 export { AREAS } from './model/types.ts';
 export type {

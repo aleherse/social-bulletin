@@ -28,6 +28,7 @@
     "goHome": "Go to sign in",
     "backToList": "Back to my movements",
     "submitAction": "Submit proposal",
+    "edit": "Edit",
     "status": {
       "draft": "Draft",
       "proposed": "Proposed",
@@ -35,6 +36,7 @@
     },
     "form": {
       "createTitle": "Propose a movement",
+      "editTitle": "Edit draft",
       "titleLabel": "Title",
       "categoryLabel": "Category",
       "categoryPlaceholder": "Choose a category",

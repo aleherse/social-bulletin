@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Behat;
 
 use Behat\Behat\Context\Context;
+use Behat\Gherkin\Node\PyStringNode;
 use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
@@ -51,6 +52,19 @@ final class MovementContext implements Context
     public function iSendARequestToTheMovementTitled(string $method, string $title): void
     {
         $this->apiClient->request($method, sprintf('/api/movements/%s', $this->movementId($title)));
+    }
+
+    #[When('I send a :method request to the movement titled :title with body:')]
+    public function iSendARequestToTheMovementTitledWithBody(
+        string $method,
+        string $title,
+        PyStringNode $body,
+    ): void {
+        $this->apiClient->request(
+            $method,
+            sprintf('/api/movements/%s', $this->movementId($title)),
+            $body->getRaw(),
+        );
     }
 
     #[When('I submit the movement titled :title')]
