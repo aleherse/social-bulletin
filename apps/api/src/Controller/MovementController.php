@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Security\ApiUser;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\Movement;
+use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementNotFound;
 use SocialBulletin\Core\Movement\MovementService;
 use SocialBulletin\Core\User;
@@ -90,6 +91,35 @@ final class MovementController
             return new JsonResponse([
                 'message' => $exception->getMessage(),
             ], Response::HTTP_NOT_FOUND);
+        }
+
+        return new JsonResponse($this->movementJson($movement));
+    }
+
+    #[Route('/api/movements/{id}/submit', name: 'api_movements_submit', methods: ['POST'])]
+    public function submit(string $id, #[CurrentUser] ApiUser $apiUser): JsonResponse
+    {
+        $user = $this->author($apiUser);
+
+        if (null === $user) {
+            return $this->unauthorized();
+        }
+
+        try {
+            $movement = $this->movementService->submit($id, $user->id);
+        } catch (MovementNotFound $exception) {
+            return new JsonResponse([
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_NOT_FOUND);
+        } catch (MovementNotDraft $exception) {
+            return new JsonResponse([
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_CONFLICT);
+        } catch (InvalidMovement $exception) {
+            return new JsonResponse([
+                'message' => $exception->getMessage(),
+                'errors' => $exception->errors,
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         return new JsonResponse($this->movementJson($movement));

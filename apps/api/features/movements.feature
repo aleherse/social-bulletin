@@ -131,3 +131,44 @@ Feature: Propose a movement
     And I send a GET request to the movement titled "Save the Bees"
     Then the response status code should be 404
     And the JSON at "message" should not be empty
+
+  Scenario: Submitting a described draft proposes it
+    Given "author@example.com" has a movement draft titled "Save the Bees" with a description
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I submit the movement titled "Save the Bees"
+    Then the response status code should be 200
+    And the JSON at "status" should equal "proposed"
+
+  Scenario: A draft without a description cannot be proposed
+    Given "author@example.com" has a movement draft titled "Save the Bees"
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I submit the movement titled "Save the Bees"
+    Then the response status code should be 400
+    And the JSON at "errors.description" should not be empty
+    When I send a GET request to the movement titled "Save the Bees"
+    Then the JSON at "status" should equal "draft"
+
+  Scenario: A proposed movement cannot be submitted again
+    Given "author@example.com" has a proposed movement titled "Save the Bees"
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I submit the movement titled "Save the Bees"
+    Then the response status code should be 409
+    And the JSON at "message" should not be empty
+
+  Scenario: Another user's draft cannot be submitted
+    Given "other@example.com" has a movement draft titled "Save the Bees" with a description
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I submit the movement titled "Save the Bees"
+    Then the response status code should be 404

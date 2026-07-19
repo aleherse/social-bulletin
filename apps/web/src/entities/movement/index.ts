@@ -1,4 +1,10 @@
-export { useCategories, useCreateMovement, useMovement, useMovements } from './api/hooks.ts';
+export {
+  useCategories,
+  useCreateMovement,
+  useMovement,
+  useMovements,
+  useSubmitMovement,
+} from './api/hooks.ts';
 export { AREAS } from './model/types.ts';
 export type {
   Area,

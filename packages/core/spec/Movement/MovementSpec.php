@@ -6,6 +6,7 @@ namespace spec\SocialBulletin\Core\Movement;
 
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Movement\Area;
+use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementStatus;
 
 final class MovementSpec extends ObjectBehavior
@@ -135,6 +136,43 @@ final class MovementSpec extends ObjectBehavior
         ]);
 
         $this->shouldThrow(\InvalidArgumentException::class)->duringInstantiation();
+    }
+
+    public function it_submits_a_described_draft_as_proposed(): void
+    {
+        $submittedAt = new \DateTimeImmutable('2026-07-19T12:00:00+00:00');
+
+        $this->submit($submittedAt);
+
+        $this->status()->shouldBe(MovementStatus::Proposed);
+        $this->updatedAt()->shouldBeLike($submittedAt);
+    }
+
+    public function it_rejects_submission_while_the_description_is_empty(): void
+    {
+        $this->beConstructedThrough('draft', [
+            self::ID,
+            self::AUTHOR_ID,
+            'Community Gardens for Everyone',
+            '',
+            'cooperative',
+            Area::Municipality,
+            'Sheffield',
+            new \DateTimeImmutable(),
+        ]);
+
+        $this->shouldThrow(\InvalidArgumentException::class)
+            ->during('submit', [new \DateTimeImmutable()]);
+        $this->status()->shouldBe(MovementStatus::Draft);
+    }
+
+    public function it_rejects_submitting_a_movement_that_is_not_a_draft(): void
+    {
+        $this->submit(new \DateTimeImmutable());
+
+        $this->shouldThrow(MovementNotDraft::class)
+            ->during('submit', [new \DateTimeImmutable()]);
+        $this->status()->shouldBe(MovementStatus::Proposed);
     }
 
     public function it_carries_no_location_when_international(): void

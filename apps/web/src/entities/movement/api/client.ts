@@ -21,3 +21,7 @@ export function createMovement(input: MovementDraftInput): Promise<Movement> {
     body: JSON.stringify(input),
   });
 }
+
+export function submitMovement(id: string): Promise<Movement> {
+  return apiJson<Movement>(`/api/movements/${id}/submit`, { method: 'POST' });
+}

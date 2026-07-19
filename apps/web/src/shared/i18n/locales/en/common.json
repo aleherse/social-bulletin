@@ -27,6 +27,7 @@
     "signInPrompt": "Sign in to propose a movement.",
     "goHome": "Go to sign in",
     "backToList": "Back to my movements",
+    "submitAction": "Submit proposal",
     "status": {
       "draft": "Draft",
       "proposed": "Proposed",
