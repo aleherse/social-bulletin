@@ -7,3 +7,9 @@ Feature: Baseline fixtures
 
   Scenario: Load the baseline dataset
     Given the baseline dataset is loaded
+
+  # Movements deliberately have no baseline rows: every movement scenario
+  # needs state in a specific status for a specific author, which is
+  # scenario-specific by nature. The reusable movement reference data
+  # (bulletin.categories) is seeded by the Doctrine migration and is
+  # therefore already part of the snapshot.
