@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity;
 
-use SocialBulletin\Core\IdentityGenerator;
+use SocialBulletin\Core\Helper\IdentityGenerator;
 use Symfony\Component\Uid\Uuid;
 
 final class UuidV7IdentityGenerator implements IdentityGenerator

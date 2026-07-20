@@ -10,7 +10,7 @@ use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
 use SocialBulletin\Core\Movement\MovementService;
-use SocialBulletin\Core\UserService;
+use SocialBulletin\Core\User\UserService;
 use Webmozart\Assert\Assert;
 
 use function JmesPath\search;
