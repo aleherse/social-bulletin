@@ -52,33 +52,6 @@ After bootstrapping:
 - Frontend (Vite dev server): <https://dev.app.social.aleherse.com:3000>
 - API: <https://dev.api.social.aleherse.com>
 
-## Everyday commands
-
-`make help` lists every target.
-The common ones:
-
-| Command      | Purpose                                                     |
-|--------------|-------------------------------------------------------------|
-| `make up`    | Start the development stack                                 |
-| `make down`  | Stop the development stack                                  |
-| `make logs`  | Follow service logs (`make logs service=php`)               |
-| `make shell` | Open a shell in a container (`make shell service=node`)     |
-| `make db`    | Rebuild the test database and fixtures snapshot             |
-| `make tests` | Run the full test suite (PHPSpec, Behat, Vitest, Playwright)|
-| `make lint`  | Run all linting and static analysis checks                  |
-
-## Repository layout
-
-| Path              | Contents                                            |
-|-------------------|-----------------------------------------------------|
-| `apps/api`        | Symfony HTTP application                            |
-| `apps/web`        | React + Vite frontend (Feature-Sliced Design)       |
-| `packages/core`   | Framework-free PHP domain logic                     |
-| `infrastructure`  | AWS CDK deployment app (`live` and `preview`)       |
-| `docker`          | Container images, nginx config, generated certs     |
-| `docs/decisions`  | Architecture Decision Records                       |
-| `specs/changes`   | Change specifications and task lists                |
-
 ## Quality gates
 
 Lefthook installs git hooks via `make init`:
