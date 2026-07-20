@@ -70,7 +70,7 @@ design.*
 
 `.specify/memory/constitution.md` is still the unfilled template, so no
 ratified constitution gates exist.
-The accepted ADRs in `specs/decisions/` and the engineering docs act as
+The accepted ADRs in `docs/decisions/` and the engineering docs act as
 the governing constraints; this plan is checked against them:
 
 | Gate (source)                                        | Status | Notes                                                              |
