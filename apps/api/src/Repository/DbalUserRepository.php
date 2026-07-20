@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use Doctrine\DBAL\Connection;
-use SocialBulletin\Core\User;
-use SocialBulletin\Core\UserRepository;
+use SocialBulletin\Core\User\User;
+use SocialBulletin\Core\User\UserRepository;
 
 final class DbalUserRepository implements UserRepository
 {

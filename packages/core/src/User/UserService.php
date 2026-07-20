@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core;
+namespace SocialBulletin\Core\User;
 
+use SocialBulletin\Core\Helper\IdentityGenerator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 
