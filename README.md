@@ -34,10 +34,10 @@ certutil -addstore -f "ROOT" \\wsl.localhost\<distro>\path\to\social-bulletin\do
 
 ## Bootstrap
 
+Builds and starts the containers, generates artifacts, install dependencies and creates the database:
+
 ```sh
-make init   # build containers, start the stack, JWT keys, git hooks
-make build  # install Composer/npm dependencies and build the frontend
-make db     # create the database, run migrations, snapshot the test fixtures
+make init
 ```
 
 After bootstrapping:
