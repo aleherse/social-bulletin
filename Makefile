@@ -11,7 +11,10 @@ help: ## List supported targets and their purpose
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .PHONY: init
-init: ## Prepare the local development environment (env templates, containers, infrastructure)
+init: setup build db ## Initialise the development environment
+
+.PHONY: setup
+setup: ## Prepare the local development environment (env templates, containers, infrastructure)
 	@test -f docker-compose.override.yml || cp docker-compose.override.yml.dist docker-compose.override.yml
 	$(COMPOSE) build
 	$(COMPOSE) up -d
