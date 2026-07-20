@@ -9,16 +9,7 @@ developed locally through Docker Compose and Makefile entrypoints.
 - [Docker](https://docs.docker.com/get-docker/) with the Docker Compose plugin
 - `make`
 
-Everything else (PHP, Composer, Node.js, PostgreSQL, test tooling)
-runs inside containers.
-
-## Host names
-
-Add the local development host names to `/etc/hosts`:
-
-```text
-127.0.0.1 dev.api.social.aleherse.com dev.app.social.aleherse.com
-```
+Everything else runs inside containers.
 
 ## HTTPS certificates
 
