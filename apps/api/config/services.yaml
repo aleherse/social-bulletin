@@ -21,9 +21,9 @@ services:
 
     # packages/core services: the framework-free application logic and the
     # adapters that implement its ports (ADR-0005).
-    SocialBulletin\Core\UserService: ~
-    SocialBulletin\Core\UserRepository: '@App\Repository\DbalUserRepository'
-    SocialBulletin\Core\IdentityGenerator: '@App\Identity\UuidV7IdentityGenerator'
+    SocialBulletin\Core\User\UserService: ~
+    SocialBulletin\Core\User\UserRepository: '@App\Repository\DbalUserRepository'
+    SocialBulletin\Core\Helper\IdentityGenerator: '@App\Identity\UuidV7IdentityGenerator'
     SocialBulletin\Core\Movement\MovementService: ~
     SocialBulletin\Core\Movement\MovementRepository: '@App\Repository\DbalMovementRepository'
     SocialBulletin\Core\Movement\Categories: '@App\Repository\DbalCategories'

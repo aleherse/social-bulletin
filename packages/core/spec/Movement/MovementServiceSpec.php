@@ -6,7 +6,7 @@ namespace spec\SocialBulletin\Core\Movement;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use SocialBulletin\Core\IdentityGenerator;
+use SocialBulletin\Core\Helper\IdentityGenerator;
 use SocialBulletin\Core\Movement\Area;
 use SocialBulletin\Core\Movement\Categories;
 use SocialBulletin\Core\Movement\InvalidMovement;
