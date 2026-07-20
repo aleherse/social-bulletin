@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SocialBulletin\Core\Movement;
 
-use SocialBulletin\Core\IdentityGenerator;
+use SocialBulletin\Core\Helper\IdentityGenerator;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 

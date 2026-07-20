@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace spec\SocialBulletin\Core;
+namespace spec\SocialBulletin\Core\User;
 
 use PhpSpec\ObjectBehavior;
-use SocialBulletin\Core\IdentityGenerator;
-use SocialBulletin\Core\InvalidEmailAddress;
-use SocialBulletin\Core\User;
-use SocialBulletin\Core\UserRepository;
+use SocialBulletin\Core\Helper\IdentityGenerator;
+use SocialBulletin\Core\User\InvalidEmailAddress;
+use SocialBulletin\Core\User\User;
+use SocialBulletin\Core\User\UserRepository;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class UserServiceSpec extends ObjectBehavior

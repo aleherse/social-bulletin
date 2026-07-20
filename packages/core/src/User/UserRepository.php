@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core;
+namespace SocialBulletin\Core\User;
 
 interface UserRepository
 {
