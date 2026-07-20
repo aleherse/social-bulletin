@@ -22,21 +22,24 @@ Add the local development host names to `/etc/hosts`:
 
 ## HTTPS certificates
 
-The nginx container generates a local certificate authority and
-certificates with [mkcert](https://github.com/FiloSottile/mkcert)
-on first start and copies the root certificate to
-`docker/certs/rootCA.pem`.
-Trust that root certificate on your machine so the browser accepts
-the development host names, for example:
+The nginx container generates a local certificate authority on first
+start and writes the root certificate to `docker/certs/rootCA.pem`.
+Trust it so your browser accepts the development host names.
+
+**Ubuntu**
 
 ```sh
-# Debian/Ubuntu
 sudo cp docker/certs/rootCA.pem /usr/local/share/ca-certificates/social-bulletin-rootCA.crt
 sudo update-ca-certificates
 ```
 
-Firefox and Chrome may need the certificate imported through their
-own settings (Certificates → Authorities → Import).
+**Windows (WSL)**
+
+From an elevated PowerShell or Command Prompt:
+
+```powershell
+certutil -addstore -f "ROOT" \\wsl.localhost\<distro>\path\to\social-bulletin\docker\certs\rootCA.pem
+```
 
 ## Bootstrap
 
