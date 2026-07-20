@@ -5,7 +5,7 @@ Read this before making changes; the README covers human onboarding.
 
 ## Decisions and specs
 
-- `specs/decisions/` holds ADRs; `ADR-0000` defines project constants
+- `docs/decisions/` holds ADRs; `ADR-0000` defines project constants
   (hostnames, namespaces, database schema).
   Consult relevant ADRs before structural changes,
   and propose a new ADR instead of silently diverging from one.

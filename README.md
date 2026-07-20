@@ -76,7 +76,7 @@ The common ones:
 | `packages/core`   | Framework-free PHP domain logic                     |
 | `infrastructure`  | AWS CDK deployment app (`live` and `preview`)       |
 | `docker`          | Container images, nginx config, generated certs     |
-| `specs/decisions` | Architecture Decision Records                       |
+| `docs/decisions`  | Architecture Decision Records                       |
 | `specs/changes`   | Change specifications and task lists                |
 
 ## Quality gates
