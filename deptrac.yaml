@@ -1,5 +1,5 @@
 # ADR-0012: Deptrac owns package and layer dependency rules.
-# packages/core stays framework-free (contracts only); apps depend on packages, never the reverse.
+# packages/core stays framework-free but owns its DBAL repositories; apps depend on packages, never the reverse.
 deptrac:
   paths:
     - apps/api/src
@@ -16,20 +16,30 @@ deptrac:
         - type: directory
           value: packages/core/src/.*
 
+    - name: Symfony
+      collectors:
+        - type: classNameRegex
+          value: '/^Symfony/'
+
     - name: SymfonyContracts
       collectors:
         - type: classNameRegex
           value: '/^Symfony\\Contracts/'
 
-    - name: Symfony
+    - name: SymfonyUid
       collectors:
         - type: classNameRegex
-          value: '/^Symfony\\(?!Contracts)/'
+          value: '/^Symfony\\Component\\Uid/'
 
     - name: Doctrine
       collectors:
         - type: classNameRegex
           value: '/^Doctrine/'
+
+    - name: DBAL
+      collectors:
+        - type: classNameRegex
+          value: '/^Doctrine/DBAL'
 
     - name: Psr
       collectors:
@@ -42,5 +52,5 @@ deptrac:
           value: '/^Webmozart/'
 
   ruleset:
-    App: [Core, Symfony, SymfonyContracts, Doctrine, Psr, Assert]
-    Core: [SymfonyContracts, Psr, Assert]
+    App: [Core, Symfony, Doctrine, Psr, Assert]
+    Core: [SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
