@@ -19,7 +19,7 @@ deptrac:
     - name: Symfony
       collectors:
         - type: classNameRegex
-          value: '/^Symfony/'
+          value: '/^Symfony\\(?!Contracts|Component\\Uid)/'
 
     - name: SymfonyContracts
       collectors:
@@ -34,12 +34,12 @@ deptrac:
     - name: Doctrine
       collectors:
         - type: classNameRegex
-          value: '/^Doctrine/'
+          value: '/^Doctrine\\(?!DBAL)/'
 
     - name: DBAL
       collectors:
         - type: classNameRegex
-          value: '/^Doctrine/DBAL'
+          value: '/^Doctrine\\DBAL/'
 
     - name: Psr
       collectors:
@@ -52,5 +52,5 @@ deptrac:
           value: '/^Webmozart/'
 
   ruleset:
-    App: [Core, Symfony, Doctrine, Psr, Assert]
+    App: [Core, Symfony, SymfonyContracts, SymfonyUid, Doctrine, DBAL, Psr, Assert]
     Core: [SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
