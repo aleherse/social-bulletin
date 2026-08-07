@@ -28,6 +28,7 @@ The common ones:
 | `infrastructure`  | AWS CDK deployment app (`live` and `preview`)       |
 | `docker`          | Container images, nginx config, generated certs     |
 | `docs/decisions`  | Architecture Decision Records                       |
+| `docs/rules`      | Distilled engineering rules, by category/subcategory |
 | `specs/changes`   | Change specifications and task lists                |
 
 ## Decisions and specs
@@ -36,6 +37,18 @@ The common ones:
   (hostnames, namespaces, database schema).
   Consult relevant ADRs before structural changes,
   and propose a new ADR instead of silently diverging from one.
+
+## Coding Rules
+
+- `docs/rules/<category>/<subcategory>.md` holds distilled, checkable engineering rules
+  (`WHEN` a condition applies, `THEN` what to do, with a repo-grounded example) —
+  decisions already made once that should guide every future change in that area.
+- Before writing or changing code in an area, check `docs/rules/` for a file matching that
+  category/subcategory and follow it — e.g. adding a repository under `packages/core` →
+  read `docs/rules/database/persistence.md` first.
+- When a change encodes a decision worth repeating (a correction during review, a convention
+  established by a diff), use the `extract-rule` skill to distill it into `docs/rules/`
+  instead of leaving it implicit for the next agent to rediscover.
 
 ## Engineering docs
 
