@@ -19,17 +19,14 @@ services:
     App\:
         resource: '../src/'
 
-    # packages/core services: the framework-free application logic and the
-    # adapters that implement its ports (ADR-0005).
+    # packages/core services: the framework-free application logic
     SocialBulletin\Core\User\UserService: ~
-    SocialBulletin\Core\User\UserRepository: '@App\Repository\DbalUserRepository'
     SocialBulletin\Core\Helper\IdentityGenerator: '@App\Identity\UuidV7IdentityGenerator'
     SocialBulletin\Core\Movement\MovementService: ~
-    SocialBulletin\Core\Movement\MovementRepository: '@App\Repository\DbalMovementRepository'
-    SocialBulletin\Core\Movement\Categories: '@App\Repository\DbalCategories'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # makes every packages/core `*Repository` class available as a service
+    SocialBulletin\Core\:
+        resource: '../../../packages/core/src/*/*Repository.php'
 
 when@test:
     services:
