@@ -4,33 +4,25 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use App\Security\ApiUser;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementNotFound;
 use SocialBulletin\Core\Movement\MovementService;
+use SocialBulletin\Core\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 final readonly class PostMovementSubmitController
 {
     public function __construct(
         private MovementService $movementService,
-        private AuthorResolver $authorResolver,
     ) {
     }
 
     #[Route('/api/movements/{id}/submit', name: 'api_movements_submit', methods: ['POST'])]
-    public function __invoke(string $id, #[CurrentUser] ApiUser $apiUser): JsonResponse
+    public function __invoke(string $id, User $author): JsonResponse
     {
-        $author = $this->authorResolver->resolve($apiUser);
-
-        if ($author instanceof JsonResponse) {
-            return $author;
-        }
-
         try {
             $movement = $this->movementService->submit($id, $author->id);
         } catch (MovementNotFound $exception) {
