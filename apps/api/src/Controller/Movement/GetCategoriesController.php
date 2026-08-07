@@ -9,7 +9,7 @@ use SocialBulletin\Core\Movement\CategoryRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-final readonly class CategoryController
+final readonly class GetCategoriesController
 {
     public function __construct(
         private CategoryRepository $categories,
@@ -17,7 +17,7 @@ final readonly class CategoryController
     }
 
     #[Route('/api/categories', name: 'api_categories_list', methods: ['GET'])]
-    public function list(): JsonResponse
+    public function __invoke(): JsonResponse
     {
         return new JsonResponse([
             'categories' => array_map(
