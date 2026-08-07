@@ -5,32 +5,24 @@ declare(strict_types=1);
 namespace App\Controller\Movement;
 
 use App\Controller\RequestPayload;
-use App\Security\ApiUser;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\MovementService;
+use SocialBulletin\Core\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 final readonly class PostMovementController
 {
     public function __construct(
         private MovementService $movementService,
-        private AuthorResolver $authorResolver,
     ) {
     }
 
     #[Route('/api/movements', name: 'api_movements_create', methods: ['POST'])]
-    public function __invoke(Request $request, #[CurrentUser] ApiUser $apiUser): JsonResponse
+    public function __invoke(Request $request, User $author): JsonResponse
     {
-        $author = $this->authorResolver->resolve($apiUser);
-
-        if ($author instanceof JsonResponse) {
-            return $author;
-        }
-
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
 
