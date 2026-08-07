@@ -5,34 +5,26 @@ declare(strict_types=1);
 namespace App\Controller\Movement;
 
 use App\Controller\RequestPayload;
-use App\Security\ApiUser;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementNotFound;
 use SocialBulletin\Core\Movement\MovementService;
+use SocialBulletin\Core\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 final readonly class PatchMovementController
 {
     public function __construct(
         private MovementService $movementService,
-        private AuthorResolver $authorResolver,
     ) {
     }
 
     #[Route('/api/movements/{id}', name: 'api_movements_update', methods: ['PATCH'])]
-    public function __invoke(string $id, Request $request, #[CurrentUser] ApiUser $apiUser): JsonResponse
+    public function __invoke(string $id, Request $request, User $author): JsonResponse
     {
-        $author = $this->authorResolver->resolve($apiUser);
-
-        if ($author instanceof JsonResponse) {
-            return $author;
-        }
-
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
 
