@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\User;
 
 use App\Security\ApiUser;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -15,14 +15,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
-final class SessionController
+final readonly class SessionController
 {
     private const COOKIE_NAME = 'token';
     private const COOKIE_LIFETIME = 3600;
 
     public function __construct(
-        private readonly UserService $userService,
-        private readonly JWTTokenManagerInterface $tokenManager,
+        private UserService $userService,
+        private JWTTokenManagerInterface $tokenManager,
     ) {
     }
 
