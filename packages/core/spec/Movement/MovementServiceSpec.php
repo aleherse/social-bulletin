@@ -8,7 +8,7 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use SocialBulletin\Core\Helper\IdentityGenerator;
 use SocialBulletin\Core\Movement\Area;
-use SocialBulletin\Core\Movement\Categories;
+use SocialBulletin\Core\Movement\CategoryRepository;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\Movement;
 use SocialBulletin\Core\Movement\MovementNotDraft;
@@ -24,7 +24,7 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function let(
         MovementRepository $movements,
-        Categories $categories,
+        CategoryRepository $categories,
         IdentityGenerator $identities,
         TranslatorInterface $translator,
     ): void {
@@ -34,7 +34,7 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_creates_a_draft_movement(
         MovementRepository $movements,
-        Categories $categories,
+        CategoryRepository $categories,
         IdentityGenerator $identities,
     ): void {
         $categories->exists('cooperative')->willReturn(true);
@@ -60,7 +60,7 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_creates_a_draft_with_an_empty_description(
         MovementRepository $movements,
-        Categories $categories,
+        CategoryRepository $categories,
         IdentityGenerator $identities,
     ): void {
         $categories->exists('cooperative')->willReturn(true);
@@ -81,7 +81,7 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_collects_a_translated_error_for_every_invalid_field(
         MovementRepository $movements,
-        Categories $categories,
+        CategoryRepository $categories,
         TranslatorInterface $translator,
     ): void {
         $categories->exists('unknown')->willReturn(false);
@@ -100,7 +100,7 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_requires_a_location_for_local_areas(
         MovementRepository $movements,
-        Categories $categories,
+        CategoryRepository $categories,
         TranslatorInterface $translator,
     ): void {
         $categories->exists('cooperative')->willReturn(true);
@@ -116,7 +116,7 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_rejects_a_location_on_an_international_movement(
         MovementRepository $movements,
-        Categories $categories,
+        CategoryRepository $categories,
         TranslatorInterface $translator,
     ): void {
         $categories->exists('cooperative')->willReturn(true);
@@ -239,7 +239,7 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_updates_the_authors_draft(
         MovementRepository $movements,
-        Categories $categories,
+        CategoryRepository $categories,
     ): void {
         $movement = $this->describedDraft();
         $categories->exists('animal_rights')->willReturn(true);
