@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Movement;
 
 use App\Security\ApiUser;
 use SocialBulletin\Core\Movement\InvalidMovement;
@@ -19,12 +19,12 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-final class MovementController
+final readonly class MovementController
 {
     public function __construct(
-        private readonly MovementService $movementService,
-        private readonly UserService $userService,
-        private readonly TranslatorInterface $translator,
+        private MovementService $movementService,
+        private UserService $userService,
+        private TranslatorInterface $translator,
     ) {
     }
 

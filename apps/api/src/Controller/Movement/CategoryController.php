@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Movement;
 
 use SocialBulletin\Core\Movement\Category;
 use SocialBulletin\Core\Movement\CategoryRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class CategoryController
+final readonly class CategoryController
 {
     public function __construct(
-        private readonly CategoryRepository $categories,
+        private CategoryRepository $categories,
     ) {
     }
 
