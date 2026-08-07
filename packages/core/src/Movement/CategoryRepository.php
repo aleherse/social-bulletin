@@ -2,19 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Repository;
+namespace SocialBulletin\Core\Movement;
 
 use Doctrine\DBAL\Connection;
-use SocialBulletin\Core\Movement\Categories;
-use SocialBulletin\Core\Movement\Category;
 
-final class DbalCategories implements Categories
+class CategoryRepository
 {
     public function __construct(
         private readonly Connection $connection,
     ) {
     }
 
+    /**
+     * @return list<Category> in display order
+     */
     public function all(): array
     {
         /** @var list<string> $ids */
