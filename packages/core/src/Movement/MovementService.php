@@ -12,7 +12,7 @@ final readonly class MovementService
 {
     public function __construct(
         private MovementRepository $movements,
-        private Categories $categories,
+        private CategoryRepository $categories,
         private IdentityGenerator $identities,
         private TranslatorInterface $translator,
     ) {
