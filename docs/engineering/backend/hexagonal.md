@@ -62,7 +62,7 @@ Aggregate boundaries?
 |----------------------------|-------------------------------------------------------------------|--------------------------------------|
 | **Anemic Domain Model**    | Entities are data bags, logic in services                         | Move behavior INTO entities          |
 | **Repository per Entity**  | Breaks aggregate boundaries                                       | One repository per AGGREGATE         |
-| **Leaking Infrastructure** | Domain imports DB/HTTP libs                                       | Domain has ZERO external deps        |
+| **Leaking Infrastructure** | Domain imports DB/HTTP libs                                       | Domain has minimal external deps     |
 | **God Aggregate**          | Too many entities, slow transactions                              | Split into smaller aggregates        |
 | **Skipping Use Cases**     | Controllers call repositories directly in a use-case architecture | Route through application use cases  |
 | **CRUD Thinking**          | Modeling data, not behavior                                       | Model business operations            |
