@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use App\Controller\RequestPayload;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\MovementService;
 use SocialBulletin\Core\User\User;
@@ -25,15 +24,16 @@ final readonly class PostMovementController
     {
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
+        $command = UpsertMovementCommand::fromPayload($payload);
 
         try {
             $movement = $this->movementService->create(
                 $author->id,
-                RequestPayload::stringField($payload, 'title'),
-                RequestPayload::stringField($payload, 'description'),
-                RequestPayload::stringField($payload, 'category'),
-                RequestPayload::stringField($payload, 'area'),
-                RequestPayload::nullableStringField($payload, 'location'),
+                $command->title ?? '',
+                $command->description ?? '',
+                $command->category ?? '',
+                $command->area ?? '',
+                $command->location,
             );
         } catch (InvalidMovement $exception) {
             return new JsonResponse([
