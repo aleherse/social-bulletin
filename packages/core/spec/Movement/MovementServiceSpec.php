@@ -7,7 +7,6 @@ namespace spec\SocialBulletin\Core\Movement;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use SocialBulletin\Core\Helper\IdentityGenerator;
-use SocialBulletin\Core\Movement\Area;
 use SocialBulletin\Core\Movement\CategoryRepository;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\Movement;
@@ -15,7 +14,6 @@ use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementNotFound;
 use SocialBulletin\Core\Movement\MovementRepository;
 use SocialBulletin\Core\Movement\MovementStatus;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class MovementServiceSpec extends ObjectBehavior
 {
@@ -26,10 +24,8 @@ final class MovementServiceSpec extends ObjectBehavior
         MovementRepository $movements,
         CategoryRepository $categories,
         IdentityGenerator $identities,
-        TranslatorInterface $translator,
     ): void {
-        $this->beConstructedWith($movements, $categories, $identities, $translator);
-        $translator->trans(Argument::cetera())->willReturn('translated');
+        $this->beConstructedWith($movements, $categories, $identities);
     }
 
     public function it_creates_a_draft_movement(
@@ -79,20 +75,14 @@ final class MovementServiceSpec extends ObjectBehavior
         $movement->description()->shouldBe('');
     }
 
-    public function it_collects_a_translated_error_for_every_invalid_field(
+    public function it_collects_an_error_for_every_invalid_field(
         MovementRepository $movements,
         CategoryRepository $categories,
-        TranslatorInterface $translator,
+        IdentityGenerator $identities,
     ): void {
         $categories->exists('unknown')->willReturn(false);
+        $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::any())->shouldNotBeCalled();
-
-        $translator->trans('movement.title.blank', [], 'validators')
-            ->shouldBeCalled()->willReturn('A title is required.');
-        $translator->trans('movement.category.unknown', [], 'validators')
-            ->shouldBeCalled()->willReturn('Choose a category from the list.');
-        $translator->trans('movement.area.invalid', [], 'validators')
-            ->shouldBeCalled()->willReturn('Choose a valid area.');
 
         $this->shouldThrow(InvalidMovement::class)
             ->during('create', [self::AUTHOR_ID, '   ', '', 'unknown', 'galaxy', null]);
@@ -101,12 +91,11 @@ final class MovementServiceSpec extends ObjectBehavior
     public function it_requires_a_location_for_local_areas(
         MovementRepository $movements,
         CategoryRepository $categories,
-        TranslatorInterface $translator,
+        IdentityGenerator $identities,
     ): void {
         $categories->exists('cooperative')->willReturn(true);
+        $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::any())->shouldNotBeCalled();
-        $translator->trans('movement.location.blank', [], 'validators')
-            ->shouldBeCalled()->willReturn('A location is required for the chosen area.');
 
         $this->shouldThrow(InvalidMovement::class)->during(
             'create',
@@ -117,12 +106,11 @@ final class MovementServiceSpec extends ObjectBehavior
     public function it_rejects_a_location_on_an_international_movement(
         MovementRepository $movements,
         CategoryRepository $categories,
-        TranslatorInterface $translator,
+        IdentityGenerator $identities,
     ): void {
         $categories->exists('cooperative')->willReturn(true);
+        $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::any())->shouldNotBeCalled();
-        $translator->trans('movement.location.forbidden', [], 'validators')
-            ->shouldBeCalled()->willReturn('International movements do not have a location.');
 
         $this->shouldThrow(InvalidMovement::class)->during(
             'create',
@@ -130,35 +118,19 @@ final class MovementServiceSpec extends ObjectBehavior
         );
     }
 
-    public function it_lists_the_authors_movements(MovementRepository $movements): void
-    {
-        $movement = Movement::draft(
-            self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            '',
-            'cooperative',
-            Area::Municipality,
-            'Sheffield',
-            new \DateTimeImmutable(),
-        );
+    public function it_lists_the_authors_movements(
+        MovementRepository $movements,
+    ): void {
+        $movement = $this->describedDraft();
         $movements->byAuthor(self::AUTHOR_ID)->willReturn([$movement]);
 
         $this->byAuthor(self::AUTHOR_ID)->shouldBe([$movement]);
     }
 
-    public function it_returns_the_authors_movement(MovementRepository $movements): void
-    {
-        $movement = Movement::draft(
-            self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            '',
-            'cooperative',
-            Area::Municipality,
-            'Sheffield',
-            new \DateTimeImmutable(),
-        );
+    public function it_returns_the_authors_movement(
+        MovementRepository $movements,
+    ): void {
+        $movement = $this->describedDraft();
         $movements->byId(self::ID)->willReturn($movement);
 
         $this->authorMovement(self::ID, self::AUTHOR_ID)->shouldBe($movement);
@@ -167,16 +139,7 @@ final class MovementServiceSpec extends ObjectBehavior
     public function it_hides_movements_that_belong_to_another_user(
         MovementRepository $movements,
     ): void {
-        $movement = Movement::draft(
-            self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            '',
-            'cooperative',
-            Area::Municipality,
-            'Sheffield',
-            new \DateTimeImmutable(),
-        );
+        $movement = $this->describedDraft();
         $movements->byId(self::ID)->willReturn($movement);
 
         $this->shouldThrow(MovementNotFound::class)
@@ -204,7 +167,6 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_refuses_to_submit_a_draft_without_a_description(
         MovementRepository $movements,
-        TranslatorInterface $translator,
     ): void {
         $movement = Movement::draft(
             self::ID,
@@ -212,14 +174,13 @@ final class MovementServiceSpec extends ObjectBehavior
             'Community Gardens for Everyone',
             '',
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         );
         $movements->byId(self::ID)->willReturn($movement);
         $movements->save(Argument::any())->shouldNotBeCalled();
-        $translator->trans('movement.description.required', [], 'validators')
-            ->shouldBeCalled()->willReturn('A description is required to propose the movement.');
 
         $this->shouldThrow(InvalidMovement::class)
             ->during('submit', [self::ID, self::AUTHOR_ID]);
@@ -287,8 +248,9 @@ final class MovementServiceSpec extends ObjectBehavior
             'Community Gardens for Everyone',
             "## Why\nGardens for all.",
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         );
     }

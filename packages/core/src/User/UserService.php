@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SocialBulletin\Core\User;
 
 use SocialBulletin\Core\Helper\IdentityGenerator;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 
 final readonly class UserService
@@ -13,7 +12,6 @@ final readonly class UserService
     public function __construct(
         private UserRepository $users,
         private IdentityGenerator $identities,
-        private TranslatorInterface $translator,
     ) {
     }
 
@@ -25,13 +23,11 @@ final readonly class UserService
         $email = trim($email);
 
         if ('' === $email) {
-            throw new InvalidEmailAddress($this->translator->trans('email.blank', [], 'validators'));
+            throw new InvalidEmailAddress('email.blank');
         }
 
         if (false === filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new InvalidEmailAddress($this->translator->trans('email.invalid', [
-                'email' => $email,
-            ], 'validators'));
+            throw new InvalidEmailAddress('email.invalid');
         }
 
         $existing = $this->users->findByEmail($email);
