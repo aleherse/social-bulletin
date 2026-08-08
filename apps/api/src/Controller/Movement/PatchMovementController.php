@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use App\Controller\RequestPayload;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementNotFound;
@@ -27,6 +26,7 @@ final readonly class PatchMovementController
     {
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
+        $command = UpsertMovementCommand::fromPayload($payload);
 
         try {
             // PATCH semantics: absent fields keep their current value.
@@ -34,16 +34,12 @@ final readonly class PatchMovementController
             $movement = $this->movementService->update(
                 $id,
                 $author->id,
-                \array_key_exists('title', $payload)
-                    ? RequestPayload::stringField($payload, 'title') : $movement->title(),
-                \array_key_exists('description', $payload)
-                    ? RequestPayload::stringField($payload, 'description') : $movement->description(),
-                \array_key_exists('category', $payload)
-                    ? RequestPayload::stringField($payload, 'category') : $movement->category(),
-                \array_key_exists('area', $payload)
-                    ? RequestPayload::stringField($payload, 'area') : $movement->area()->value,
-                \array_key_exists('location', $payload)
-                    ? RequestPayload::nullableStringField($payload, 'location') : $movement->location(),
+                $command->title ?? $movement->title(),
+                $command->description ?? $movement->description(),
+                $command->category ?? $movement->category(),
+                $command->area ?? $movement->area()
+                    ->value,
+                $command->locationProvided ? $command->location : $movement->location(),
             );
         } catch (MovementNotFound $exception) {
             return new JsonResponse([
