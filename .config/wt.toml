@@ -1,0 +1,34 @@
+# Worktrunk project config — https://worktrunk.dev
+
+[pre-start]
+compose-override = """
+cat > docker-compose.override.yml <<'YAML'
+services:
+  php:
+    environment:
+      XDEBUG_REMOTE_HOST: host.docker.internal
+      XDEBUG_REMOTE_PORT: "9003"
+
+  node:
+    ports:
+      - "{{ ('node-' ~ branch) | hash_port }}:3000"
+
+  nginx:
+    ports:
+      - "{{ ('http-' ~ branch) | hash_port }}:80"
+      - "{{ ('https-' ~ branch) | hash_port }}:443"
+
+  postgres:
+    ports:
+      - "{{ ('postgres-' ~ branch) | hash_port }}:5432"
+YAML
+echo "COMPOSE_PROJECT_NAME=social-bulletin-{{ branch | sanitize }}" > .env
+"""
+copy = "wt step copy-ignored --require-include"
+init = "make init"
+
+[pre-remove]
+compose-down = "make down"
+
+[list]
+url = "http://localhost:{{ ('http-' ~ branch) | hash_port }}"

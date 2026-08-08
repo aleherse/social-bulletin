@@ -10,21 +10,21 @@ export HOST_GID ?= $(shell id -g)
 help: ## List supported targets and their purpose
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-.PHONY: init
-init: ## Prepare the local development environment (env templates, containers, infrastructure)
+.PHONY: setup
+setup: ## Prepare the local development environment (env templates, containers, infrastructure)
 	@test -f docker-compose.override.yml || cp docker-compose.override.yml.dist docker-compose.override.yml
 	$(COMPOSE) build
 	$(COMPOSE) up -d
 	$(COMPOSE) exec --user root node sh -c 'npm install -g npm@latest'
-	@test -f apps/api/config/jwt/private.pem || $(COMPOSE) exec --workdir /app/apps/api php php bin/console lexik:jwt:generate-keypair
 	@test -x node_modules/.bin/lefthook || npm install --no-audit --no-fund
 	npx lefthook install
 
 .PHONY: build
 build: ## Install all package manager dependencies and build the frontend assets
 	$(COMPOSE) run --rm php sh -c 'test -f apps/api/composer.json && composer install --working-dir=apps/api --no-interaction || true'
-	$(COMPOSE) run --rm --entrypoint /app/docker/node/entrypoint.sh node sh -c 'test -f /app/apps/web/package.json && npm install --prefix /app/apps/web || true'
-	$(COMPOSE) run --rm --entrypoint /app/docker/node/entrypoint.sh node sh -c 'test -f /app/apps/web/package.json && npm run build --prefix /app/apps/web || true'
+	$(COMPOSE) run --rm node sh -c 'test -f /app/apps/web/package.json && npm install --prefix /app/apps/web || true'
+	$(COMPOSE) run --rm node sh -c 'test -f /app/apps/web/package.json && npm run build --prefix /app/apps/web || true'
+	@test -f apps/api/config/jwt/private.pem || $(COMPOSE) exec --workdir /app/apps/api php php bin/console lexik:jwt:generate-keypair
 
 .PHONY: up
 up: ## Start the development stack without building containers
@@ -54,6 +54,9 @@ db: ## Prepare the test database: create, migrate, load @fixtures dataset, snaps
 	$(COMPOSE) run --rm --workdir /app/apps/api php php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
 	$(COMPOSE) run --rm --workdir /app/apps/api php vendor/bin/behat --tags=@fixtures
 	$(COMPOSE) run --rm php sh -c 'dslr --url "$$DSLR_DATABASE_URL" delete fixtures 2>/dev/null; dslr --url "$$DSLR_DATABASE_URL" snapshot fixtures'
+
+.PHONY: init
+init: setup build db setup-claude ## Initialise the repository to make it ready to work
 
 .PHONY: php-unit
 php-unit: ## Run core package unit tests with PHPSpec
@@ -117,7 +120,7 @@ shell: ## Open an interactive shell in the PHP container (or another via `make s
 
 .PHONY: clean
 clean: ## Safely remove recreated local artefacts and dependencies
-	rm -rf apps/api/vendor packages/core/vendor apps/web/node_modules apps/web/dist apps/api/var .install.lock .deptrac.cache
+	rm -rf apps/api/vendor packages/core/vendor apps/web/node_modules apps/web/dist apps/api/var apps/api/.install.lock apps/web/.install.lock .deptrac.cache
 
 .PHONY: destroy
 destroy: ## Delete all containers, volumes, and artefacts

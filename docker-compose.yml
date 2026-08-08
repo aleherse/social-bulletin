@@ -30,8 +30,6 @@ services:
     volumes:
       - .:/app
       - ./docker/certs:/certs:ro
-    ports:
-      - "3000:3000"
     ipc: host
     depends_on:
       - nginx
@@ -46,9 +44,6 @@ services:
       - .:/app:ro
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
       - ./docker/certs:/certs
-    ports:
-      - "80:80"
-      - "443:443"
     depends_on:
       - php
     networks:
