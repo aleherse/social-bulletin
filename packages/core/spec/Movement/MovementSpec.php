@@ -6,6 +6,7 @@ namespace spec\SocialBulletin\Core\Movement;
 
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Movement\Area;
+use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementStatus;
 
@@ -22,8 +23,9 @@ final class MovementSpec extends ObjectBehavior
             'Community Gardens for Everyone',
             "## Why\nGardens for all.",
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable('2026-07-19T10:00:00+00:00'),
         ]);
     }
@@ -49,8 +51,9 @@ final class MovementSpec extends ObjectBehavior
             'Community Gardens for Everyone',
             '',
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
@@ -66,12 +69,13 @@ final class MovementSpec extends ObjectBehavior
             '   ',
             '',
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
-        $this->shouldThrow(\InvalidArgumentException::class)->duringInstantiation();
+        $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_rejects_a_title_longer_than_200_characters(): void
@@ -82,12 +86,13 @@ final class MovementSpec extends ObjectBehavior
             str_repeat('a', 201),
             '',
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
-        $this->shouldThrow(\InvalidArgumentException::class)->duringInstantiation();
+        $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_rejects_a_description_longer_than_20000_characters(): void
@@ -98,12 +103,13 @@ final class MovementSpec extends ObjectBehavior
             'Community Gardens for Everyone',
             str_repeat('a', 20001),
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
-        $this->shouldThrow(\InvalidArgumentException::class)->duringInstantiation();
+        $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_requires_a_location_for_non_international_areas(): void
@@ -114,12 +120,13 @@ final class MovementSpec extends ObjectBehavior
             'Community Gardens for Everyone',
             '',
             'cooperative',
-            Area::Municipality,
+            'municipality',
             null,
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
-        $this->shouldThrow(\InvalidArgumentException::class)->duringInstantiation();
+        $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_rejects_a_location_for_international_movements(): void
@@ -130,12 +137,13 @@ final class MovementSpec extends ObjectBehavior
             'Global Climate Strike',
             '',
             'cooperative',
-            Area::International,
+            'international',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
-        $this->shouldThrow(\InvalidArgumentException::class)->duringInstantiation();
+        $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_submits_a_described_draft_as_proposed(): void
@@ -156,12 +164,13 @@ final class MovementSpec extends ObjectBehavior
             'Community Gardens for Everyone',
             '',
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
-        $this->shouldThrow(\InvalidArgumentException::class)
+        $this->shouldThrow(InvalidMovement::class)
             ->during('submit', [new \DateTimeImmutable()]);
         $this->status()->shouldBe(MovementStatus::Draft);
     }
@@ -183,8 +192,9 @@ final class MovementSpec extends ObjectBehavior
             'Save All the Bees',
             'New description.',
             'animal_rights',
-            Area::Region,
+            'region',
             'Yorkshire',
+            static fn (): bool => true,
             $editedAt,
         );
 
@@ -203,8 +213,9 @@ final class MovementSpec extends ObjectBehavior
             'Global Climate Strike',
             '',
             'cooperative',
-            Area::International,
+            'international',
             null,
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         );
 
@@ -213,12 +224,13 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_applies_creation_rules_when_editing(): void
     {
-        $this->shouldThrow(\InvalidArgumentException::class)->during('edit', [
+        $this->shouldThrow(InvalidMovement::class)->during('edit', [
             '   ',
             '',
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
     }
@@ -231,8 +243,9 @@ final class MovementSpec extends ObjectBehavior
             'Save All the Bees',
             'New description.',
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
     }
@@ -245,8 +258,9 @@ final class MovementSpec extends ObjectBehavior
             'Global Climate Strike',
             '',
             'cooperative',
-            Area::International,
+            'international',
             null,
+            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 

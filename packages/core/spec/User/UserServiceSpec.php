@@ -9,7 +9,6 @@ use SocialBulletin\Core\Helper\IdentityGenerator;
 use SocialBulletin\Core\User\InvalidEmailAddress;
 use SocialBulletin\Core\User\User;
 use SocialBulletin\Core\User\UserRepository;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class UserServiceSpec extends ObjectBehavior
 {
@@ -18,9 +17,8 @@ final class UserServiceSpec extends ObjectBehavior
     public function let(
         UserRepository $users,
         IdentityGenerator $identities,
-        TranslatorInterface $translator,
     ): void {
-        $this->beConstructedWith($users, $identities, $translator);
+        $this->beConstructedWith($users, $identities);
     }
 
     public function it_creates_a_user_for_an_unknown_email(
@@ -50,27 +48,20 @@ final class UserServiceSpec extends ObjectBehavior
         $this->findOrCreateByEmail('existing.user@example.com')->shouldBe($existing);
     }
 
-    public function it_rejects_a_malformed_email_with_a_translated_message(
+    public function it_rejects_a_malformed_email(
         UserRepository $users,
-        TranslatorInterface $translator,
     ): void {
-        $translator->trans('email.invalid', ['email' => 'not-an-email'], 'validators')
-            ->willReturn('The email address not-an-email is not valid.');
         $users->add(\Prophecy\Argument::any())->shouldNotBeCalled();
 
         $this->shouldThrow(
-            new InvalidEmailAddress('The email address not-an-email is not valid.'),
+            new InvalidEmailAddress('email.invalid'),
         )->during('findOrCreateByEmail', ['not-an-email']);
     }
 
-    public function it_rejects_a_blank_email_with_a_translated_message(
-        TranslatorInterface $translator,
-    ): void {
-        $translator->trans('email.blank', [], 'validators')
-            ->willReturn('An email address is required.');
-
+    public function it_rejects_a_blank_email(): void
+    {
         $this->shouldThrow(
-            new InvalidEmailAddress('An email address is required.'),
+            new InvalidEmailAddress('email.blank'),
         )->during('findOrCreateByEmail', ['   ']);
     }
 
