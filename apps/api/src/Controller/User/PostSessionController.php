@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller\User;
 
-use App\Controller\RequestPayload;
 use App\Security\ApiUser;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use SocialBulletin\Core\User\InvalidEmailAddress;
@@ -27,10 +26,10 @@ final readonly class PostSessionController
     {
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
-        $email = RequestPayload::stringField($payload, 'email');
+        $command = PostSessionCommand::fromPayload($payload);
 
         try {
-            $user = $this->userService->findOrCreateByEmail($email);
+            $user = $this->userService->findOrCreateByEmail($command->email);
         } catch (InvalidEmailAddress $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
