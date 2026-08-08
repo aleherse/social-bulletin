@@ -52,6 +52,17 @@ After bootstrapping:
 - Frontend (Vite dev server): <https://dev.app.social.aleherse.com:3000>
 - API: <https://dev.api.social.aleherse.com>
 
+## Worktrunk
+
+[Worktrunk](https://worktrunk.dev) manages git worktrees for parallel
+branch development, spinning up an isolated Docker Compose stack per
+branch via `.config/wt.toml`.
+
+```sh
+curl https://sh.rustup.rs -sSf | sh
+cargo install worktrunk && wt config shell install
+```
+
 ## Everyday commands
 
 `make help` lists every target.
