@@ -25,19 +25,32 @@ final class Movement
     ) {
     }
 
+    /**
+     * @param \Closure(): bool $categoryExists invoked only if the category isn't blank
+     *
+     * @throws InvalidMovement when any field fails stage validation
+     */
     public static function draft(
         string $id,
         string $authorId,
         string $title,
         string $description,
         string $category,
-        Area $area,
+        string $area,
         ?string $location,
+        \Closure $categoryExists,
         \DateTimeImmutable $now,
     ): self {
         Assert::uuid($id);
         Assert::uuid($authorId);
-        self::assertValidFields($title, $description, $category, $area, $location);
+        $areaValue = self::assertValidFields(
+            $title,
+            $description,
+            $category,
+            $area,
+            $location,
+            $categoryExists,
+        );
 
         return new self(
             $id,
@@ -45,8 +58,8 @@ final class Movement
             trim($title),
             $description,
             $category,
-            $area,
-            null === $location ? null : trim($location),
+            $areaValue,
+            Area::International === $areaValue ? null : trim((string) $location),
             MovementStatus::Draft,
             $now,
             $now,
@@ -85,27 +98,38 @@ final class Movement
     /**
      * FR-007: fields can only change while the movement is a `draft`.
      *
+     * @param \Closure(): bool $categoryExists invoked only if the category isn't blank
+     *
      * @throws MovementNotDraft when the movement already left `draft`
+     * @throws InvalidMovement  when any field fails stage validation
      */
     public function edit(
         string $title,
         string $description,
         string $category,
-        Area $area,
+        string $area,
         ?string $location,
+        \Closure $categoryExists,
         \DateTimeImmutable $now,
     ): void {
         if (MovementStatus::Draft !== $this->status) {
-            throw new MovementNotDraft('Only draft movements can be changed.');
+            throw new MovementNotDraft('movement.not_draft');
         }
 
-        self::assertValidFields($title, $description, $category, $area, $location);
+        $areaValue = self::assertValidFields(
+            $title,
+            $description,
+            $category,
+            $area,
+            $location,
+            $categoryExists,
+        );
 
         $this->title = trim($title);
         $this->description = $description;
         $this->category = $category;
-        $this->area = $area;
-        $this->location = Area::International === $area ? null : trim((string) $location);
+        $this->area = $areaValue;
+        $this->location = Area::International === $areaValue ? null : trim((string) $location);
         $this->updatedAt = $now;
     }
 
@@ -113,17 +137,19 @@ final class Movement
      * FR-006: `draft` -> `proposed`, only with a non-empty description.
      *
      * @throws MovementNotDraft when the movement already left `draft`
+     * @throws InvalidMovement  when the description is still empty
      */
     public function submit(\DateTimeImmutable $now): void
     {
         if (MovementStatus::Draft !== $this->status) {
-            throw new MovementNotDraft('Only draft movements can be submitted.');
+            throw new MovementNotDraft('movement.not_draft');
         }
 
-        Assert::stringNotEmpty(
-            trim($this->description),
-            'A description is required to propose the movement.',
-        );
+        if ('' === trim($this->description)) {
+            throw new InvalidMovement([
+                'description' => 'movement.description.required',
+            ], 'movement.invalid');
+        }
 
         $this->status = MovementStatus::Proposed;
         $this->updatedAt = $now;
@@ -164,27 +190,55 @@ final class Movement
         return $this->updatedAt;
     }
 
+    /**
+     * @param \Closure(): bool $categoryExists invoked only if the category isn't blank
+     *
+     * @throws InvalidMovement when any field fails stage validation
+     */
     private static function assertValidFields(
         string $title,
         string $description,
         string $category,
-        Area $area,
+        string $area,
         ?string $location,
-    ): void {
-        Assert::stringNotEmpty(trim($title), 'A movement needs a title.');
-        Assert::maxLength(trim($title), self::TITLE_MAX_LENGTH);
-        Assert::maxLength($description, self::DESCRIPTION_MAX_LENGTH);
-        Assert::stringNotEmpty($category, 'A movement needs a category.');
+        \Closure $categoryExists,
+    ): Area {
+        $errors = [];
+        $trimmedTitle = trim($title);
 
-        if (Area::International === $area) {
-            Assert::null($location, 'International movements carry no location.');
-
-            return;
+        if ('' === $trimmedTitle) {
+            $errors['title'] = 'movement.title.blank';
+        } elseif (mb_strlen($trimmedTitle) > self::TITLE_MAX_LENGTH) {
+            $errors['title'] = 'movement.title.too_long';
         }
 
-        Assert::stringNotEmpty(
-            trim((string) $location),
-            'A location is required for the chosen area.',
-        );
+        if (mb_strlen($description) > self::DESCRIPTION_MAX_LENGTH) {
+            $errors['description'] = 'movement.description.too_long';
+        }
+
+        if ('' === $category) {
+            $errors['category'] = 'movement.category.blank';
+        } elseif (! $categoryExists()) {
+            $errors['category'] = 'movement.category.unknown';
+        }
+
+        $areaValue = Area::tryFrom($area);
+
+        if (null === $areaValue) {
+            $errors['area'] = 'movement.area.invalid';
+            $areaValue = Area::International;
+        } elseif (Area::International === $areaValue) {
+            if (null !== $location && '' !== trim($location)) {
+                $errors['location'] = 'movement.location.forbidden';
+            }
+        } elseif (null === $location || '' === trim($location)) {
+            $errors['location'] = 'movement.location.blank';
+        }
+
+        if ([] !== $errors) {
+            throw new InvalidMovement($errors, 'movement.invalid');
+        }
+
+        return $areaValue;
     }
 }

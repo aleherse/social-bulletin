@@ -10,16 +10,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsEventListener(event: KernelEvents::EXCEPTION)]
 final readonly class AuthorNotFoundListener
 {
-    public function __construct(
-        private TranslatorInterface $translator,
-    ) {
-    }
-
     public function __invoke(ExceptionEvent $event): void
     {
         if (! $event->getThrowable() instanceof AuthorNotFound) {
@@ -27,7 +21,7 @@ final readonly class AuthorNotFoundListener
         }
 
         $event->setResponse(new JsonResponse([
-            'message' => $this->translator->trans('error.unauthorized', [], 'errors'),
+            'message' => 'error.unauthorized',
         ], Response::HTTP_UNAUTHORIZED));
     }
 }
