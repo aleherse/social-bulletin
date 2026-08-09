@@ -25,3 +25,22 @@ rules (blank checks, format, length) stay in the domain service; the Command onl
     | Wrong                                                                    | Right                                                                          |
     |---------------------------------------------------------------------------|----------------------------------------------------------------------------------|
     | `PostSessionController` reads `$payload['email']` inline and calls `RequestPayload::stringField()` | `PostSessionController` calls `PostSessionCommand::fromPayload($payload)` and reads `$command->email` |
+
+---
+
+**WHEN** a controller under `apps/api/src/Controller` must hand payload fields to a `packages/core`
+service
+**THEN** give its `<HttpVerb><Aggregate>[<Action>]Command` one `to<Intent>()` method per domain
+command it feeds, and pass the resulting domain command to the service — never spread payload fields
+as separate service arguments, and never compute merge defaults in the controller body. Absent-field
+semantics belong in that mapper: POST passes `?? ''` so the domain reports the field error, PATCH
+falls back to the current aggregate value (`to<Intent>(<Aggregate> $current)`), using the
+`<field>Provided` flag wherever `null` is itself a legal value. The mapping lives in `apps/api`
+because App may depend on Core, never the reverse.
+
+*Example:*
+    | Wrong                                                                          | Right                                                     |
+    |------------------------------------------------------------------------------------|---------------------------------------------------------------|
+    | `$this->movementService->create($author->id, $command->title ?? '', $command->description ?? '', …)` | `$this->movementService->create($command->toDraft($author->id))` |
+    | PATCH merge (`$command->title ?? $movement->title()`, …) inline in `PatchMovementController::__invoke()` | `$command->toEdit($movement)` on `UpsertMovementCommand`   |
+    | `MovementService::update($id, $authorId, string $title, string $description, …)` | `MovementService::update($id, $authorId, EditMovement $command)` |
