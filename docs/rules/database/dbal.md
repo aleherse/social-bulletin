@@ -21,3 +21,30 @@ in `apps/api/src/Repository/`.
     |--------------------------------------------|------------------------------------------------------|
     | `packages/core/src/Movement/Categories.php` | `packages/core/src/Movement/CategoryRepository.php` |
 
+---
+
+**WHEN** an aggregate's persisted column has a database-level foreign key to a managed lookup
+table (e.g. `movements.category` → `bulletin.categories.id`)
+**THEN** let the constraint enforce existence and catch
+`Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException` inside the repository's `save()`,
+translating it into the aggregate's own validation exception — do not run a separate
+`exists()` SELECT beforehand to pre-validate the same thing.
+
+*Example:*
+    `packages/core/src/Movement/MovementRepository.php` `save()`:
+    ```php
+    try {
+        $this->connection->executeStatement(/* INSERT ... */);
+    } catch (ForeignKeyConstraintViolationException $exception) {
+        if (! str_contains($exception->getMessage(), 'movements_category_fk')) {
+            throw $exception;
+        }
+
+        throw new InvalidMovement([
+            'category' => 'movement.category.unknown',
+        ], 'movement.invalid', $exception);
+    }
+    ```
+    Check the exception message for the specific constraint name so unrelated FK
+    violations (e.g. `movements_author_fk`) are not misreported as the wrong field.
+
