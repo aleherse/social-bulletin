@@ -34,7 +34,8 @@ translating it into the aggregate's own validation exception — do not run a se
     `packages/core/src/Movement/MovementRepository.php` `save()`:
     ```php
     try {
-        $this->connection->executeStatement(/* INSERT ... */);
+        /** @var array<string, string|null>|false $row */
+        $row = $this->connection->fetchAssociative(/* INSERT ... RETURNING ... */);
     } catch (ForeignKeyConstraintViolationException $exception) {
         if (! str_contains($exception->getMessage(), 'movements_category_fk')) {
             throw $exception;
