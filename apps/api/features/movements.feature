@@ -72,6 +72,18 @@ Feature: Propose a movement
     And the JSON at "errors.category" should not be empty
     And the JSON at "errors.area" should not be empty
 
+  Scenario: An unknown category is rejected
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I send a POST request to "/api/movements" with body:
+      """
+      {"title": "Community Gardens for Everyone", "category": "not-a-real-category", "area": "municipality", "location": "Sheffield"}
+      """
+    Then the response status code should be 400
+    And the JSON at "errors.category" should not be empty
+
   Scenario: A local area requires a location
     When I send a POST request to "/api/session" with body:
       """
