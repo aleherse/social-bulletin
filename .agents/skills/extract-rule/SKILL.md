@@ -87,6 +87,7 @@ Read the target file if it exists, then classify each distilled rule:
 
 - **Add** — nothing similar exists; it will be appended.
 - **Update** — an existing rule covers the same ground but is incomplete or outdated; it will be amended.
+  Keep its existing identifier — an updated rule keeps its number.
 - **Conflict** — an existing rule says the opposite. Present both versions to the user and
   let them decide which wins; never silently overwrite an existing rule.
 
@@ -95,12 +96,28 @@ Read the target file if it exists, then classify each distilled rule:
 Write each rule using this exact template:
 
 ```markdown
+## <category>-<subcategory>-0000: <short title>
+
 **WHEN** <condition that triggers the rule>
+
 **THEN** <rule that should guide the agent>
 
-*Example:*
-    <specific rule application examples>
+**Example:**
+
+<specific rule application examples>
 ```
+
+The heading opens with the rule's identifier: the lowercase category and subcategory joined by
+hyphens, then a four-digit number — `domain-common-0001`, `application-framework-0003`.
+Numbering is per file and starts at `0001`; a new rule takes the next number after the highest
+already in that file. Identifiers are permanent: never renumber existing rules, and never reuse
+the number of a deleted one — a gap in the sequence is expected, since these identifiers are how
+reviews and commit messages cite a rule.
+
+After the identifier comes a colon and a short title — at most about six words, naming the choice
+the rule makes so the file can be skimmed by heading alone. State the position, not the topic:
+`One controller class per route`, not `Controllers`. A title may be reworded freely; only the
+identifier is fixed.
 
 Keep the WHEN concrete enough that an agent can tell whether it applies,
 and the THEN actionable enough that two agents following it would make the same choice.
@@ -110,16 +127,20 @@ Prefer structure over prose in the example: a short list, a before/after table, 
 snippet reads faster than a sentence and is easier to scan when several rules pile up in one file.
 For instance:
 
-```markdown
+````markdown
+## scaffolding-folders-0002: Domain code sits in per-aggregate folders
+
 **WHEN** adding domain logic to `packages/core`
+
 **THEN** group it under `src/<Aggregate>/`, one folder per aggregate — never a flat top-level file
 
-*Example:*
-    | Wrong                                        | Right                                              |
-    |-----------------------------------------------|-----------------------------------------------------|
-    | `packages/core/src/MovementService.php`        | `packages/core/src/Movement/MovementService.php`   |
-    | `packages/core/src/UserRepository.php`          | `packages/core/src/User/UserRepository.php`         |
-```
+**Example:**
+
+| Wrong                                   | Right                                            |
+|-----------------------------------------|--------------------------------------------------|
+| `packages/core/src/MovementService.php` | `packages/core/src/Movement/MovementService.php` |
+| `packages/core/src/UserRepository.php`  | `packages/core/src/User/UserRepository.php`      |
+````
 
 Show the formalised rule(s) to the user and wait for feedback and confirmation.
 
@@ -127,6 +148,38 @@ Show the formalised rule(s) to the user and wait for feedback and confirmation.
 
 Write the confirmed rule(s) to the target file, creating directories and files as needed.
 When creating a new file, start it with a `# <Category> / <Subcategory>` heading.
+Append new rules at the end, so the file reads in identifier order.
+The `## <identifier>` heading is the only separator between rules — do not add horizontal rules.
 
 If rules were set aside in Step 3, restart from Step 3 with them.
-When no set-aside rules remain, summarise which files were written and you are done.
+When no set-aside rules remain, continue to Step 7.
+
+## Step 7: Point the agent guide at the rules
+
+Run this step only when this session wrote the repository's *first* rule —
+`docs/rules/` held no rule files before Step 6. Otherwise skip it.
+
+Read the repository's agent guide. If it already has a section describing `docs/rules/`, there is nothing to do.
+
+Otherwise the rules are invisible: an agent that never opens `docs/rules/` cannot follow them.
+Ask the user whether to add a Coding Rules section, showing the exact text and where it would go.
+Do not write it unless they agree. Propose this, adjusted to the repository's own paths and tone:
+
+```markdown
+## Coding Rules
+
+- `docs/rules/<category>/<subcategory>.md` holds distilled, checkable engineering rules
+  (`WHEN` a condition applies, `THEN` what to do, with a repo-grounded example) —
+  decisions already made once that should guide every future change in that area.
+- Each rule's heading is a permanent identifier followed by a short title —
+  `<category>-<subcategory>-<NNNN>: <title>`.
+  Cite the identifier when a review comment, commit message, or spec leans on a rule,
+  so the reader can find the rule itself rather than re-argue it.
+- Before writing or changing code in an area, check `docs/rules/` for a file matching that
+  category/subcategory and follow it.
+- When a change encodes a decision worth repeating (a correction during review, a convention
+  established by a diff), use the `extract-rule` skill to distill it into `docs/rules/`
+  instead of leaving it implicit for the next agent to rediscover.
+```
+
+Finally, summarise which files were written and you are done.
