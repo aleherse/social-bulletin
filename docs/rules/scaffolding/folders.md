@@ -1,11 +1,15 @@
 # Scaffolding / Folders
 
-**WHEN** adding a Symfony controller to `apps/api/src/Controller`
-**THEN** place it under a per-aggregate subfolder matching the aggregate it serves, with the namespace
-updated to match — not flat in `Controller/` with a bare `App\Controller` namespace.
+## scaffolding-folders-0001: Controllers live in per-aggregate folders
 
-*Example:*
-    | Wrong                                                | Right                                                              |
-    |---------------------------------------------------------|------------------------------------------------------------------------|
-    | `apps/api/src/Controller/CategoryController.php` (`namespace App\Controller;`) | `apps/api/src/Controller/Movement/CategoryController.php` (`namespace App\Controller\Movement;`) |
-    | `apps/api/src/Controller/SessionController.php` (`namespace App\Controller;`)  | `apps/api/src/Controller/User/SessionController.php` (`namespace App\Controller\User;`)          |
+**WHEN** adding a Symfony controller to `apps/api/src/Controller`
+
+**THEN** place it under a per-aggregate subfolder matching the aggregate it serves, with the namespace updated to
+match — not flat in `Controller/` with a bare `App\Controller` namespace.
+
+**Example:**
+
+| Wrong                                                                          | Right                                                                                            |
+|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| `apps/api/src/Controller/CategoryController.php` (`namespace App\Controller;`) | `apps/api/src/Controller/Movement/CategoryController.php` (`namespace App\Controller\Movement;`) |
+| `apps/api/src/Controller/SessionController.php` (`namespace App\Controller;`)  | `apps/api/src/Controller/User/SessionController.php` (`namespace App\Controller\User;`)          |
