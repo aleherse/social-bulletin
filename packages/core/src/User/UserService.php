@@ -39,10 +39,7 @@ final readonly class UserService
         $id = $this->identities->generate();
         Assert::uuid($id);
 
-        $user = new User($id, $email, new \DateTimeImmutable());
-        $this->users->add($user);
-
-        return $user;
+        return $this->users->save(new User($id, $email));
     }
 
     public function currentUser(string $email): ?User
