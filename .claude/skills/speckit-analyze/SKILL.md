@@ -1,6 +1,6 @@
 ---
 name: "speckit-analyze"
-description: "Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation."
+description: "Perform a non-destructive cross-artifact consistency, test-coverage, and quality analysis across spec.md, plan.md, and tasks.md after task generation."
 argument-hint: "Optional focus areas for analysis"
 compatibility: "Requires spec-kit project structure with .specify/ directory"
 metadata:
@@ -95,6 +95,9 @@ Load only the minimal necessary context from each artifact:
 - Data Model references
 - Phases
 - Technical constraints
+- Constitution Check gates and the **Layers touched** table (which of
+  `packages/core`, `apps/api`, `apps/web`, user journeys the feature affects,
+  and the tool named for each)
 
 **From tasks.md:**
 
@@ -103,6 +106,8 @@ Load only the minimal necessary context from each artifact:
 - Phase grouping
 - Parallel markers [P]
 - Referenced file paths
+- Which tasks are test tasks, the layer each covers, and any written waiver
+  declining a layer
 
 **From constitution:**
 
@@ -115,6 +120,7 @@ Create internal representations (do not include raw artifacts in output):
 - **Requirements inventory**: For each Functional Requirement (FR-###) and Success Criterion (SC-###), record a stable key. Use the explicit FR-/SC- identifier as the primary key when present, and optionally also derive an imperative-phrase slug for readability (e.g., "User can upload file" → `user-can-upload-file`). Include only Success Criteria items that require buildable work (e.g., load-testing infrastructure, security audit tooling), and exclude post-launch outcome metrics and business KPIs (e.g., "Reduce support tickets by 50%").
 - **User story/action inventory**: Discrete user actions with acceptance criteria
 - **Task coverage mapping**: Map each task to one or more requirements or stories (inference by keyword / explicit reference patterns like IDs or key phrases)
+- **Test coverage mapping**: For each layer the plan says the feature touches, record the test tasks covering it, keyed by the ADR-0015 layer→tool mapping. Infer a task's layer from its target path — `packages/core/spec/` → PHPSpec, `apps/api/features/` → Behat, `*.test.ts(x)` beside `apps/web/src/` → Vitest, `apps/web/e2e/` → Playwright — and also from an explicitly named tool, since a task may say "with Vitest coverage" without naming a file. A task that names a tool but no path still counts as covering that layer; flag the missing path separately as underspecification (pass C). Also map each user story to the end-to-end journey task(s) that exercise it.
 - **Constitution rule set**: Extract principle names and MUST/SHOULD normative statements
 
 ### 4. Detection Passes (Token-Efficient Analysis)
@@ -155,13 +161,39 @@ Focus on high-signal findings. Limit to 50 findings total; aggregate remainder i
 - Task ordering contradictions (e.g., integration tasks before foundational setup tasks without dependency note)
 - Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
 
+#### G. Test Coverage Gaps (Constitution Principle I)
+
+Principle I makes tests first-class, so an untested layer is a MUST violation,
+not a style note. Check each of these:
+
+- **Untested layer**: a layer the plan marks as touched with no test task in
+  its ADR-0015 tool. This is the pass's primary purpose — a feature whose
+  `apps/web` work has Vitest tasks but no Playwright journey is a gap even
+  though every other suite is covered.
+- **Story without a journey**: a user story in spec.md with no end-to-end task in
+  `apps/web/e2e/`. Every story is user-facing by definition, and Playwright is
+  the only layer exercising the compiled frontend against the real API.
+- **Ordering violation**: a test task appearing after the implementation task
+  it covers, or an implementation task whose story has no preceding test task.
+- **Undeclared layer**: tasks touching a layer the plan's Layers-touched table
+  says is untouched (the plan understated scope, so its gates were never
+  applied to that layer).
+- **Silent omission**: a layer skipped without the written waiver Principle I
+  requires. A waiver naming the layer and the reason is compliant; silence is
+  not.
+- **Unverifiable acceptance scenario**: an acceptance scenario phrased so no
+  test could assert it (no concrete input, or no observable outcome).
+
+Do not treat a green suite or a `make tests` task as evidence of coverage; a
+suite that never exercises the new code passes regardless.
+
 ### 5. Severity Assignment
 
 Use this heuristic to prioritize findings:
 
-- **CRITICAL**: Violates constitution MUST, missing core spec artifact, or requirement with zero coverage that blocks baseline functionality
-- **HIGH**: Duplicate or conflicting requirement, ambiguous security/performance attribute, untestable acceptance criterion
-- **MEDIUM**: Terminology drift, missing non-functional task coverage, underspecified edge case
+- **CRITICAL**: Violates constitution MUST, missing core spec artifact, requirement with zero coverage that blocks baseline functionality, or a touched layer with no test task and no written waiver (Principle I)
+- **HIGH**: Duplicate or conflicting requirement, ambiguous security/performance attribute, untestable acceptance criterion, user story with no end-to-end journey, test task ordered after the implementation it covers
+- **MEDIUM**: Terminology drift, missing non-functional task coverage, underspecified edge case, layer touched by tasks but undeclared in the plan's Layers-touched table
 - **LOW**: Style/wording improvements, minor redundancy not affecting execution order
 
 ### 6. Produce Compact Analysis Report
@@ -181,6 +213,18 @@ Output a Markdown report (no file writes) with the following structure:
 | Requirement Key | Has Task? | Task IDs | Notes |
 |-----------------|-----------|----------|-------|
 
+**Test Coverage by Layer:** (Constitution Principle I — always emit this table)
+
+| Layer | Touched? | Tool | Test task IDs | Verdict |
+|-------|----------|------|---------------|---------|
+| `packages/core` | yes/no | PHPSpec | | covered / **GAP** / waived |
+| `apps/api` | yes/no | Behat | | covered / **GAP** / waived |
+| `apps/web` | yes/no | Vitest | | covered / **GAP** / waived |
+| User journeys | yes/no | Playwright | | covered / **GAP** / waived |
+
+Follow it with a per-story line: each user story and the journey task covering
+it, or **GAP** where none exists.
+
 **Constitution Alignment Issues:** (if any)
 
 **Unmapped Tasks:** (if any)
@@ -190,6 +234,8 @@ Output a Markdown report (no file writes) with the following structure:
 - Total Requirements
 - Total Tasks
 - Coverage % (requirements with >=1 task)
+- Layers touched vs. layers with test tasks (e.g. 3/4)
+- User stories with an end-to-end journey (e.g. 2/3)
 - Ambiguity Count
 - Duplication Count
 - Critical Issues Count
@@ -199,6 +245,7 @@ Output a Markdown report (no file writes) with the following structure:
 At end of report, output a concise Next Actions block:
 
 - If CRITICAL issues exist: Recommend resolving before `/speckit-implement`
+- If any layer shows **GAP**: name the missing test task explicitly, e.g. "Add a Playwright journey task for US2 in `apps/web/e2e/`" — an untested layer blocks implementation under Principle I
 - If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
 - Provide explicit command suggestions: e.g., "Run /speckit-specify with refinement", "Run /speckit-plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
 
@@ -252,6 +299,7 @@ After reporting, check if `.specify/extensions.yml` exists in the project root.
 - **NEVER modify files** (this is read-only analysis)
 - **NEVER hallucinate missing sections** (if absent, report them accurately)
 - **Prioritize constitution violations** (these are always CRITICAL)
+- **Never report a clean bill of health while a touched layer is untested** (Principle I is a MUST; a coverage gap outranks a tidy artifact set)
 - **Use examples over exhaustive rules** (cite specific instances, not generic patterns)
 - **Report zero issues gracefully** (emit success report with coverage statistics)
 
