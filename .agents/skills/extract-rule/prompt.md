@@ -54,13 +54,16 @@ Check if distilled rules add, update or conflict with the existing rules
 
 Write the rule(s) in the specified file using the following template
 
-```
+```markdown
+## <category>-<subcategory>-0000: <short title>
+
 **WHEN** <condition that triggers the rule>
+
 **THEN** <rule that should guide the agent>
 
-*Example:* 
-    <specific rule application examples>
+**Example:**
 
+<specific rule application examples>
 ```
 
 Example section is optional and should be added if the rule needs clarification, use lists, tables or code snippets to make it easier to read
@@ -72,3 +75,7 @@ Ask for user feedback and confirmation
 Write the changes to the file
 
 If other rules were memorised restart the process with them at step 3, if not you are done
+
+# Step 7: Update AGENTS.md
+
+Ask the user to add a section of coding rules to AGENTS.md if there are no rules written yet
