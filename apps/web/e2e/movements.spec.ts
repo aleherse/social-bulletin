@@ -2,6 +2,13 @@ import type { Page } from '@playwright/test';
 
 import { expect, test } from './fixtures.ts';
 
+// Constitution Principle II (the pyramid): these journeys cover the happy path
+// of each user story plus the guest boundary, which spans session and routing.
+// Validation and rejection cases are proven once lower down — required fields
+// in `movement-form.test.tsx`, the empty-description refusal in
+// `submit-movement-button.test.tsx`, `MovementSpec` and `movements.feature` —
+// so they are deliberately absent here rather than missing.
+
 interface MovementFields {
   title: string;
   category: string;
@@ -77,18 +84,6 @@ test('an author drafts a movement, finds it listed, and submits it as a proposal
   await expect(page.getByRole('button', { name: 'Submit proposal' })).toBeHidden();
 });
 
-test('the draft form names the fields that are missing', async ({ page }) => {
-  await signIn(page, 'author@example.com');
-
-  await page.getByRole('link', { name: 'New movement' }).click();
-  await page.getByRole('button', { name: 'Save draft' }).click();
-
-  // Title, category, area and location are all required from the first save.
-  await expect(page.getByRole('alert')).toHaveCount(4);
-  await expect(page.getByRole('alert').first()).toHaveText('This field is required.');
-  await expect(page.getByRole('heading', { name: 'Propose a movement' })).toBeVisible();
-});
-
 test('an international movement is saved without a location', async ({ page }) => {
   await signIn(page, 'author@example.com');
 
@@ -106,25 +101,6 @@ test('an international movement is saved without a location', async ({ page }) =
 
   const row = page.getByRole('listitem').filter({ hasText: 'Stop Factory Farming Worldwide' });
   await expect(row).toContainText('International · Animal rights');
-});
-
-test('a draft without a description cannot be proposed', async ({ page }) => {
-  await signIn(page, 'author@example.com');
-
-  await createDraft(page, {
-    title: 'Save the Bees',
-    category: 'Animal rights',
-    area: 'Region',
-    location: 'Yorkshire',
-  });
-
-  await page.getByRole('link', { name: 'Save the Bees' }).click();
-  await page.getByRole('button', { name: 'Submit proposal' }).click();
-
-  // The message comes from the API, so assert it is shown rather than its wording.
-  await expect(page.getByRole('alert')).toBeVisible();
-  await expect(page.getByText('Draft')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Submit proposal' })).toBeVisible();
 });
 
 test('an author edits a draft before submitting it', async ({ page }) => {
