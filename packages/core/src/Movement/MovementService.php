@@ -18,27 +18,12 @@ final readonly class MovementService
     /**
      * @throws InvalidMovement when any field fails stage validation
      */
-    public function create(
-        string $authorId,
-        string $title,
-        string $description,
-        string $category,
-        string $area,
-        ?string $location,
-    ): Movement {
+    public function create(DraftMovement $command): Movement
+    {
         $id = $this->identities->generate();
         Assert::uuid($id);
 
-        $movement = Movement::draft(
-            $id,
-            $authorId,
-            $title,
-            $description,
-            $category,
-            $area,
-            $location,
-            new \DateTimeImmutable(),
-        );
+        $movement = Movement::draft($id, $command, new \DateTimeImmutable());
         $this->movements->save($movement);
 
         return $movement;
@@ -73,27 +58,9 @@ final readonly class MovementService
      * @throws MovementNotDraft when the movement already left `draft`
      * @throws InvalidMovement  when any field fails stage validation
      */
-    public function update(
-        string $id,
-        string $authorId,
-        string $title,
-        string $description,
-        string $category,
-        string $area,
-        ?string $location,
-    ): Movement {
-        $movement = $this->authorMovement($id, $authorId);
-        $movement->edit(
-            $title,
-            $description,
-            $category,
-            $area,
-            $location,
-            new \DateTimeImmutable(),
-        );
-        $this->movements->save($movement);
-
-        return $movement;
+    public function update(string $id, string $authorId, EditMovement $command): Movement
+    {
+        return $this->apply($id, $authorId, $command);
     }
 
     /**
@@ -103,8 +70,18 @@ final readonly class MovementService
      */
     public function submit(string $id, string $authorId): Movement
     {
+        return $this->apply($id, $authorId, new SubmitMovement());
+    }
+
+    /**
+     * @throws MovementNotFound when unknown or owned by another user
+     * @throws MovementNotDraft when the movement already left `draft`
+     * @throws InvalidMovement  when the command fails stage validation
+     */
+    private function apply(string $id, string $authorId, MovementCommand $command): Movement
+    {
         $movement = $this->authorMovement($id, $authorId);
-        $movement->submit(new \DateTimeImmutable());
+        $movement->apply($command, new \DateTimeImmutable());
         $this->movements->save($movement);
 
         return $movement;

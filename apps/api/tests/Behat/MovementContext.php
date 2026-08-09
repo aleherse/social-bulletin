@@ -9,6 +9,7 @@ use Behat\Gherkin\Node\PyStringNode;
 use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
+use SocialBulletin\Core\Movement\DraftMovement;
 use SocialBulletin\Core\Movement\MovementService;
 use SocialBulletin\Core\User\UserService;
 use Webmozart\Assert\Assert;
@@ -94,14 +95,14 @@ final class MovementContext implements Context
     private function createMovement(string $email, string $title, string $description): void
     {
         $user = $this->userService->findOrCreateByEmail($email);
-        $movement = $this->movementService->create(
+        $movement = $this->movementService->create(new DraftMovement(
             $user->id,
             $title,
             $description,
             'cooperative',
             'municipality',
             'Sheffield',
-        );
+        ));
 
         $this->movementIds[$title] = $movement->id;
     }

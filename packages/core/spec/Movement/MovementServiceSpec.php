@@ -7,12 +7,15 @@ namespace spec\SocialBulletin\Core\Movement;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use SocialBulletin\Core\Helper\IdentityGenerator;
+use SocialBulletin\Core\Movement\DraftMovement;
+use SocialBulletin\Core\Movement\EditMovement;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\Movement;
 use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementNotFound;
 use SocialBulletin\Core\Movement\MovementRepository;
 use SocialBulletin\Core\Movement\MovementStatus;
+use SocialBulletin\Core\Movement\SubmitMovement;
 
 final class MovementServiceSpec extends ObjectBehavior
 {
@@ -37,14 +40,7 @@ final class MovementServiceSpec extends ObjectBehavior
                 && MovementStatus::Draft === $movement->status(),
         ))->shouldBeCalled();
 
-        $movement = $this->create(
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            "## Why\nGardens for all.",
-            'cooperative',
-            'municipality',
-            'Sheffield',
-        );
+        $movement = $this->create($this->draftCommand());
 
         $movement->title()->shouldBe('Community Gardens for Everyone');
         $movement->status()->shouldBe(MovementStatus::Draft);
@@ -57,14 +53,7 @@ final class MovementServiceSpec extends ObjectBehavior
         $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::type(Movement::class))->shouldBeCalled();
 
-        $movement = $this->create(
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            '',
-            'cooperative',
-            'municipality',
-            'Sheffield',
-        );
+        $movement = $this->create($this->draftCommand(description: ''));
 
         $movement->description()->shouldBe('');
     }
@@ -76,8 +65,9 @@ final class MovementServiceSpec extends ObjectBehavior
         $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
-        $this->shouldThrow(InvalidMovement::class)
-            ->during('create', [self::AUTHOR_ID, '   ', '', 'unknown', 'galaxy', null]);
+        $this->shouldThrow(InvalidMovement::class)->during('create', [
+            $this->draftCommand(title: '   ', description: '', category: '', area: 'galaxy', location: null),
+        ]);
     }
 
     public function it_requires_a_location_for_local_areas(
@@ -87,10 +77,9 @@ final class MovementServiceSpec extends ObjectBehavior
         $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
-        $this->shouldThrow(InvalidMovement::class)->during(
-            'create',
-            [self::AUTHOR_ID, 'Community Gardens for Everyone', '', 'cooperative', 'municipality', null],
-        );
+        $this->shouldThrow(InvalidMovement::class)->during('create', [
+            $this->draftCommand(description: '', location: null),
+        ]);
     }
 
     public function it_rejects_a_location_on_an_international_movement(
@@ -100,10 +89,9 @@ final class MovementServiceSpec extends ObjectBehavior
         $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
-        $this->shouldThrow(InvalidMovement::class)->during(
-            'create',
-            [self::AUTHOR_ID, 'Global Climate Strike', '', 'cooperative', 'international', 'Sheffield'],
-        );
+        $this->shouldThrow(InvalidMovement::class)->during('create', [
+            $this->draftCommand(title: 'Global Climate Strike', description: '', area: 'international'),
+        ]);
     }
 
     public function it_lists_the_authors_movements(
@@ -158,12 +146,7 @@ final class MovementServiceSpec extends ObjectBehavior
     ): void {
         $movement = Movement::draft(
             self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            '',
-            'cooperative',
-            'municipality',
-            'Sheffield',
+            $this->draftCommand(description: ''),
             new \DateTimeImmutable(),
         );
         $movements->byId(self::ID)->willReturn($movement);
@@ -177,7 +160,7 @@ final class MovementServiceSpec extends ObjectBehavior
         MovementRepository $movements,
     ): void {
         $movement = $this->describedDraft();
-        $movement->submit(new \DateTimeImmutable());
+        $movement->apply(new SubmitMovement(), new \DateTimeImmutable());
         $movements->byId(self::ID)->willReturn($movement);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
@@ -192,15 +175,13 @@ final class MovementServiceSpec extends ObjectBehavior
         $movements->byId(self::ID)->willReturn($movement);
         $movements->save($movement)->shouldBeCalled();
 
-        $updated = $this->update(
-            self::ID,
-            self::AUTHOR_ID,
+        $updated = $this->update(self::ID, self::AUTHOR_ID, new EditMovement(
             'Save All the Bees',
             'New description.',
             'animal_rights',
             'region',
             'Yorkshire',
-        );
+        ));
 
         $updated->title()->shouldBe('Save All the Bees');
         $updated->status()->shouldBe(MovementStatus::Draft);
@@ -210,32 +191,43 @@ final class MovementServiceSpec extends ObjectBehavior
         MovementRepository $movements,
     ): void {
         $movement = $this->describedDraft();
-        $movement->submit(new \DateTimeImmutable());
+        $movement->apply(new SubmitMovement(), new \DateTimeImmutable());
         $movements->byId(self::ID)->willReturn($movement);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
         $this->shouldThrow(MovementNotDraft::class)->during('update', [
             self::ID,
             self::AUTHOR_ID,
-            'Save All the Bees',
-            'New description.',
-            'cooperative',
-            'municipality',
-            'Sheffield',
+            new EditMovement(
+                'Save All the Bees',
+                'New description.',
+                'cooperative',
+                'municipality',
+                'Sheffield',
+            ),
         ]);
     }
 
     private function describedDraft(): Movement
     {
-        return Movement::draft(
-            self::ID,
+        return Movement::draft(self::ID, $this->draftCommand(), new \DateTimeImmutable());
+    }
+
+    // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.
+    private function draftCommand(
+        string $title = 'Community Gardens for Everyone',
+        string $description = "## Why\nGardens for all.",
+        string $category = 'cooperative',
+        string $area = 'municipality',
+        string|null $location = 'Sheffield',
+    ): DraftMovement {
+        return new DraftMovement(
             self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            "## Why\nGardens for all.",
-            'cooperative',
-            'municipality',
-            'Sheffield',
-            new \DateTimeImmutable(),
+            $title,
+            $description,
+            $category,
+            $area,
+            $location,
         );
     }
 }

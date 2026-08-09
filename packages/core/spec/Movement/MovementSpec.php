@@ -6,9 +6,12 @@ namespace spec\SocialBulletin\Core\Movement;
 
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Movement\Area;
+use SocialBulletin\Core\Movement\DraftMovement;
+use SocialBulletin\Core\Movement\EditMovement;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\MovementNotDraft;
 use SocialBulletin\Core\Movement\MovementStatus;
+use SocialBulletin\Core\Movement\SubmitMovement;
 
 final class MovementSpec extends ObjectBehavior
 {
@@ -19,12 +22,7 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            "## Why\nGardens for all.",
-            'cooperative',
-            'municipality',
-            'Sheffield',
+            $this->draftCommand(),
             new \DateTimeImmutable('2026-07-19T10:00:00+00:00'),
         ]);
     }
@@ -46,12 +44,7 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            '',
-            'cooperative',
-            'municipality',
-            'Sheffield',
+            $this->draftCommand(description: ''),
             new \DateTimeImmutable(),
         ]);
 
@@ -63,12 +56,7 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            '   ',
-            '',
-            'cooperative',
-            'municipality',
-            'Sheffield',
+            $this->draftCommand(title: '   ', description: ''),
             new \DateTimeImmutable(),
         ]);
 
@@ -79,12 +67,7 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            str_repeat('a', 201),
-            '',
-            'cooperative',
-            'municipality',
-            'Sheffield',
+            $this->draftCommand(title: str_repeat('a', 201), description: ''),
             new \DateTimeImmutable(),
         ]);
 
@@ -95,12 +78,7 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            str_repeat('a', 20001),
-            'cooperative',
-            'municipality',
-            'Sheffield',
+            $this->draftCommand(description: str_repeat('a', 20001)),
             new \DateTimeImmutable(),
         ]);
 
@@ -111,12 +89,7 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            '',
-            'cooperative',
-            'municipality',
-            null,
+            $this->draftCommand(description: '', location: null),
             new \DateTimeImmutable(),
         ]);
 
@@ -127,12 +100,7 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            'Global Climate Strike',
-            '',
-            'cooperative',
-            'international',
-            'Sheffield',
+            $this->draftCommand(title: 'Global Climate Strike', description: '', area: 'international'),
             new \DateTimeImmutable(),
         ]);
 
@@ -143,7 +111,7 @@ final class MovementSpec extends ObjectBehavior
     {
         $submittedAt = new \DateTimeImmutable('2026-07-19T12:00:00+00:00');
 
-        $this->submit($submittedAt);
+        $this->apply(new SubmitMovement(), $submittedAt);
 
         $this->status()->shouldBe(MovementStatus::Proposed);
         $this->updatedAt()->shouldBeLike($submittedAt);
@@ -153,26 +121,21 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            '',
-            'cooperative',
-            'municipality',
-            'Sheffield',
+            $this->draftCommand(description: ''),
             new \DateTimeImmutable(),
         ]);
 
         $this->shouldThrow(InvalidMovement::class)
-            ->during('submit', [new \DateTimeImmutable()]);
+            ->during('apply', [new SubmitMovement(), new \DateTimeImmutable()]);
         $this->status()->shouldBe(MovementStatus::Draft);
     }
 
     public function it_rejects_submitting_a_movement_that_is_not_a_draft(): void
     {
-        $this->submit(new \DateTimeImmutable());
+        $this->apply(new SubmitMovement(), new \DateTimeImmutable());
 
         $this->shouldThrow(MovementNotDraft::class)
-            ->during('submit', [new \DateTimeImmutable()]);
+            ->during('apply', [new SubmitMovement(), new \DateTimeImmutable()]);
         $this->status()->shouldBe(MovementStatus::Proposed);
     }
 
@@ -180,12 +143,14 @@ final class MovementSpec extends ObjectBehavior
     {
         $editedAt = new \DateTimeImmutable('2026-07-19T13:00:00+00:00');
 
-        $this->edit(
-            'Save All the Bees',
-            'New description.',
-            'animal_rights',
-            'region',
-            'Yorkshire',
+        $this->apply(
+            new EditMovement(
+                'Save All the Bees',
+                'New description.',
+                'animal_rights',
+                'region',
+                'Yorkshire',
+            ),
             $editedAt,
         );
 
@@ -200,12 +165,8 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_clears_the_location_when_edited_to_international(): void
     {
-        $this->edit(
-            'Global Climate Strike',
-            '',
-            'cooperative',
-            'international',
-            null,
+        $this->apply(
+            new EditMovement('Global Climate Strike', '', 'cooperative', 'international', null),
             new \DateTimeImmutable(),
         );
 
@@ -214,26 +175,24 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_applies_creation_rules_when_editing(): void
     {
-        $this->shouldThrow(InvalidMovement::class)->during('edit', [
-            '   ',
-            '',
-            'cooperative',
-            'municipality',
-            'Sheffield',
+        $this->shouldThrow(InvalidMovement::class)->during('apply', [
+            new EditMovement('   ', '', 'cooperative', 'municipality', 'Sheffield'),
             new \DateTimeImmutable(),
         ]);
     }
 
     public function it_refuses_to_edit_a_movement_that_is_not_a_draft(): void
     {
-        $this->submit(new \DateTimeImmutable());
+        $this->apply(new SubmitMovement(), new \DateTimeImmutable());
 
-        $this->shouldThrow(MovementNotDraft::class)->during('edit', [
-            'Save All the Bees',
-            'New description.',
-            'cooperative',
-            'municipality',
-            'Sheffield',
+        $this->shouldThrow(MovementNotDraft::class)->during('apply', [
+            new EditMovement(
+                'Save All the Bees',
+                'New description.',
+                'cooperative',
+                'municipality',
+                'Sheffield',
+            ),
             new \DateTimeImmutable(),
         ]);
     }
@@ -242,12 +201,12 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            'Global Climate Strike',
-            '',
-            'cooperative',
-            'international',
-            null,
+            $this->draftCommand(
+                title: 'Global Climate Strike',
+                description: '',
+                area: 'international',
+                location: null,
+            ),
             new \DateTimeImmutable(),
         ]);
 
@@ -259,15 +218,28 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('draft', [
             self::ID,
-            self::AUTHOR_ID,
-            'Community Gardens for Everyone',
-            '',
-            'not-a-real-category',
-            'municipality',
-            'Sheffield',
+            $this->draftCommand(description: '', category: 'not-a-real-category'),
             new \DateTimeImmutable(),
         ]);
 
         $this->category()->shouldBe('not-a-real-category');
+    }
+
+    // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.
+    private function draftCommand(
+        string $title = 'Community Gardens for Everyone',
+        string $description = "## Why\nGardens for all.",
+        string $category = 'cooperative',
+        string $area = 'municipality',
+        string|null $location = 'Sheffield',
+    ): DraftMovement {
+        return new DraftMovement(
+            self::AUTHOR_ID,
+            $title,
+            $description,
+            $category,
+            $area,
+            $location,
+        );
     }
 }
