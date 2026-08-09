@@ -26,8 +26,6 @@ final class Movement
     }
 
     /**
-     * @param \Closure(): bool $categoryExists invoked only if the category isn't blank
-     *
      * @throws InvalidMovement when any field fails stage validation
      */
     public static function draft(
@@ -38,7 +36,6 @@ final class Movement
         string $category,
         string $area,
         ?string $location,
-        \Closure $categoryExists,
         \DateTimeImmutable $now,
     ): self {
         Assert::uuid($id);
@@ -49,7 +46,6 @@ final class Movement
             $category,
             $area,
             $location,
-            $categoryExists,
         );
 
         return new self(
@@ -98,8 +94,6 @@ final class Movement
     /**
      * FR-007: fields can only change while the movement is a `draft`.
      *
-     * @param \Closure(): bool $categoryExists invoked only if the category isn't blank
-     *
      * @throws MovementNotDraft when the movement already left `draft`
      * @throws InvalidMovement  when any field fails stage validation
      */
@@ -109,7 +103,6 @@ final class Movement
         string $category,
         string $area,
         ?string $location,
-        \Closure $categoryExists,
         \DateTimeImmutable $now,
     ): void {
         if (MovementStatus::Draft !== $this->status) {
@@ -122,7 +115,6 @@ final class Movement
             $category,
             $area,
             $location,
-            $categoryExists,
         );
 
         $this->title = trim($title);
@@ -191,8 +183,6 @@ final class Movement
     }
 
     /**
-     * @param \Closure(): bool $categoryExists invoked only if the category isn't blank
-     *
      * @throws InvalidMovement when any field fails stage validation
      */
     private static function assertValidFields(
@@ -201,7 +191,6 @@ final class Movement
         string $category,
         string $area,
         ?string $location,
-        \Closure $categoryExists,
     ): Area {
         $errors = [];
         $trimmedTitle = trim($title);
@@ -218,8 +207,6 @@ final class Movement
 
         if ('' === $category) {
             $errors['category'] = 'movement.category.blank';
-        } elseif (! $categoryExists()) {
-            $errors['category'] = 'movement.category.unknown';
         }
 
         $areaValue = Area::tryFrom($area);

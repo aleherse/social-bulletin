@@ -11,7 +11,6 @@ final readonly class MovementService
 {
     public function __construct(
         private MovementRepository $movements,
-        private CategoryRepository $categories,
         private IdentityGenerator $identities,
     ) {
     }
@@ -38,7 +37,6 @@ final readonly class MovementService
             $category,
             $area,
             $location,
-            fn (): bool => $this->categoryExists($category),
             new \DateTimeImmutable(),
         );
         $this->movements->save($movement);
@@ -91,7 +89,6 @@ final readonly class MovementService
             $category,
             $area,
             $location,
-            fn (): bool => $this->categoryExists($category),
             new \DateTimeImmutable(),
         );
         $this->movements->save($movement);
@@ -111,10 +108,5 @@ final readonly class MovementService
         $this->movements->save($movement);
 
         return $movement;
-    }
-
-    private function categoryExists(string $category): bool
-    {
-        return '' !== $category && $this->categories->exists($category);
     }
 }

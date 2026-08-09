@@ -12,7 +12,8 @@ final class InvalidMovement extends \DomainException
     public function __construct(
         public readonly array $errors,
         string $message,
+        ?\Throwable $previous = null,
     ) {
-        parent::__construct($message);
+        parent::__construct($message, 0, $previous);
     }
 }
