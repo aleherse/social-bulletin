@@ -33,6 +33,8 @@ The common ones:
 
 ## Decisions and specs
 
+- `.specify/memory/constitution.md` holds the project's non-negotiable
+  principles and outranks conflicting guidance elsewhere.
 - `docs/decisions/` holds ADRs; `ADR-0000` defines project constants
   (hostnames, namespaces, database schema).
   Consult relevant ADRs before structural changes,
