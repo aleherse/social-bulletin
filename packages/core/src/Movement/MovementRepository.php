@@ -18,18 +18,20 @@ class MovementRepository
     }
 
     /**
-     * Inserts the movement or updates it when the id already exists.
+     * Inserts the movement or updates it when the id already exists, and returns the
+     * stored row as a fresh aggregate — including the timestamps the database assigned.
      *
      * @throws InvalidMovement when the category isn't in the managed list
      */
-    public function save(Movement $movement): void
+    public function save(Movement $movement): Movement
     {
         try {
-            $this->connection->executeStatement(<<<'SQL'
+            /** @var array<string, string|null>|false $row */
+            $row = $this->connection->fetchAssociative(sprintf(<<<'SQL'
                 INSERT INTO bulletin.movements
                     (id, author_id, title, description, category, area, location, status, created_at, updated_at)
                 VALUES
-                    (:id, :author_id, :title, :description, :category, :area, :location, :status, :created_at, :updated_at)
+                    (:id, :author_id, :title, :description, :category, :area, :location, :status, now(), now())
                 ON CONFLICT (id) DO UPDATE SET
                     title = EXCLUDED.title,
                     description = EXCLUDED.description,
@@ -37,9 +39,10 @@ class MovementRepository
                     area = EXCLUDED.area,
                     location = EXCLUDED.location,
                     status = EXCLUDED.status,
-                    updated_at = EXCLUDED.updated_at
+                    updated_at = now()
+                RETURNING %s
                 SQL
-                , [
+                , self::COLUMNS), [
                     'id' => $movement->id,
                                 'author_id' => $movement->authorId,
                                 'title' => $movement->title(),
@@ -50,9 +53,6 @@ class MovementRepository
                                 'location' => $movement->location(),
                                 'status' => $movement->status()
                                     ->value,
-                                'created_at' => $movement->createdAt->format(\DateTimeInterface::ATOM),
-                                'updated_at' => $movement->updatedAt()
-                                    ->format(\DateTimeInterface::ATOM),
                 ]);
         } catch (ForeignKeyConstraintViolationException $exception) {
             if (! str_contains($exception->getMessage(), 'movements_category_fk')) {
@@ -63,6 +63,12 @@ class MovementRepository
                 'category' => 'movement.category.unknown',
             ], 'movement.invalid', $exception);
         }
+
+        if (false === $row) {
+            throw new \RuntimeException('Saving a movement returned no row.');
+        }
+
+        return $this->hydrate($row);
     }
 
     public function byId(string $id): ?Movement
