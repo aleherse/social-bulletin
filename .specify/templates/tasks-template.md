@@ -84,6 +84,9 @@ Examples of foundational tasks (adjust based on your project):
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 > One task per layer this story touches. Do not skip a layer silently.
+> Pyramid (Principle II): put each error/edge/validation case at the lowest
+> layer that can prove it and do not repeat it higher; give the story's happy
+> path a Playwright journey.
 
 - [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py

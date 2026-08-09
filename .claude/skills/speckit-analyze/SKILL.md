@@ -170,9 +170,16 @@ not a style note. Check each of these:
   its ADR-0015 tool. This is the pass's primary purpose — a feature whose
   `apps/web` work has Vitest tasks but no Playwright journey is a gap even
   though every other suite is covered.
-- **Story without a journey**: a user story in spec.md with no end-to-end task in
-  `apps/web/e2e/`. Every story is user-facing by definition, and Playwright is
-  the only layer exercising the compiled frontend against the real API.
+- **Story without a happy-path journey**: a user story in spec.md whose
+  successful path has no end-to-end task in `apps/web/e2e/`. Playwright is the
+  only layer exercising the compiled frontend against the real API. Judge this
+  on happy paths only — a story needs one journey, not one per case.
+- **Redundant higher-layer coverage** (Principle II pyramid): an error, edge,
+  or validation case tested at a layer above the lowest one that can prove it —
+  a domain rule with both a PHPSpec example and a Behat scenario, or a form
+  validation message asserted in both Vitest and Playwright. Report as
+  redundancy to remove, not as a coverage gap. Do not recommend adding
+  higher-layer tests for cases a lower layer already proves.
 - **Ordering violation**: a test task appearing after the implementation task
   it covers, or an implementation task whose story has no preceding test task.
 - **Undeclared layer**: tasks touching a layer the plan's Layers-touched table
@@ -194,7 +201,7 @@ Use this heuristic to prioritize findings:
 - **CRITICAL**: Violates constitution MUST, missing core spec artifact, requirement with zero coverage that blocks baseline functionality, or a touched layer with no test task and no written waiver (Principle I)
 - **HIGH**: Duplicate or conflicting requirement, ambiguous security/performance attribute, untestable acceptance criterion, user story with no end-to-end journey, test task ordered after the implementation it covers
 - **MEDIUM**: Terminology drift, missing non-functional task coverage, underspecified edge case, layer touched by tasks but undeclared in the plan's Layers-touched table
-- **LOW**: Style/wording improvements, minor redundancy not affecting execution order
+- **LOW**: Style/wording improvements, minor redundancy not affecting execution order, an error case duplicated at a higher layer than needed (pyramid redundancy)
 
 ### 6. Produce Compact Analysis Report
 

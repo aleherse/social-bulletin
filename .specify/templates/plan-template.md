@@ -47,8 +47,10 @@ Confirm each gate or record a justified violation in Complexity Tracking.
 - [ ] **I. Tests first-class**: every layer this feature touches is listed below
       with the tool that will cover it; no layer is left implicit
 - [ ] **II. Layer/tool mapping**: `packages/core` → PHPSpec, `apps/api` → Behat,
-      `apps/web` units → Vitest, user journeys → Playwright. Every user story in
-      the spec has a Playwright journey planned
+      `apps/web` units → Vitest, user journeys → Playwright
+- [ ] **II. Pyramid**: every user story has a Playwright journey for its **happy
+      path**; error, edge, and validation cases are planned at the lowest layer
+      that can prove them and are not repeated higher up
 - [ ] **III. Decisions recorded**: relevant ADRs consulted; divergence proposes a
       new ADR; applicable `docs/rules/` files read
 - [ ] **IV. Automated gates**: work is runnable through `make` targets; test data

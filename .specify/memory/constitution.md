@@ -1,18 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.0 → 2.0.0
-Bump rationale: MAJOR — a principle was removed. The versioning policy below
-reserves MAJOR for removing or redefining a principle, and removal is
-backward incompatible for anything that cited the old numbering.
+Version change: 2.0.0 → 2.1.0
+Bump rationale: MINOR — Principle II gained materially expanded guidance (the
+test pyramid: where each kind of case belongs). No principle was removed,
+renamed, or renumbered, and nothing previously permitted became forbidden.
 
-Principles removed:
-  III. Hexagonal Core, Frameworks At The Edges — withdrawn at the author's
-       request, pending a better formulation in a later amendment.
-
-Principles renumbered:
-  IV. Decisions Are Recorded Before They Are Coded → III
-  V.  Automated Gates Over Human Vigilance        → IV
+Principles amended:
+  II. Every Layer Is Tested In Its Own Tool — added the pyramid rule: error
+      and edge cases are proven once at the lowest layer that can prove them
+      and MUST NOT be repeated higher; happy paths MUST be covered up the
+      stack including end to end.
 
 Current principles:
   I.   Tests Are First-Class Citizens (NON-NEGOTIABLE)
@@ -24,15 +22,17 @@ Sections added: none (unchanged since 1.0.0)
 Sections removed: none
 
 Templates requiring updates:
-  ✅ .specify/templates/plan-template.md   — dropped the hexagonal gate,
-     renumbered the remaining Constitution Check gates
-  ✅ .specify/templates/tasks-template.md  — no change; cites Principle I only
-  ✅ .specify/templates/spec-template.md   — no change; cites Principle I only
-  ✅ .claude/skills/speckit-analyze/SKILL.md — no change; cites Principle I only
-  ✅ AGENTS.md (CLAUDE.md symlink)         — no change; cites no principle by number
+  ✅ .specify/templates/plan-template.md     — gate II now asks for a happy-path
+     journey per story, not a journey per case
+  ✅ .specify/templates/tasks-template.md    — test tasks note where each kind
+     of case belongs
+  ✅ .claude/skills/speckit-analyze/SKILL.md — pass G checks happy-path journeys
+     and flags duplicated error coverage as redundancy
+  ✅ .specify/templates/spec-template.md     — no change; cites Principle I only
+  ✅ AGENTS.md (CLAUDE.md symlink)           — no change; cites no principle by number
 
-Note: dropping the principle does not delete the rule from the project. The
-hexagonal boundary remains specified by ADR-0005 and
+Standing note (from 2.0.0): dropping Principle III did not delete the rule from
+the project. The hexagonal boundary remains specified by ADR-0005 and
 docs/engineering/backend/hexagonal.md, and stays mechanically enforced by
 deptrac via `make lint`. It simply no longer carries constitutional force.
 
@@ -43,6 +43,7 @@ Deferred items:
 --- History ---
 1.0.0 (2026-08-09): Initial ratification; five principles adopted.
 2.0.0 (2026-08-09): Principle III removed; IV and V renumbered.
+2.1.0 (2026-08-09): Principle II expanded with the test pyramid rule.
 -->
 
 # Social Bulletin Constitution
@@ -89,15 +90,32 @@ that owns the layer it changes:
 
 - A feature that changes more than one layer MUST be tested in each layer it
   changes; passing coverage in a neighbouring layer is not a substitute.
-- Every user-facing journey described in a spec's user stories MUST have a
-  Playwright journey, because that is the only layer that exercises the
-  compiled frontend against the real API.
 - Component and journey assertions MUST use accessible queries (role, label,
   visible text), never CSS selectors or test-only attributes.
 
+**The pyramid decides *which* case goes *where*.** Layer coverage says a layer
+is exercised; it does not license testing every case at every level.
+
+- **Error, edge, and validation cases** MUST be tested at the **lowest layer
+  that can prove them**, and MUST NOT be repeated higher up. A rule enforced in
+  the domain is proven by PHPSpec; that same rejection does not need a Behat
+  scenario, a Vitest case, and a Playwright journey as well. Duplicating it
+  buys no confidence and costs a slow test that breaks on unrelated changes.
+- **Happy paths MUST be covered up the stack**, including end to end. Every
+  user story in a spec MUST have a Playwright journey walking its successful
+  path, because that is the only layer proving the compiled frontend, nginx,
+  and the real API agree.
+- Push a case higher **only when the higher layer is the lowest one that can
+  prove it**: an HTTP status mapping, a serialization shape, a redirect, an
+  authorization boundary spanning session and route — these are not domain
+  facts, so their tests belong where the behaviour lives.
+
 **Rationale**: Each tool proves something the others cannot. PHPSpec cannot
 prove nginx serves the bundle; Vitest cannot prove the API contract holds.
-Coverage in one layer routinely masquerades as coverage of the feature.
+Coverage in one layer routinely masquerades as coverage of the feature — but
+the opposite failure is just as real: an end-to-end suite that re-litigates
+every validation rule is slow, brittle, and buries the journeys that matter.
+Test the rule once, low; test the journey end to end.
 
 ### III. Decisions Are Recorded Before They Are Coded
 
@@ -193,4 +211,4 @@ violates a principle MUST be recorded in the plan's Complexity Tracking table
 with the simpler alternative that was rejected and why — an unjustified
 violation blocks merge.
 
-**Version**: 2.0.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-09
+**Version**: 2.1.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-09
