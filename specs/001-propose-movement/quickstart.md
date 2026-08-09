@@ -21,6 +21,9 @@ How to run and verify this feature locally once implemented.
 6. Try submitting a draft with an empty description — the API refuses
    and the form explains a description is required.
 
+This walkthrough is automated in `apps/web/e2e/movements.spec.ts`;
+run `make web-e2e` to check it without clicking through by hand.
+
 ## Try it against the API
 
 ```bash
@@ -48,8 +51,16 @@ curl -k -b cookies.txt -X POST \
 make php-unit   # PHPSpec: Movement + MovementService specs (core)
 make api-tests  # Behat: features/movements.feature (api)
 make web-unit   # Vitest: form + list component tests (web)
+make web-e2e    # Playwright: e2e/movements.spec.ts browser journeys
 make lint       # deptrac, phpstan, ecs, tsc, eslint, knip, prettier
 ```
 
-Behat scenarios restore the DSLR `fixtures` snapshot between runs;
+`make tests` runs the four test suites above in that order
+(`make lint` stays separate).
+`make web-e2e` rebuilds the frontend first
+and drives the compiled bundle nginx serves against the real API,
+so `make up` must be running.
+
+Behat and Playwright scenarios restore the DSLR `fixtures` snapshot
+between runs;
 never recreate the snapshot from a test run (ADR-0015).
