@@ -11,6 +11,10 @@ final class Movement
     public const TITLE_MAX_LENGTH = 200;
     public const DESCRIPTION_MAX_LENGTH = 20000;
 
+    private \DateTimeImmutable $createdAt;
+
+    private \DateTimeImmutable $updatedAt;
+
     private function __construct(
         public readonly string $id,
         public readonly string $authorId,
@@ -20,15 +24,13 @@ final class Movement
         private Area $area,
         private ?string $location,
         private MovementStatus $status,
-        public readonly \DateTimeImmutable $createdAt,
-        private \DateTimeImmutable $updatedAt,
     ) {
     }
 
     /**
      * @throws InvalidMovement when any field fails stage validation
      */
-    public static function draft(string $id, DraftMovement $command, \DateTimeImmutable $now): self
+    public static function draft(string $id, DraftMovement $command): self
     {
         Assert::uuid($id);
         Assert::uuid($command->authorId);
@@ -49,8 +51,6 @@ final class Movement
             $areaValue,
             Area::International === $areaValue ? null : trim((string) $command->location),
             MovementStatus::Draft,
-            $now,
-            $now,
         );
     }
 
@@ -69,7 +69,7 @@ final class Movement
         \DateTimeImmutable $createdAt,
         \DateTimeImmutable $updatedAt,
     ): self {
-        return new self(
+        $movement = new self(
             $id,
             $authorId,
             $title,
@@ -78,9 +78,11 @@ final class Movement
             $area,
             $location,
             $status,
-            $createdAt,
-            $updatedAt,
         );
+        $movement->createdAt = $createdAt;
+        $movement->updatedAt = $updatedAt;
+
+        return $movement;
     }
 
     /**
@@ -92,15 +94,15 @@ final class Movement
      * @throws MovementNotDraft when the movement already left `draft`
      * @throws InvalidMovement  when the command fails stage validation
      */
-    public function apply(MovementCommand $command, \DateTimeImmutable $now): void
+    public function apply(MovementCommand $command): void
     {
         if (MovementStatus::Draft !== $this->status) {
             throw new MovementNotDraft('movement.not_draft');
         }
 
         match (true) {
-            $command instanceof EditMovement => $this->edit($command, $now),
-            $command instanceof SubmitMovement => $this->submit($now),
+            $command instanceof EditMovement => $this->edit($command),
+            $command instanceof SubmitMovement => $this->submit(),
             default => throw new \LogicException(sprintf('Movement cannot handle %s.', $command::class)),
         };
     }
@@ -135,6 +137,11 @@ final class Movement
         return $this->status;
     }
 
+    public function createdAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
     public function updatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
@@ -143,7 +150,7 @@ final class Movement
     /**
      * @throws InvalidMovement when any field fails stage validation
      */
-    private function edit(EditMovement $command, \DateTimeImmutable $now): void
+    private function edit(EditMovement $command): void
     {
         $areaValue = self::assertValidFields(
             $command->title,
@@ -158,7 +165,6 @@ final class Movement
         $this->category = $command->category;
         $this->area = $areaValue;
         $this->location = Area::International === $areaValue ? null : trim((string) $command->location);
-        $this->updatedAt = $now;
     }
 
     /**
@@ -166,7 +172,7 @@ final class Movement
      *
      * @throws InvalidMovement when the description is still empty
      */
-    private function submit(\DateTimeImmutable $now): void
+    private function submit(): void
     {
         if ('' === trim($this->description)) {
             throw new InvalidMovement([
@@ -175,7 +181,6 @@ final class Movement
         }
 
         $this->status = MovementStatus::Proposed;
-        $this->updatedAt = $now;
     }
 
     /**

@@ -38,7 +38,8 @@ final class MovementServiceSpec extends ObjectBehavior
             static fn (Movement $movement): bool => self::ID === $movement->id
                 && self::AUTHOR_ID === $movement->authorId
                 && MovementStatus::Draft === $movement->status(),
-        ))->shouldBeCalled();
+        ))->will(self::echoesBackTheSavedMovement())
+            ->shouldBeCalled();
 
         $movement = $this->create($this->draftCommand());
 
@@ -51,7 +52,9 @@ final class MovementServiceSpec extends ObjectBehavior
         IdentityGenerator $identities,
     ): void {
         $identities->generate()->willReturn(self::ID);
-        $movements->save(Argument::type(Movement::class))->shouldBeCalled();
+        $movements->save(Argument::type(Movement::class))
+            ->will(self::echoesBackTheSavedMovement())
+            ->shouldBeCalled();
 
         $movement = $this->create($this->draftCommand(description: ''));
 
@@ -136,7 +139,8 @@ final class MovementServiceSpec extends ObjectBehavior
     ): void {
         $movement = $this->describedDraft();
         $movements->byId(self::ID)->willReturn($movement);
-        $movements->save($movement)->shouldBeCalled();
+        $movements->save($movement)->willReturn($movement)
+            ->shouldBeCalled();
 
         $this->submit(self::ID, self::AUTHOR_ID)->status()->shouldBe(MovementStatus::Proposed);
     }
@@ -144,11 +148,7 @@ final class MovementServiceSpec extends ObjectBehavior
     public function it_refuses_to_submit_a_draft_without_a_description(
         MovementRepository $movements,
     ): void {
-        $movement = Movement::draft(
-            self::ID,
-            $this->draftCommand(description: ''),
-            new \DateTimeImmutable(),
-        );
+        $movement = Movement::draft(self::ID, $this->draftCommand(description: ''));
         $movements->byId(self::ID)->willReturn($movement);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
@@ -160,7 +160,7 @@ final class MovementServiceSpec extends ObjectBehavior
         MovementRepository $movements,
     ): void {
         $movement = $this->describedDraft();
-        $movement->apply(new SubmitMovement(), new \DateTimeImmutable());
+        $movement->apply(new SubmitMovement());
         $movements->byId(self::ID)->willReturn($movement);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
@@ -173,7 +173,8 @@ final class MovementServiceSpec extends ObjectBehavior
     ): void {
         $movement = $this->describedDraft();
         $movements->byId(self::ID)->willReturn($movement);
-        $movements->save($movement)->shouldBeCalled();
+        $movements->save($movement)->willReturn($movement)
+            ->shouldBeCalled();
 
         $updated = $this->update(self::ID, self::AUTHOR_ID, new EditMovement(
             'Save All the Bees',
@@ -191,7 +192,7 @@ final class MovementServiceSpec extends ObjectBehavior
         MovementRepository $movements,
     ): void {
         $movement = $this->describedDraft();
-        $movement->apply(new SubmitMovement(), new \DateTimeImmutable());
+        $movement->apply(new SubmitMovement());
         $movements->byId(self::ID)->willReturn($movement);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
@@ -208,9 +209,25 @@ final class MovementServiceSpec extends ObjectBehavior
         ]);
     }
 
+    /**
+     * The repository returns the stored row as a fresh aggregate; for these examples the
+     * movement handed to `save()` stands in for it.
+     *
+     * @return callable(array<int, mixed>): Movement
+     */
+    private static function echoesBackTheSavedMovement(): callable
+    {
+        return static function (array $arguments): Movement {
+            $movement = $arguments[0];
+            \assert($movement instanceof Movement);
+
+            return $movement;
+        };
+    }
+
     private function describedDraft(): Movement
     {
-        return Movement::draft(self::ID, $this->draftCommand(), new \DateTimeImmutable());
+        return Movement::draft(self::ID, $this->draftCommand());
     }
 
     // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.
