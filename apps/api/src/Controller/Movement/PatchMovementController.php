@@ -29,18 +29,8 @@ final readonly class PatchMovementController
         $command = UpsertMovementCommand::fromPayload($payload);
 
         try {
-            // PATCH semantics: absent fields keep their current value.
             $movement = $this->movementService->authorMovement($id, $author->id);
-            $movement = $this->movementService->update(
-                $id,
-                $author->id,
-                $command->title ?? $movement->title(),
-                $command->description ?? $movement->description(),
-                $command->category ?? $movement->category(),
-                $command->area ?? $movement->area()
-                    ->value,
-                $command->locationProvided ? $command->location : $movement->location(),
-            );
+            $movement = $this->movementService->update($id, $author->id, $command->toEdit($movement));
         } catch (MovementNotFound $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
