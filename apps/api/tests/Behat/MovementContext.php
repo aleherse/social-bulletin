@@ -9,6 +9,7 @@ use Behat\Gherkin\Node\PyStringNode;
 use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
+use Doctrine\DBAL\Connection;
 use SocialBulletin\Core\Movement\DraftMovement;
 use SocialBulletin\Core\Movement\MovementService;
 use SocialBulletin\Core\User\UserService;
@@ -25,6 +26,7 @@ final class MovementContext implements Context
         private readonly ApiClient $apiClient,
         private readonly UserService $userService,
         private readonly MovementService $movementService,
+        private readonly Connection $connection,
     ) {
     }
 
@@ -74,6 +76,24 @@ final class MovementContext implements Context
         $this->apiClient->request(
             'POST',
             sprintf('/api/movements/%s/submit', $this->movementId($title)),
+        );
+    }
+
+    #[Then('the movement titled :title should have been updated after it was created')]
+    public function theMovementTitledShouldHaveBeenUpdatedAfterItWasCreated(string $title): void
+    {
+        /** @var array<string, string>|false $row */
+        $row = $this->connection->fetchAssociative(
+            'SELECT created_at, updated_at FROM bulletin.movements WHERE id = :id',
+            [
+                'id' => $this->movementId($title),
+            ],
+        );
+
+        Assert::isArray($row);
+        Assert::greaterThan(
+            new \DateTimeImmutable($row['updated_at']),
+            new \DateTimeImmutable($row['created_at']),
         );
     }
 
