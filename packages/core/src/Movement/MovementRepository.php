@@ -10,8 +10,6 @@ use Symfony\Component\Uid\Uuid;
 
 class MovementRepository
 {
-    private const COLUMNS = 'id, author_id, title, description, category, area, location, status, created_at, updated_at';
-
     public function __construct(
         private readonly Connection $connection,
     ) {
@@ -27,7 +25,7 @@ class MovementRepository
     {
         try {
             /** @var array<string, string|null>|false $row */
-            $row = $this->connection->fetchAssociative(sprintf(<<<'SQL'
+            $row = $this->connection->fetchAssociative(<<<'SQL'
                 INSERT INTO bulletin.movements
                     (id, author_id, title, description, category, area, location, status, created_at, updated_at)
                 VALUES
@@ -40,9 +38,10 @@ class MovementRepository
                     location = EXCLUDED.location,
                     status = EXCLUDED.status,
                     updated_at = now()
-                RETURNING %s
+                RETURNING
+                    id, author_id, title, description, category, area, location, status, created_at, updated_at
                 SQL
-                , self::COLUMNS), [
+                , [
                     'id' => $movement->id,
                                 'author_id' => $movement->authorId,
                                 'title' => $movement->title(),
@@ -80,12 +79,14 @@ class MovementRepository
         }
 
         /** @var array<string, string|null>|false $row */
-        $row = $this->connection->fetchAssociative(
-            sprintf('SELECT %s FROM bulletin.movements WHERE id = :id', self::COLUMNS),
-            [
-                'id' => $id,
-            ],
-        );
+        $row = $this->connection->fetchAssociative(<<<'SQL'
+            SELECT id, author_id, title, description, category, area, location, status, created_at, updated_at
+            FROM bulletin.movements
+            WHERE id = :id
+            SQL
+            , [
+                        'id' => $id,
+                    ]);
 
         return false === $row ? null : $this->hydrate($row);
     }
@@ -96,15 +97,15 @@ class MovementRepository
     public function byAuthor(string $authorId): array
     {
         /** @var list<array<string, string|null>> $rows */
-        $rows = $this->connection->fetchAllAssociative(
-            sprintf(
-                'SELECT %s FROM bulletin.movements WHERE author_id = :author_id ORDER BY created_at DESC, id DESC',
-                self::COLUMNS,
-            ),
-            [
-                'author_id' => $authorId,
-            ],
-        );
+        $rows = $this->connection->fetchAllAssociative(<<<'SQL'
+            SELECT id, author_id, title, description, category, area, location, status, created_at, updated_at
+            FROM bulletin.movements
+            WHERE author_id = :author_id
+            ORDER BY created_at DESC, id DESC
+            SQL
+            , [
+                        'author_id' => $authorId,
+                    ]);
 
         return array_map($this->hydrate(...), $rows);
     }
