@@ -23,10 +23,7 @@ final readonly class MovementService
         $id = $this->identities->generate();
         Assert::uuid($id);
 
-        $movement = Movement::draft($id, $command, new \DateTimeImmutable());
-        $this->movements->save($movement);
-
-        return $movement;
+        return $this->movements->save(Movement::draft($id, $command));
     }
 
     /**
@@ -81,9 +78,8 @@ final readonly class MovementService
     private function apply(string $id, string $authorId, MovementCommand $command): Movement
     {
         $movement = $this->authorMovement($id, $authorId);
-        $movement->apply($command, new \DateTimeImmutable());
-        $this->movements->save($movement);
+        $movement->apply($command);
 
-        return $movement;
+        return $this->movements->save($movement);
     }
 }

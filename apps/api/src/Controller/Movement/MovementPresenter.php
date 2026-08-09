@@ -27,7 +27,8 @@ final class MovementPresenter
             'location' => $movement->location(),
             'status' => $movement->status()
                 ->value,
-            'createdAt' => $movement->createdAt->format(\DateTimeInterface::ATOM),
+            'createdAt' => $movement->createdAt()
+                ->format(\DateTimeInterface::ATOM),
             'updatedAt' => $movement->updatedAt()
                 ->format(\DateTimeInterface::ATOM),
         ];

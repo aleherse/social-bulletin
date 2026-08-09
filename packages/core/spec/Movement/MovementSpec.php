@@ -23,7 +23,6 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedThrough('draft', [
             self::ID,
             $this->draftCommand(),
-            new \DateTimeImmutable('2026-07-19T10:00:00+00:00'),
         ]);
     }
 
@@ -37,7 +36,6 @@ final class MovementSpec extends ObjectBehavior
         $this->area()->shouldBe(Area::Municipality);
         $this->location()->shouldBe('Sheffield');
         $this->status()->shouldBe(MovementStatus::Draft);
-        $this->updatedAt()->shouldBeLike(new \DateTimeImmutable('2026-07-19T10:00:00+00:00'));
     }
 
     public function it_allows_an_empty_description_while_draft(): void
@@ -45,7 +43,6 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedThrough('draft', [
             self::ID,
             $this->draftCommand(description: ''),
-            new \DateTimeImmutable(),
         ]);
 
         $this->description()->shouldBe('');
@@ -57,7 +54,6 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedThrough('draft', [
             self::ID,
             $this->draftCommand(title: '   ', description: ''),
-            new \DateTimeImmutable(),
         ]);
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
@@ -68,7 +64,6 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedThrough('draft', [
             self::ID,
             $this->draftCommand(title: str_repeat('a', 201), description: ''),
-            new \DateTimeImmutable(),
         ]);
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
@@ -79,7 +74,6 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedThrough('draft', [
             self::ID,
             $this->draftCommand(description: str_repeat('a', 20001)),
-            new \DateTimeImmutable(),
         ]);
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
@@ -90,7 +84,6 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedThrough('draft', [
             self::ID,
             $this->draftCommand(description: '', location: null),
-            new \DateTimeImmutable(),
         ]);
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
@@ -101,7 +94,6 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedThrough('draft', [
             self::ID,
             $this->draftCommand(title: 'Global Climate Strike', description: '', area: 'international'),
-            new \DateTimeImmutable(),
         ]);
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
@@ -109,12 +101,9 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_submits_a_described_draft_as_proposed(): void
     {
-        $submittedAt = new \DateTimeImmutable('2026-07-19T12:00:00+00:00');
-
-        $this->apply(new SubmitMovement(), $submittedAt);
+        $this->apply(new SubmitMovement());
 
         $this->status()->shouldBe(MovementStatus::Proposed);
-        $this->updatedAt()->shouldBeLike($submittedAt);
     }
 
     public function it_rejects_submission_while_the_description_is_empty(): void
@@ -122,37 +111,31 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedThrough('draft', [
             self::ID,
             $this->draftCommand(description: ''),
-            new \DateTimeImmutable(),
         ]);
 
         $this->shouldThrow(InvalidMovement::class)
-            ->during('apply', [new SubmitMovement(), new \DateTimeImmutable()]);
+            ->during('apply', [new SubmitMovement()]);
         $this->status()->shouldBe(MovementStatus::Draft);
     }
 
     public function it_rejects_submitting_a_movement_that_is_not_a_draft(): void
     {
-        $this->apply(new SubmitMovement(), new \DateTimeImmutable());
+        $this->apply(new SubmitMovement());
 
         $this->shouldThrow(MovementNotDraft::class)
-            ->during('apply', [new SubmitMovement(), new \DateTimeImmutable()]);
+            ->during('apply', [new SubmitMovement()]);
         $this->status()->shouldBe(MovementStatus::Proposed);
     }
 
     public function it_edits_every_field_while_draft(): void
     {
-        $editedAt = new \DateTimeImmutable('2026-07-19T13:00:00+00:00');
-
-        $this->apply(
-            new EditMovement(
-                'Save All the Bees',
-                'New description.',
-                'animal_rights',
-                'region',
-                'Yorkshire',
-            ),
-            $editedAt,
-        );
+        $this->apply(new EditMovement(
+            'Save All the Bees',
+            'New description.',
+            'animal_rights',
+            'region',
+            'Yorkshire',
+        ));
 
         $this->title()->shouldBe('Save All the Bees');
         $this->description()->shouldBe('New description.');
@@ -160,15 +143,11 @@ final class MovementSpec extends ObjectBehavior
         $this->area()->shouldBe(Area::Region);
         $this->location()->shouldBe('Yorkshire');
         $this->status()->shouldBe(MovementStatus::Draft);
-        $this->updatedAt()->shouldBeLike($editedAt);
     }
 
     public function it_clears_the_location_when_edited_to_international(): void
     {
-        $this->apply(
-            new EditMovement('Global Climate Strike', '', 'cooperative', 'international', null),
-            new \DateTimeImmutable(),
-        );
+        $this->apply(new EditMovement('Global Climate Strike', '', 'cooperative', 'international', null));
 
         $this->location()->shouldBe(null);
     }
@@ -177,13 +156,12 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->shouldThrow(InvalidMovement::class)->during('apply', [
             new EditMovement('   ', '', 'cooperative', 'municipality', 'Sheffield'),
-            new \DateTimeImmutable(),
         ]);
     }
 
     public function it_refuses_to_edit_a_movement_that_is_not_a_draft(): void
     {
-        $this->apply(new SubmitMovement(), new \DateTimeImmutable());
+        $this->apply(new SubmitMovement());
 
         $this->shouldThrow(MovementNotDraft::class)->during('apply', [
             new EditMovement(
@@ -193,7 +171,6 @@ final class MovementSpec extends ObjectBehavior
                 'municipality',
                 'Sheffield',
             ),
-            new \DateTimeImmutable(),
         ]);
     }
 
@@ -207,7 +184,6 @@ final class MovementSpec extends ObjectBehavior
                 area: 'international',
                 location: null,
             ),
-            new \DateTimeImmutable(),
         ]);
 
         $this->location()->shouldBe(null);
@@ -219,7 +195,6 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedThrough('draft', [
             self::ID,
             $this->draftCommand(description: '', category: 'not-a-real-category'),
-            new \DateTimeImmutable(),
         ]);
 
         $this->category()->shouldBe('not-a-real-category');
