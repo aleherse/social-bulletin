@@ -45,6 +45,11 @@ The common ones:
 - `docs/rules/<category>/<subcategory>.md` holds distilled, checkable engineering rules
   (`WHEN` a condition applies, `THEN` what to do, with a repo-grounded example) —
   decisions already made once that should guide every future change in that area.
+- Each rule's heading is a permanent identifier followed by a short title —
+  `<category>-<subcategory>-<NNNN>: <title>`,
+  e.g. `database-persistence-0002: One shared query builder per repository`.
+  Cite the identifier when a review comment, commit message, or spec leans on a rule,
+  so the reader can find the rule itself rather than re-argue it.
 - Before writing or changing code in an area, check `docs/rules/` for a file matching that
   category/subcategory and follow it — e.g. adding a repository under `packages/core` →
   read `docs/rules/database/persistence.md` first.
