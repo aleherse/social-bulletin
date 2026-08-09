@@ -1,37 +1,48 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: (unratified template) → 1.0.0
-Bump rationale: Initial ratification. Every placeholder in the template was
-still unfilled, so this is a first adoption rather than an amendment.
+Version change: 1.0.0 → 2.0.0
+Bump rationale: MAJOR — a principle was removed. The versioning policy below
+reserves MAJOR for removing or redefining a principle, and removal is
+backward incompatible for anything that cited the old numbering.
 
-Principles defined (all new):
+Principles removed:
+  III. Hexagonal Core, Frameworks At The Edges — withdrawn at the author's
+       request, pending a better formulation in a later amendment.
+
+Principles renumbered:
+  IV. Decisions Are Recorded Before They Are Coded → III
+  V.  Automated Gates Over Human Vigilance        → IV
+
+Current principles:
   I.   Tests Are First-Class Citizens (NON-NEGOTIABLE)
   II.  Every Layer Is Tested In Its Own Tool
-  III. Hexagonal Core, Frameworks At The Edges
-  IV.  Decisions Are Recorded Before They Are Coded
-  V.   Automated Gates Over Human Vigilance
+  III. Decisions Are Recorded Before They Are Coded
+  IV.  Automated Gates Over Human Vigilance
 
-Sections added:
-  - Testing Standards
-  - Development Workflow & Quality Gates
-  - Governance
-
-Sections removed: none (template placeholders replaced in place)
+Sections added: none (unchanged since 1.0.0)
+Sections removed: none
 
 Templates requiring updates:
-  ✅ .specify/templates/tasks-template.md  — tests changed from OPTIONAL to
-     mandatory; per-layer test tasks; test-coverage check in Phase "Polish"
-  ✅ .specify/templates/plan-template.md   — Constitution Check gates filled in;
-     Testing field in Technical Context made non-negotiable
-  ✅ .specify/templates/spec-template.md   — acceptance scenarios must name the
-     layer that will prove them
-  ✅ CLAUDE.md                             — no change needed; already points at
-     docs/engineering/testing/testing.md and ADR-0015
-  ✅ docs/engineering/testing/testing.md   — already consistent; conventions
-     referenced by Principle II rather than duplicated
+  ✅ .specify/templates/plan-template.md   — dropped the hexagonal gate,
+     renumbered the remaining Constitution Check gates
+  ✅ .specify/templates/tasks-template.md  — no change; cites Principle I only
+  ✅ .specify/templates/spec-template.md   — no change; cites Principle I only
+  ✅ .claude/skills/speckit-analyze/SKILL.md — no change; cites Principle I only
+  ✅ AGENTS.md (CLAUDE.md symlink)         — no change; cites no principle by number
 
-Deferred items: none
+Note: dropping the principle does not delete the rule from the project. The
+hexagonal boundary remains specified by ADR-0005 and
+docs/engineering/backend/hexagonal.md, and stays mechanically enforced by
+deptrac via `make lint`. It simply no longer carries constitutional force.
+
+Deferred items:
+  - A replacement architectural principle is expected in a future amendment.
+    Until it lands, architecture questions defer to the ADRs.
+
+--- History ---
+1.0.0 (2026-08-09): Initial ratification; five principles adopted.
+2.0.0 (2026-08-09): Principle III removed; IV and V renumbered.
 -->
 
 # Social Bulletin Constitution
@@ -88,18 +99,7 @@ that owns the layer it changes:
 prove nginx serves the bundle; Vitest cannot prove the API contract holds.
 Coverage in one layer routinely masquerades as coverage of the feature.
 
-### III. Hexagonal Core, Frameworks At The Edges
-
-- `packages/core` MUST remain free of Symfony, Doctrine, and DBAL imports.
-  Deptrac enforces this boundary and MUST stay passing.
-- Dependencies MUST point inward: infrastructure → application → domain.
-- Ports are defined by the core; adapters live in `apps/api` and implement them.
-- `apps/web` MUST respect Feature-Sliced Design import rules (ADR-0007).
-
-**Rationale**: The boundary is what keeps the domain fast to test and the
-framework replaceable. It holds only while it is mechanically enforced.
-
-### IV. Decisions Are Recorded Before They Are Coded
+### III. Decisions Are Recorded Before They Are Coded
 
 - Structural changes MUST be checked against `docs/decisions/` first; diverging
   from an accepted ADR requires a new ADR, not a quiet exception.
@@ -115,7 +115,7 @@ framework replaceable. It holds only while it is mechanically enforced.
 agents rediscover them by guessing. Writing them down once is cheaper than
 enforcing them forever in review.
 
-### V. Automated Gates Over Human Vigilance
+### IV. Automated Gates Over Human Vigilance
 
 - `make` targets are the only supported entrypoints for build, test, and lint;
   every check MUST be runnable through one.
@@ -193,4 +193,4 @@ violates a principle MUST be recorded in the plan's Complexity Tracking table
 with the simpler alternative that was rejected and why — an unjustified
 violation blocks merge.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-09
+**Version**: 2.0.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-09

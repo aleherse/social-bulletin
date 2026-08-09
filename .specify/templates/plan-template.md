@@ -49,12 +49,14 @@ Confirm each gate or record a justified violation in Complexity Tracking.
 - [ ] **II. Layer/tool mapping**: `packages/core` → PHPSpec, `apps/api` → Behat,
       `apps/web` units → Vitest, user journeys → Playwright. Every user story in
       the spec has a Playwright journey planned
-- [ ] **III. Hexagonal boundary**: `packages/core` stays free of Symfony/DBAL;
-      deptrac passes; `apps/web` respects FSD import rules
-- [ ] **IV. Decisions recorded**: relevant ADRs consulted; divergence proposes a
+- [ ] **III. Decisions recorded**: relevant ADRs consulted; divergence proposes a
       new ADR; applicable `docs/rules/` files read
-- [ ] **V. Automated gates**: work is runnable through `make` targets; test data
+- [ ] **IV. Automated gates**: work is runnable through `make` targets; test data
       comes from the DSLR `fixtures` snapshot and no test run recreates it
+
+Architecture boundaries (hexagonal layering, deptrac, FSD imports) are not a
+constitutional gate; they are governed by ADR-0005/ADR-0007 and enforced by
+`make lint`. Gate III covers consulting them.
 
 **Layers touched by this feature**:
 
