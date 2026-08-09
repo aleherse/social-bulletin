@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SocialBulletin\Core\User;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 
 class UserRepository
 {
@@ -19,40 +20,48 @@ class UserRepository
     public function findByEmail(string $email): ?User
     {
         /** @var array{id: string, email: string, created_at: string}|false $row */
-        $row = $this->connection->fetchAssociative(
-            'SELECT id, email, created_at FROM bulletin.users WHERE LOWER(email) = LOWER(:email)',
-            [
-                'email' => $email,
-            ],
-        );
+        $row = $this->getQueryBuilder()
+            ->where('LOWER(email) = LOWER(:email)')
+            ->setParameter('email', $email)
+            ->fetchAssociative();
 
         return false === $row ? null : $this->hydrate($row);
     }
 
     /**
-     * Inserts the user and returns the stored row as a fresh aggregate — including the
-     * creation timestamp the database assigned.
+     * Inserts the user, then reads the stored row back as a fresh aggregate — including
+     * the creation timestamp the database assigned.
      */
     public function save(User $user): User
     {
-        /** @var array{id: string, email: string, created_at: string}|false $row */
-        $row = $this->connection->fetchAssociative(<<<'SQL'
+        $this->connection->executeStatement(<<<'SQL'
             INSERT INTO bulletin.users
                 (id, email, created_at)
             VALUES
                 (:id, :email, now())
-            RETURNING id, email, created_at
             SQL
             , [
-                        'id' => $user->id,
+                'id' => $user->id,
                         'email' => $user->email,
-                    ]);
+            ]);
 
-        if (false === $row) {
-            throw new \RuntimeException('Saving a user returned no row.');
+        $saved = $this->findByEmail($user->email);
+
+        if (null === $saved) {
+            throw new \RuntimeException('The saved user could not be read back.');
         }
 
-        return $this->hydrate($row);
+        return $saved;
+    }
+
+    /**
+     * Every read starts here, so the selected columns are declared once.
+     */
+    private function getQueryBuilder(): QueryBuilder
+    {
+        return $this->connection->createQueryBuilder()
+            ->select('id', 'email', 'created_at')
+            ->from('bulletin.users');
     }
 
     /**

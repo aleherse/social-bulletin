@@ -6,6 +6,7 @@ namespace SocialBulletin\Core\Movement;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Symfony\Component\Uid\Uuid;
 
 class MovementRepository
@@ -16,16 +17,15 @@ class MovementRepository
     }
 
     /**
-     * Inserts the movement or updates it when the id already exists, and returns the
-     * stored row as a fresh aggregate — including the timestamps the database assigned.
+     * Inserts the movement or updates it when the id already exists, then reads the stored
+     * row back as a fresh aggregate — including the timestamps the database assigned.
      *
      * @throws InvalidMovement when the category isn't in the managed list
      */
     public function save(Movement $movement): Movement
     {
         try {
-            /** @var array<string, string|null>|false $row */
-            $row = $this->connection->fetchAssociative(<<<'SQL'
+            $this->connection->executeStatement(<<<'SQL'
                 INSERT INTO bulletin.movements
                     (id, author_id, title, description, category, area, location, status, created_at, updated_at)
                 VALUES
@@ -38,8 +38,6 @@ class MovementRepository
                     location = EXCLUDED.location,
                     status = EXCLUDED.status,
                     updated_at = now()
-                RETURNING
-                    id, author_id, title, description, category, area, location, status, created_at, updated_at
                 SQL
                 , [
                     'id' => $movement->id,
@@ -63,11 +61,13 @@ class MovementRepository
             ], 'movement.invalid', $exception);
         }
 
-        if (false === $row) {
-            throw new \RuntimeException('Saving a movement returned no row.');
+        $saved = $this->byId($movement->id);
+
+        if (null === $saved) {
+            throw new \RuntimeException('The saved movement could not be read back.');
         }
 
-        return $this->hydrate($row);
+        return $saved;
     }
 
     public function byId(string $id): ?Movement
@@ -79,14 +79,10 @@ class MovementRepository
         }
 
         /** @var array<string, string|null>|false $row */
-        $row = $this->connection->fetchAssociative(<<<'SQL'
-            SELECT id, author_id, title, description, category, area, location, status, created_at, updated_at
-            FROM bulletin.movements
-            WHERE id = :id
-            SQL
-            , [
-                        'id' => $id,
-                    ]);
+        $row = $this->getQueryBuilder()
+            ->where('id = :id')
+            ->setParameter('id', $id)
+            ->fetchAssociative();
 
         return false === $row ? null : $this->hydrate($row);
     }
@@ -97,17 +93,35 @@ class MovementRepository
     public function byAuthor(string $authorId): array
     {
         /** @var list<array<string, string|null>> $rows */
-        $rows = $this->connection->fetchAllAssociative(<<<'SQL'
-            SELECT id, author_id, title, description, category, area, location, status, created_at, updated_at
-            FROM bulletin.movements
-            WHERE author_id = :author_id
-            ORDER BY created_at DESC, id DESC
-            SQL
-            , [
-                        'author_id' => $authorId,
-                    ]);
+        $rows = $this->getQueryBuilder()
+            ->where('author_id = :author_id')
+            ->orderBy('created_at', 'DESC')
+            ->addOrderBy('id', 'DESC')
+            ->setParameter('author_id', $authorId)
+            ->fetchAllAssociative();
 
         return array_map($this->hydrate(...), $rows);
+    }
+
+    /**
+     * Every read starts here, so the selected columns are declared once.
+     */
+    private function getQueryBuilder(): QueryBuilder
+    {
+        return $this->connection->createQueryBuilder()
+            ->select(
+                'id',
+                'author_id',
+                'title',
+                'description',
+                'category',
+                'area',
+                'location',
+                'status',
+                'created_at',
+                'updated_at',
+            )
+            ->from('bulletin.movements');
     }
 
     /**
