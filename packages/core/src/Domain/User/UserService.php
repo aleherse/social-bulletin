@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\User;
+namespace SocialBulletin\Core\Domain\User;
 
-use SocialBulletin\Core\Helper\IdentityGenerator;
+use SocialBulletin\Core\Domain\Helper\IdentityGenerator;
 use Webmozart\Assert\Assert;
 
 final readonly class UserService

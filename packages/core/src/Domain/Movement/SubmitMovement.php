@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Movement;
+namespace SocialBulletin\Core\Domain\Movement;
 
 /**
  * Intent to move a `draft` movement on to `proposed`.

@@ -6,8 +6,8 @@ namespace App\Controller\User;
 
 use App\Security\ApiUser;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use SocialBulletin\Core\User\InvalidEmailAddress;
-use SocialBulletin\Core\User\UserService;
+use SocialBulletin\Core\Domain\User\InvalidEmailAddress;
+use SocialBulletin\Core\Domain\User\UserService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

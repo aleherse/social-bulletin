@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use SocialBulletin\Core\Movement\MovementService;
-use SocialBulletin\Core\User\User;
+use SocialBulletin\Core\Domain\Movement\MovementService;
+use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 

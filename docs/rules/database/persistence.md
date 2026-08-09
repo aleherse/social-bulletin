@@ -21,7 +21,7 @@ through `createdAt()` / `updatedAt()`, so an aggregate built by `draft()` has no
 
 ## database-persistence-0002: One shared query builder per repository
 
-**WHEN** a repository in `packages/core/src/<Aggregate>/` reads rows to hydrate its aggregate
+**WHEN** a repository in `packages/core/src/Domain/<Aggregate>/` reads rows to hydrate its aggregate
 
 **THEN** declare the selected columns once, in a private
 `getQueryBuilder(): \Doctrine\DBAL\Query\QueryBuilder` holding only `select(...)` and `from(...)`; every finder starts

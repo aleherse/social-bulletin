@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Movement;
+namespace SocialBulletin\Core\Domain\Movement;
 
-use SocialBulletin\Core\Helper\IdentityGenerator;
+use SocialBulletin\Core\Domain\Helper\IdentityGenerator;
 use Webmozart\Assert\Assert;
 
 final readonly class MovementService
