@@ -27,14 +27,7 @@ final readonly class PostMovementController
         $command = UpsertMovementCommand::fromPayload($payload);
 
         try {
-            $movement = $this->movementService->create(
-                $author->id,
-                $command->title ?? '',
-                $command->description ?? '',
-                $command->category ?? '',
-                $command->area ?? '',
-                $command->location,
-            );
+            $movement = $this->movementService->create($command->toDraft($author->id));
         } catch (InvalidMovement $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
