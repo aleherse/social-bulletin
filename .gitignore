@@ -41,6 +41,8 @@ apps/api/behat.yml
 test-results/
 playwright-report/
 
-# Claude Code generated symlinks
+# Claude Code generated symlinks (`make setup-claude` links .agents/skills here)
 /CLAUDE.md
-/.claude/skills/
+/.claude/skills/*
+# ...except the speckit-* skills, which are real versioned files, not symlinks
+!/.claude/skills/speckit-*/
