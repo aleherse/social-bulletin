@@ -6,7 +6,10 @@
 contracts/movements-api.md, quickstart.md
 
 **Tests**: Included — ADR-0015 mandates PHPSpec (core), Behat (api),
-and Vitest (web) coverage; write them first within each story.
+Vitest (web), and Playwright (browser journeys) coverage;
+write them first within each story.
+The Playwright journeys span all three stories,
+so they are a single cross-cutting task in Phase 6.
 
 **Organization**: Tasks are grouped by user story so each story is an
 independently implementable and testable increment.
@@ -215,9 +218,16 @@ refused.
 - [X] T037 [P] Verify the nelmio OpenAPI JSON documents the five new
       endpoints; add attributes in
       `apps/api/src/Controller/` where missing
-- [X] T038 Run `make lint` and the full `make tests` suite; fix any
-      fallout across `packages/core`, `apps/api`, `apps/web`
-- [X] T039 Walk through `specs/001-propose-movement/quickstart.md`
+- [X] T038 [P] Cover the movement browser journeys with Playwright in
+      `apps/web/e2e/movements.spec.ts` (guest asked to sign in,
+      draft created and listed then submitted as a proposal,
+      missing required fields flagged, `international` saved without
+      a location, empty-description submission refused,
+      draft edited before submission)
+- [X] T039 Run `make lint` and the full `make tests` suite
+      (including `make web-e2e`); fix any fallout across
+      `packages/core`, `apps/api`, `apps/web`
+- [X] T040 Walk through `specs/001-propose-movement/quickstart.md`
       end-to-end (browser + curl flows) and correct any drift
 
 ---
@@ -234,6 +244,8 @@ refused.
   created by US1 (T011, T013, T016), so run the backend of US1 first;
   US2 and US3 are independent of each other.
 - **Polish (Phase 6)**: after the stories you choose to ship.
+  T038 exercises journeys from all three stories,
+  so it needs whichever stories shipped.
 
 ### Within Each User Story
 
@@ -272,7 +284,7 @@ Task: "entities/movement slice in apps/web/src/entities/movement/"
 1. Phases 1–2 (migration, schema doc, enums, ports).
 2. Phase 3 (US1) — drafts creatable and listed.
 3. **STOP and VALIDATE**: run `make php-unit`, `make api-tests`,
-   `make web-unit`; demo draft creation.
+   `make web-unit`, `make web-e2e`; demo draft creation.
 
 ### Incremental Delivery
 
@@ -285,7 +297,9 @@ Task: "entities/movement slice in apps/web/src/entities/movement/"
 
 - Auto-commit hooks commit after each speckit phase; still commit
   after each task or logical group during implementation.
-- Behat runs restore the DSLR `fixtures` snapshot; never recreate the
-  snapshot from a test run (ADR-0015).
+- Behat and Playwright runs restore the DSLR `fixtures` snapshot;
+  never recreate the snapshot from a test run (ADR-0015).
+- `make web-e2e` builds the frontend first, so Playwright always runs
+  against the compiled bundle nginx serves, not the dev server.
 - Keep `packages/core` free of Symfony/DBAL imports (deptrac enforces
   the boundary) and respect FSD import rules in `apps/web`.
