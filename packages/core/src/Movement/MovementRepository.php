@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SocialBulletin\Core\Movement;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Symfony\Component\Uid\Uuid;
 
 class MovementRepository
@@ -18,38 +19,50 @@ class MovementRepository
 
     /**
      * Inserts the movement or updates it when the id already exists.
+     *
+     * @throws InvalidMovement when the category isn't in the managed list
      */
     public function save(Movement $movement): void
     {
-        $this->connection->executeStatement(<<<'SQL'
-            INSERT INTO bulletin.movements
-                (id, author_id, title, description, category, area, location, status, created_at, updated_at)
-            VALUES
-                (:id, :author_id, :title, :description, :category, :area, :location, :status, :created_at, :updated_at)
-            ON CONFLICT (id) DO UPDATE SET
-                title = EXCLUDED.title,
-                description = EXCLUDED.description,
-                category = EXCLUDED.category,
-                area = EXCLUDED.area,
-                location = EXCLUDED.location,
-                status = EXCLUDED.status,
-                updated_at = EXCLUDED.updated_at
-            SQL
-            , [
-                'id' => $movement->id,
-                        'author_id' => $movement->authorId,
-                        'title' => $movement->title(),
-                        'description' => $movement->description(),
-                        'category' => $movement->category(),
-                        'area' => $movement->area()
-                            ->value,
-                        'location' => $movement->location(),
-                        'status' => $movement->status()
-                            ->value,
-                        'created_at' => $movement->createdAt->format(\DateTimeInterface::ATOM),
-                        'updated_at' => $movement->updatedAt()
-                            ->format(\DateTimeInterface::ATOM),
-            ]);
+        try {
+            $this->connection->executeStatement(<<<'SQL'
+                INSERT INTO bulletin.movements
+                    (id, author_id, title, description, category, area, location, status, created_at, updated_at)
+                VALUES
+                    (:id, :author_id, :title, :description, :category, :area, :location, :status, :created_at, :updated_at)
+                ON CONFLICT (id) DO UPDATE SET
+                    title = EXCLUDED.title,
+                    description = EXCLUDED.description,
+                    category = EXCLUDED.category,
+                    area = EXCLUDED.area,
+                    location = EXCLUDED.location,
+                    status = EXCLUDED.status,
+                    updated_at = EXCLUDED.updated_at
+                SQL
+                , [
+                    'id' => $movement->id,
+                                'author_id' => $movement->authorId,
+                                'title' => $movement->title(),
+                                'description' => $movement->description(),
+                                'category' => $movement->category(),
+                                'area' => $movement->area()
+                                    ->value,
+                                'location' => $movement->location(),
+                                'status' => $movement->status()
+                                    ->value,
+                                'created_at' => $movement->createdAt->format(\DateTimeInterface::ATOM),
+                                'updated_at' => $movement->updatedAt()
+                                    ->format(\DateTimeInterface::ATOM),
+                ]);
+        } catch (ForeignKeyConstraintViolationException $exception) {
+            if (! str_contains($exception->getMessage(), 'movements_category_fk')) {
+                throw $exception;
+            }
+
+            throw new InvalidMovement([
+                'category' => 'movement.category.unknown',
+            ], 'movement.invalid', $exception);
+        }
     }
 
     public function byId(string $id): ?Movement

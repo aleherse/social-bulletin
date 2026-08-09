@@ -25,7 +25,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable('2026-07-19T10:00:00+00:00'),
         ]);
     }
@@ -53,7 +52,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
@@ -71,7 +69,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
@@ -88,7 +85,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
@@ -105,7 +101,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
@@ -122,7 +117,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             null,
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
@@ -139,7 +133,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'international',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
@@ -166,7 +159,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
@@ -194,7 +186,6 @@ final class MovementSpec extends ObjectBehavior
             'animal_rights',
             'region',
             'Yorkshire',
-            static fn (): bool => true,
             $editedAt,
         );
 
@@ -215,7 +206,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'international',
             null,
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         );
 
@@ -230,7 +220,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
     }
@@ -245,7 +234,6 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
     }
@@ -260,11 +248,26 @@ final class MovementSpec extends ObjectBehavior
             'cooperative',
             'international',
             null,
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         ]);
 
         $this->location()->shouldBe(null);
         $this->area()->shouldBe(Area::International);
+    }
+
+    public function it_accepts_a_category_that_is_not_in_the_managed_list(): void
+    {
+        $this->beConstructedThrough('draft', [
+            self::ID,
+            self::AUTHOR_ID,
+            'Community Gardens for Everyone',
+            '',
+            'not-a-real-category',
+            'municipality',
+            'Sheffield',
+            new \DateTimeImmutable(),
+        ]);
+
+        $this->category()->shouldBe('not-a-real-category');
     }
 }

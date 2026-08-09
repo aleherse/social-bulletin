@@ -7,7 +7,6 @@ namespace spec\SocialBulletin\Core\Movement;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use SocialBulletin\Core\Helper\IdentityGenerator;
-use SocialBulletin\Core\Movement\CategoryRepository;
 use SocialBulletin\Core\Movement\InvalidMovement;
 use SocialBulletin\Core\Movement\Movement;
 use SocialBulletin\Core\Movement\MovementNotDraft;
@@ -22,18 +21,15 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function let(
         MovementRepository $movements,
-        CategoryRepository $categories,
         IdentityGenerator $identities,
     ): void {
-        $this->beConstructedWith($movements, $categories, $identities);
+        $this->beConstructedWith($movements, $identities);
     }
 
     public function it_creates_a_draft_movement(
         MovementRepository $movements,
-        CategoryRepository $categories,
         IdentityGenerator $identities,
     ): void {
-        $categories->exists('cooperative')->willReturn(true);
         $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::that(
             static fn (Movement $movement): bool => self::ID === $movement->id
@@ -56,10 +52,8 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_creates_a_draft_with_an_empty_description(
         MovementRepository $movements,
-        CategoryRepository $categories,
         IdentityGenerator $identities,
     ): void {
-        $categories->exists('cooperative')->willReturn(true);
         $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::type(Movement::class))->shouldBeCalled();
 
@@ -77,10 +71,8 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_collects_an_error_for_every_invalid_field(
         MovementRepository $movements,
-        CategoryRepository $categories,
         IdentityGenerator $identities,
     ): void {
-        $categories->exists('unknown')->willReturn(false);
         $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
@@ -90,10 +82,8 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_requires_a_location_for_local_areas(
         MovementRepository $movements,
-        CategoryRepository $categories,
         IdentityGenerator $identities,
     ): void {
-        $categories->exists('cooperative')->willReturn(true);
         $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
@@ -105,10 +95,8 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_rejects_a_location_on_an_international_movement(
         MovementRepository $movements,
-        CategoryRepository $categories,
         IdentityGenerator $identities,
     ): void {
-        $categories->exists('cooperative')->willReturn(true);
         $identities->generate()->willReturn(self::ID);
         $movements->save(Argument::any())->shouldNotBeCalled();
 
@@ -176,7 +164,6 @@ final class MovementServiceSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         );
         $movements->byId(self::ID)->willReturn($movement);
@@ -200,10 +187,8 @@ final class MovementServiceSpec extends ObjectBehavior
 
     public function it_updates_the_authors_draft(
         MovementRepository $movements,
-        CategoryRepository $categories,
     ): void {
         $movement = $this->describedDraft();
-        $categories->exists('animal_rights')->willReturn(true);
         $movements->byId(self::ID)->willReturn($movement);
         $movements->save($movement)->shouldBeCalled();
 
@@ -250,7 +235,6 @@ final class MovementServiceSpec extends ObjectBehavior
             'cooperative',
             'municipality',
             'Sheffield',
-            static fn (): bool => true,
             new \DateTimeImmutable(),
         );
     }
