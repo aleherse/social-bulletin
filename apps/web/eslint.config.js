@@ -4,6 +4,7 @@ import importPlugin from 'eslint-plugin-import';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -17,6 +18,7 @@ export default tseslint.config(
       reactHooks.configs.flat['recommended-latest'],
       reactRefresh.configs.vite,
       jsxA11y.flatConfigs.recommended,
+      sonarjs.configs.recommended,
       importPlugin.flatConfigs.recommended,
       importPlugin.flatConfigs.typescript,
       // ADR-0012: eslint-config-prettier last, so Prettier owns formatting.
@@ -35,6 +37,9 @@ export default tseslint.config(
       },
     },
     rules: {
+      // Constitution Principle V: commented-out code is never committed.
+      // sonarjs leaves this off in its recommended set.
+      'sonarjs/no-commented-code': 'error',
       'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
       'import/order': [
         'error',
@@ -48,9 +53,12 @@ export default tseslint.config(
   },
   {
     // Playwright fixtures destructure nothing by convention: async ({}, use).
+    // DSLR is invoked through the pinned test image's PATH, which no untrusted
+    // process can write to, so the PATH-hijacking rule has nothing to protect.
     files: ['e2e/**'],
     rules: {
       'no-empty-pattern': 'off',
+      'sonarjs/no-os-command-from-path': 'off',
     },
   },
   {
