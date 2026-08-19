@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
-final class GetMeController
+final class CurrentUserController
 {
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
     public function __invoke(#[CurrentUser] ApiUser $user): JsonResponse
