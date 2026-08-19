@@ -4,33 +4,30 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
+use App\Messenger\CommandBus;
+use SocialBulletin\Core\Application\Movement\SubmitMovementCommand;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
+use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
-use SocialBulletin\Core\Domain\Movement\MovementService;
 use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final readonly class PatchMovementController
+final readonly class SubmitMovementController
 {
     public function __construct(
-        private MovementService $movementService,
+        private CommandBus $commandBus,
     ) {
     }
 
-    #[Route('/api/movements/{id}', name: 'api_movements_update', methods: ['PATCH'])]
-    public function __invoke(string $id, Request $request, User $author): JsonResponse
+    #[Route('/api/movements/{id}/submit', name: 'api_movements_submit', methods: ['POST'])]
+    public function __invoke(string $id, User $author): JsonResponse
     {
-        /** @var array<string, mixed> $payload */
-        $payload = $request->toArray();
-        $command = UpsertMovementCommand::fromPayload($payload);
-
         try {
-            $movement = $this->movementService->authorMovement($id, $author->id);
-            $movement = $this->movementService->update($id, $author->id, $command->toEdit($movement));
+            $movement = $this->commandBus->dispatch(new SubmitMovementCommand($id, $author->id));
+            \assert($movement instanceof Movement);
         } catch (MovementNotFound $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
