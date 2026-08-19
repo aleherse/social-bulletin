@@ -10,10 +10,15 @@ describe('isValidEmail', () => {
     },
   );
 
-  it.each(['', '   ', 'not-an-email', 'missing@domain', '@example.com', 'two words@example.com'])(
-    'rejects %s',
-    (email) => {
-      expect(isValidEmail(email)).toBe(false);
-    },
-  );
+  it.each([
+    '',
+    '   ',
+    'not-an-email',
+    'missing@domain',
+    '@example.com',
+    'two words@example.com',
+    'consecutive@dots..example.com',
+  ])('rejects %s', (email) => {
+    expect(isValidEmail(email)).toBe(false);
+  });
 });
