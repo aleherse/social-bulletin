@@ -23,11 +23,11 @@ export function RegistrationForm() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const createSession = useCreateSession();
 
-  const serverError = createSession.isError
-    ? createSession.error instanceof SessionError
-      ? createSession.error.message
-      : t('home.form.requestFailed')
-    : null;
+  const serverError = sessionErrorMessage(
+    createSession.error,
+    createSession.isError,
+    t('home.form.requestFailed'),
+  );
   const errorMessage = validationError ?? serverError;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -74,4 +74,12 @@ export function RegistrationForm() {
       </CardContent>
     </Card>
   );
+}
+
+function sessionErrorMessage(error: unknown, isError: boolean, fallback: string): string | null {
+  if (!isError) {
+    return null;
+  }
+
+  return error instanceof SessionError ? error.message : fallback;
 }

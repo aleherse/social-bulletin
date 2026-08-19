@@ -13,12 +13,7 @@ export function SubmitMovementButton({ movement }: { movement: Movement }) {
     return null;
   }
 
-  const error =
-    submit.error instanceof ApiError
-      ? (submit.error.fieldErrors.description ?? submit.error.message)
-      : submit.isError
-        ? t('movements.form.requestFailed')
-        : null;
+  const error = submitErrorMessage(submit.error, submit.isError, t('movements.form.requestFailed'));
 
   return (
     <div className="flex flex-col items-start gap-2">
@@ -37,4 +32,12 @@ export function SubmitMovementButton({ movement }: { movement: Movement }) {
       )}
     </div>
   );
+}
+
+function submitErrorMessage(error: unknown, isError: boolean, fallback: string): string | null {
+  if (error instanceof ApiError) {
+    return error.fieldErrors.description ?? error.message;
+  }
+
+  return isError ? fallback : null;
 }
