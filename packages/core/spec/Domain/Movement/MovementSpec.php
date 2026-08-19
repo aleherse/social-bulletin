@@ -6,12 +6,9 @@ namespace spec\SocialBulletin\Core\Domain\Movement;
 
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Domain\Movement\Area;
-use SocialBulletin\Core\Domain\Movement\DraftMovement;
-use SocialBulletin\Core\Domain\Movement\EditMovement;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementStatus;
-use SocialBulletin\Core\Domain\Movement\SubmitMovement;
 
 final class MovementSpec extends ObjectBehavior
 {
@@ -20,10 +17,7 @@ final class MovementSpec extends ObjectBehavior
 
     public function let(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(),
-        ]);
+        $this->beConstructedAsADraft();
     }
 
     public function it_creates_a_draft_with_all_fields(): void
@@ -40,10 +34,7 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_allows_an_empty_description_while_draft(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(description: ''),
-        ]);
+        $this->beConstructedAsADraft(description: '');
 
         $this->description()->shouldBe('');
         $this->status()->shouldBe(MovementStatus::Draft);
@@ -51,91 +42,65 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_rejects_a_blank_title(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(title: '   ', description: ''),
-        ]);
+        $this->beConstructedAsADraft(title: '   ', description: '');
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_rejects_a_title_longer_than_200_characters(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(title: str_repeat('a', 201), description: ''),
-        ]);
+        $this->beConstructedAsADraft(title: str_repeat('a', 201), description: '');
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_rejects_a_description_longer_than_20000_characters(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(description: str_repeat('a', 20001)),
-        ]);
+        $this->beConstructedAsADraft(description: str_repeat('a', 20001));
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_requires_a_location_for_non_international_areas(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(description: '', location: null),
-        ]);
+        $this->beConstructedAsADraft(description: '', location: null);
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_rejects_a_location_for_international_movements(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(title: 'Global Climate Strike', description: '', area: 'international'),
-        ]);
+        $this->beConstructedAsADraft(title: 'Global Climate Strike', description: '', area: 'international');
 
         $this->shouldThrow(InvalidMovement::class)->duringInstantiation();
     }
 
     public function it_submits_a_described_draft_as_proposed(): void
     {
-        $this->apply(new SubmitMovement());
+        $this->submit();
 
         $this->status()->shouldBe(MovementStatus::Proposed);
     }
 
     public function it_rejects_submission_while_the_description_is_empty(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(description: ''),
-        ]);
+        $this->beConstructedAsADraft(description: '');
 
-        $this->shouldThrow(InvalidMovement::class)
-            ->during('apply', [new SubmitMovement()]);
+        $this->shouldThrow(InvalidMovement::class)->during('submit');
         $this->status()->shouldBe(MovementStatus::Draft);
     }
 
     public function it_rejects_submitting_a_movement_that_is_not_a_draft(): void
     {
-        $this->apply(new SubmitMovement());
+        $this->submit();
 
-        $this->shouldThrow(MovementNotDraft::class)
-            ->during('apply', [new SubmitMovement()]);
+        $this->shouldThrow(MovementNotDraft::class)->during('submit');
         $this->status()->shouldBe(MovementStatus::Proposed);
     }
 
     public function it_edits_every_field_while_draft(): void
     {
-        $this->apply(new EditMovement(
-            'Save All the Bees',
-            'New description.',
-            'animal_rights',
-            'region',
-            'Yorkshire',
-        ));
+        $this->edit('Save All the Bees', 'New description.', 'animal_rights', 'region', 'Yorkshire');
 
         $this->title()->shouldBe('Save All the Bees');
         $this->description()->shouldBe('New description.');
@@ -147,44 +112,38 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_clears_the_location_when_edited_to_international(): void
     {
-        $this->apply(new EditMovement('Global Climate Strike', '', 'cooperative', 'international', null));
+        $this->edit('Global Climate Strike', '', 'cooperative', 'international', null);
 
         $this->location()->shouldBe(null);
     }
 
     public function it_applies_creation_rules_when_editing(): void
     {
-        $this->shouldThrow(InvalidMovement::class)->during('apply', [
-            new EditMovement('   ', '', 'cooperative', 'municipality', 'Sheffield'),
-        ]);
+        $this->shouldThrow(InvalidMovement::class)
+            ->during('edit', ['   ', '', 'cooperative', 'municipality', 'Sheffield']);
     }
 
     public function it_refuses_to_edit_a_movement_that_is_not_a_draft(): void
     {
-        $this->apply(new SubmitMovement());
+        $this->submit();
 
-        $this->shouldThrow(MovementNotDraft::class)->during('apply', [
-            new EditMovement(
-                'Save All the Bees',
-                'New description.',
-                'cooperative',
-                'municipality',
-                'Sheffield',
-            ),
+        $this->shouldThrow(MovementNotDraft::class)->during('edit', [
+            'Save All the Bees',
+            'New description.',
+            'cooperative',
+            'municipality',
+            'Sheffield',
         ]);
     }
 
     public function it_carries_no_location_when_international(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(
-                title: 'Global Climate Strike',
-                description: '',
-                area: 'international',
-                location: null,
-            ),
-        ]);
+        $this->beConstructedAsADraft(
+            title: 'Global Climate Strike',
+            description: '',
+            area: 'international',
+            location: null,
+        );
 
         $this->location()->shouldBe(null);
         $this->area()->shouldBe(Area::International);
@@ -192,29 +151,27 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_accepts_a_category_that_is_not_in_the_managed_list(): void
     {
-        $this->beConstructedThrough('draft', [
-            self::ID,
-            $this->draftCommand(description: '', category: 'not-a-real-category'),
-        ]);
+        $this->beConstructedAsADraft(description: '', category: 'not-a-real-category');
 
         $this->category()->shouldBe('not-a-real-category');
     }
 
     // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.
-    private function draftCommand(
+    private function beConstructedAsADraft(
         string $title = 'Community Gardens for Everyone',
         string $description = "## Why\nGardens for all.",
         string $category = 'cooperative',
         string $area = 'municipality',
         string|null $location = 'Sheffield',
-    ): DraftMovement {
-        return new DraftMovement(
+    ): void {
+        $this->beConstructedThrough('draft', [
+            self::ID,
             self::AUTHOR_ID,
             $title,
             $description,
             $category,
             $area,
             $location,
-        );
+        ]);
     }
 }

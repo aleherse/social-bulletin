@@ -4,27 +4,35 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
+use App\Messenger\CommandBus;
+use SocialBulletin\Core\Application\Movement\SaveMovementCommand;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
+use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
-use SocialBulletin\Core\Domain\Movement\MovementService;
 use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final readonly class PostMovementSubmitController
+final readonly class SaveMovementController
 {
     public function __construct(
-        private MovementService $movementService,
+        private CommandBus $commandBus,
     ) {
     }
 
-    #[Route('/api/movements/{id}/submit', name: 'api_movements_submit', methods: ['POST'])]
-    public function __invoke(string $id, User $author): JsonResponse
+    #[Route('/api/movements', name: 'api_movements_create', methods: ['POST'])]
+    #[Route('/api/movements/{id}', name: 'api_movements_update', methods: ['PATCH'])]
+    public function __invoke(Request $request, User $author, ?string $id = null): JsonResponse
     {
+        /** @var array<string, mixed> $payload */
+        $payload = $request->toArray();
+
         try {
-            $movement = $this->movementService->submit($id, $author->id);
+            $movement = $this->commandBus->dispatch(SaveMovementCommand::fromPayload($payload, $author->id, $id));
+            \assert($movement instanceof Movement);
         } catch (MovementNotFound $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
@@ -40,6 +48,9 @@ final readonly class PostMovementSubmitController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        return new JsonResponse(MovementPresenter::toArray($movement));
+        return new JsonResponse(
+            MovementPresenter::toArray($movement),
+            null === $id ? Response::HTTP_CREATED : Response::HTTP_OK,
+        );
     }
 }

@@ -10,8 +10,10 @@ use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
 use Doctrine\DBAL\Connection;
-use SocialBulletin\Core\Domain\Movement\DraftMovement;
-use SocialBulletin\Core\Domain\Movement\MovementService;
+use App\Messenger\CommandBus;
+use SocialBulletin\Core\Application\Movement\SubmitMovementCommand;
+use SocialBulletin\Core\Application\Movement\SaveMovementCommand;
+use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\User\UserService;
 use Webmozart\Assert\Assert;
 
@@ -25,7 +27,7 @@ final class MovementContext implements Context
     public function __construct(
         private readonly ApiClient $apiClient,
         private readonly UserService $userService,
-        private readonly MovementService $movementService,
+        private readonly CommandBus $commandBus,
         private readonly Connection $connection,
     ) {
     }
@@ -48,7 +50,7 @@ final class MovementContext implements Context
     {
         $user = $this->userService->findOrCreateByEmail($email);
         $this->createMovement($email, $title, "## Why\nBecause it matters.");
-        $this->movementService->submit($this->movementId($title), $user->id);
+        $this->commandBus->dispatch(new SubmitMovementCommand($this->movementId($title), $user->id));
     }
 
     #[When('I send a :method request to the movement titled :title')]
@@ -115,14 +117,14 @@ final class MovementContext implements Context
     private function createMovement(string $email, string $title, string $description): void
     {
         $user = $this->userService->findOrCreateByEmail($email);
-        $movement = $this->movementService->create(new DraftMovement(
-            $user->id,
-            $title,
-            $description,
-            'cooperative',
-            'municipality',
-            'Sheffield',
-        ));
+        $movement = $this->commandBus->dispatch(SaveMovementCommand::fromPayload([
+            'title' => $title,
+            'description' => $description,
+            'category' => 'cooperative',
+            'area' => 'municipality',
+            'location' => 'Sheffield',
+        ], $user->id));
+        Assert::isInstanceOf($movement, Movement::class);
 
         $this->movementIds[$title] = $movement->id;
     }
