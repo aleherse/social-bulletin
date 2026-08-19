@@ -2,7 +2,7 @@
 
 ## database-persistence-0001: The database assigns the timestamps
 
-**WHEN** an aggregate in `packages/core` has persisted `created_at` / `updated_at` columns
+**WHEN** an aggregate in `core` has persisted `created_at` / `updated_at` columns
 
 **THEN** let the database assign them: the repository's `save()` writes `now()` for both on insert, sets
 `updated_at = now()` in the `ON CONFLICT DO UPDATE` list while leaving `created_at` out of it, then reads the row back
@@ -14,14 +14,14 @@ through `createdAt()` / `updatedAt()`, so an aggregate built by `draft()` has no
 
 | Wrong                                                                       | Right                                                                        |
 |-----------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| `Movement::draft($id, $command, new \DateTimeImmutable())`                  | `Movement::draft($id, $command)`                                             |
-| `MovementService` calling `new \DateTimeImmutable()`                        | Postgres `now()` inside `MovementRepository::save()`                         |
+| `Movement::draft($id, $authorId, $title, …, new \DateTimeImmutable())`      | `Movement::draft($id, $authorId, $title, …)`                                 |
+| `SaveMovementHandler` calling `new \DateTimeImmutable()`                    | Postgres `now()` inside `MovementRepository::save()`                         |
 | `save(Movement $movement): void` plus a public `markSaved()`                | `save(Movement $movement): Movement`, returning `$this->byId($movement->id)` |
 | `'updated_at' => $movement->updatedAt()->format(ATOM)` bound as a parameter | `updated_at = now()` in the SQL                                              |
 
 ## database-persistence-0002: One shared query builder per repository
 
-**WHEN** a repository in `packages/core/src/Domain/<Aggregate>/` reads rows to hydrate its aggregate
+**WHEN** a repository in `core/src/Domain/<Aggregate>/` reads rows to hydrate its aggregate
 
 **THEN** declare the selected columns once, in a private
 `getQueryBuilder(): \Doctrine\DBAL\Query\QueryBuilder` holding only `select(...)` and `from(...)`; every finder starts

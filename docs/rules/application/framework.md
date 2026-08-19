@@ -1,53 +1,67 @@
 # Application / Framework
 
-## application-framework-0001: One controller class per route
+## application-framework-0001: One controller class per route, named for the work not the verb
 
-**WHEN** a Symfony controller under `apps/api/src/Controller` would handle more than one route
+**WHEN** adding a Symfony controller under `apps/api/src/Controller`, or naming one
 
-**THEN** split it into one `final` (or `final readonly`) class per route, named
-`<HttpVerb><Aggregate>[<Action>]Controller`, with a single `__invoke()` method carrying the
-`#[Route]` attribute — not several public action methods on one class.
+**THEN** give each route its own `final` (or `final readonly`) class with a single `__invoke()` carrying the
+`#[Route]` attribute — never several public action methods on one class — and take the name from what the controller
+does, not from how it is reached:
+
+- a controller that **dispatches a `Core\Application` command** is named for that command's intent, dropping the
+  `Command` suffix: `SaveMovementCommand` → `SaveMovementController`, `SubmitMovementCommand` →
+  `SubmitMovementController`. The HTTP verb is a routing detail and stays out of the class name — the `#[Route]`
+  attribute already carries it, and a controller can answer to more than one verb.
+- **every other controller** — reads, and writes with no `Core\Application` command behind them
+  (`application-framework-0002`) — is `<HttpVerb><Resource>Controller`: `GetMovementsController`,
+  `GetMovementController`, `GetCategoriesController`, `GetMeController`, `PostSessionController`,
+  `PostLogoutController`.
+
+One class still serves two routes when both dispatch the same command (`application-commands-0005`: a `null` id creates,
+a present id edits) — stack both `#[Route]` attributes on one
+`__invoke(Request $request, User $author, ?string $id = null)` rather than duplicating the payload-to-command mapping
+across two otherwise identical classes.
 
 **Example:**
 
-| Wrong                                                               | Right                                                                                                                                  |
-|---------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| `MovementController::create/list/show/update/submit()` in one class | `PostMovementController`, `GetMovementsController`, `GetMovementController`, `PatchMovementController`, `PostMovementSubmitController` |
-| `SessionController::create/me/logout()` in one class                | `PostSessionController`, `GetMeController`, `PostLogoutController`                                                                     |
+| Wrong                                                                                       | Right                                                                                                   |
+|---------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| `MovementController::create/list/show/update/submit()` in one class                         | `SaveMovementController`, `SubmitMovementController`, `GetMovementsController`, `GetMovementController` |
+| `PostMovementSubmitController` for the class dispatching `SubmitMovementCommand`            | `SubmitMovementController`                                                                              |
+| `PostMovementController` and `PatchMovementController` duplicating the same payload mapping | one `SaveMovementController` with two stacked `#[Route]` attributes                                     |
+| `SessionController::create/me/logout()` in one class                                        | `PostSessionController`, `GetMeController`, `PostLogoutController`                                      |
 
-## application-framework-0002: Payload shape validated in a request command
+## application-framework-0002: Payload shape validated on the application command
 
 **WHEN** a non-GET Symfony controller under `apps/api/src/Controller` needs to read fields out of the request payload
+and hand them to a `core` write use case
 
-**THEN** wrap that extraction in a dedicated `<HttpVerb><Aggregate>[<Action>]Command` value object — a
-`final readonly class` with a private constructor and a static `fromPayload(array $payload): self`
-factory that validates each field's shape with `Webmozart\Assert\Assert` (e.g. `Assert::nullOrString`)
-— not inline field-pulling in the controller body, and not a shared ad-hoc coercion helper. Business rules (blank
-checks, format, length) stay in the domain service; the Command only validates shape.
+**THEN** parse and validate the payload on the `Core\Application` command the controller dispatches, through a static
+`fromPayload(array $payload, ...): self` entry point on the command itself (e.g.
+`SaveMovementCommand::fromPayload`) validating each field's shape with `Webmozart\Assert\Assert` (e.g.
+`Assert::nullOrString`) — never inline field-pulling in the controller body.
 
-**Example:**
+Put the parsing in the command's **private constructor** and keep `fromPayload` as the named wrapper over it. This is
+not cosmetic: PHPStan's `property.readOnlyAssignNotInConstructor` rejects assigning `readonly` properties anywhere else,
+so lifting the `Assert` calls up into `fromPayload` reopens one error per field (`application-commands-0003`).
 
-| Wrong                                                                                              | Right                                                                                                 |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| `PostSessionController` reads `$payload['email']` inline and calls `RequestPayload::stringField()` | `PostSessionController` calls `PostSessionCommand::fromPayload($payload)` and reads `$command->email` |
+Where a use case has no `Core\Application` command — a controller calling a domain service directly, as
+`PostSessionController` does with `UserService` — that same factory goes on an `apps/api`-side
+`<HttpVerb><Aggregate>[<Action>]Command` instead (`PostSessionCommand`). What is banned is an `apps/api` wrapper that
+re-maps the payload when a `Core\Application` command already exists to carry it.
 
-## application-framework-0003: Request commands map to domain commands
-
-**WHEN** a controller under `apps/api/src/Controller` must hand payload fields to a `packages/core`
-service
-
-**THEN** give its `<HttpVerb><Aggregate>[<Action>]Command` one `to<Intent>()` method per domain command it feeds, and
-pass the resulting domain command to the service — never spread payload fields as separate service arguments, and never
-compute merge defaults in the controller body. Absent-field semantics belong in that mapper: POST passes `?? ''` so the
-domain reports the field error, PATCH falls back to the current aggregate value (`to<Intent>(<Aggregate> $current)`),
-using the
-`<field>Provided` flag wherever `null` is itself a legal value. The mapping lives in `apps/api`
-because App may depend on Core, never the reverse.
+Business rules (blank checks, format, length) stay in the domain aggregate; `fromPayload` only validates shape and
+assigns nothing at all for a key the payload never carried (`application-commands-0003`) — it never resolves a use-case
+default itself. When one command serves more than one use case (`application-commands-0005`), absent-field defaulting is
+the handler's job, since only the handler knows which branch is running: empty for a freshly created aggregate, the
+loaded aggregate's current value for an edit.
 
 **Example:**
 
-| Wrong                                                                                                    | Right                                                            |
-|----------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| `$this->movementService->create($author->id, $command->title ?? '', $command->description ?? '', …)`     | `$this->movementService->create($command->toDraft($author->id))` |
-| PATCH merge (`$command->title ?? $movement->title()`, …) inline in `PatchMovementController::__invoke()` | `$command->toEdit($movement)` on `UpsertMovementCommand`         |
-| `MovementService::update($id, $authorId, string $title, string $description, …)`                         | `MovementService::update($id, $authorId, EditMovement $command)` |
+| Wrong                                                                                                | Right                                                                                                 |
+|------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| `PostSessionController` reads `$payload['email']` inline and calls `RequestPayload::stringField()`   | `PostSessionController` calls `PostSessionCommand::fromPayload($payload)` and reads `$command->email` |
+| `Assert` calls in `fromPayload`, assigning the command's properties there                            | `Assert` calls in the private constructor; `fromPayload` just returns `new self(…)`                   |
+| an `apps/api` request command re-mapping a payload a `Core\Application` command already takes        | `SaveMovementCommand::fromPayload(…)` called straight from the controller                             |
+| `$this->commandBus->dispatch(new SaveMovementCommand($id, $author->id, $payload['title'] ?? '', …))` | `$this->commandBus->dispatch(SaveMovementCommand::fromPayload($payload, $author->id, $id))`           |
+| absent-field merge (`$payload['title'] ?? $movement->title()`, …) inline in the controller           | resolved in `SaveMovementHandler`, from the aggregate it loads                                        |

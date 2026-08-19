@@ -24,7 +24,7 @@ The common ones:
 |-------------------|-----------------------------------------------------|
 | `apps/api`        | Symfony HTTP application                            |
 | `apps/web`        | React + Vite frontend (Feature-Sliced Design)       |
-| `packages/core`   | Framework-free PHP domain logic                     |
+| `packages/core`   | Framework-free PHP domain and application logic     |
 | `infrastructure`  | AWS CDK deployment app (`live` and `preview`)       |
 | `docker`          | Container images, nginx config, generated certs     |
 | `docs/decisions`  | Architecture Decision Records                       |
