@@ -87,8 +87,6 @@ final class Movement
     }
 
     /**
-     * Replaces every editable field.
-     *
      * @throws MovementNotDraft when the movement already left `draft`
      * @throws InvalidMovement  when any field fails stage validation
      */
