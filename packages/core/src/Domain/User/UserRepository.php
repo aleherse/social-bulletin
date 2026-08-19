@@ -14,9 +14,6 @@ class UserRepository
     ) {
     }
 
-    /**
-     * Lookup is case-insensitive on email.
-     */
     public function findByEmail(string $email): ?User
     {
         /** @var array{id: string, email: string, created_at: string}|false $row */
