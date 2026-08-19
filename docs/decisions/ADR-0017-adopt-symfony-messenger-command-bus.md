@@ -44,8 +44,8 @@ which keeps `packages/core` free of Symfony (ADR-0005).
 a `HandleTrait` wrapper that returns the handler's result
 and rethrows the exception nested inside Messenger's `HandlerFailedException`,
 so controllers keep catching domain exceptions
-(`MovementNotFound`, `MovementNotDraft`, `InvalidMovement`)
-and keep mapping them to 404, 409, and 400.
+(`MovementNotFound`, `MovementNotDraft`, `InvalidMovement`, `InvalidEmailAddress`)
+and keep mapping them to 404, 409, 400, and 422.
 
 ### Reads are out of scope
 
