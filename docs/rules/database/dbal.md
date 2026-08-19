@@ -1,41 +1,31 @@
 # Database / DBAL
 
-## database-dbal-0001: Repositories are concrete classes owned by core
+## database-dbal-0001: Repositories are concrete core classes named for their aggregate
 
-**WHEN** adding or changing a repository for an aggregate in `core`
+**WHEN** adding, changing or naming a repository for an aggregate in `core`
 
 **THEN** implement it as a single concrete class in `core/src/Domain/<Aggregate>/`, constructed with
-`Doctrine\DBAL\Connection` directly — do not split it into a core `interface` plus a `Dbal*` adapter class in
+`Doctrine\DBAL\Connection` directly, and name it `<Aggregate>Repository` after the aggregate it persists rather than
+after the shape of the data it returns — do not split it into a core `interface` plus a `Dbal*` adapter class in
 `apps/api/src/Repository/`.
 
 **Example:**
 
-| Before (ports & adapters split)                                                                          | After (core-owned concrete class)                                  |
+| Wrong                                                                                                    | Right                                                              |
 |----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
 | `core/src/Domain/User/UserRepository.php` (interface) + `apps/api/src/Repository/DbalUserRepository.php` | `core/src/Domain/User/UserRepository.php` (concrete class)         |
 | `core/src/Domain/Movement/Categories.php` (interface) + `apps/api/src/Repository/DbalCategories.php`     | `core/src/Domain/Movement/CategoryRepository.php` (concrete class) |
+| `core/src/Domain/Movement/Categories.php` — named for the rows, not the aggregate                       | `core/src/Domain/Movement/CategoryRepository.php`                  |
 
-## database-dbal-0002: Repositories named after their aggregate
-
-**WHEN** naming a repository class in `core/src/Domain/<Aggregate>/`
-
-**THEN** name it `<Aggregate>Repository`, matching the aggregate it persists — not a data-shape name.
-
-**Example:**
-
-| Wrong                                     | Right                                             |
-|-------------------------------------------|---------------------------------------------------|
-| `core/src/Domain/Movement/Categories.php` | `core/src/Domain/Movement/CategoryRepository.php` |
-
-## database-dbal-0003: Foreign keys enforce lookup existence
+## database-dbal-0002: Foreign keys enforce lookup existence
 
 **WHEN** an aggregate's persisted column has a database-level foreign key to a managed lookup table (e.g.
 `movements.category` → `bulletin.categories.id`)
 
 **THEN** let the constraint enforce existence and catch
 `Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException` inside the repository's `save()`, translating it into
-the aggregate's own validation exception — do not run a separate
-`exists()` SELECT beforehand to pre-validate the same thing.
+the aggregate's own validation exception — do not run a separate `exists()` SELECT beforehand to pre-validate the same
+thing.
 
 **Example:**
 

@@ -4,15 +4,14 @@
 
 **WHEN** adding a write operation to `core`
 
-**THEN** put it in `src/Application/<Aggregate>/` as a `final readonly` command extending the `Command` base
-(`application-helpers-0002`), paired one-to-one with a `final readonly` handler exposing a single
-`__invoke(<Intent>Command $command): <Aggregate>` that returns the saved aggregate. The command carries the whole
-use-case input as public properties, the aggregate id and the acting author's id included where the use case has them —
-`CreateMovementCommand` carries the author's id but no aggregate id, because the handler mints it; `SignInCommand`
-carries neither, because signing in is what registers the user it identifies. A field is promoted where it is always
-supplied, and plain and conditionally assigned where the caller may omit it (`application-commands-0003`); beyond the
-inherited `hasProperty()` the command holds no behaviour and no framework attributes. The handler only orchestrates —
-load, mutate, save — with the rules staying in the aggregate (`domain-common-0001`).
+**THEN** put it in `src/Application/<Aggregate>/` as a `final readonly` command extending `Command`
+(`application-helpers-0002`), paired one-to-one with a `final readonly` handler whose single
+`__invoke(<Intent>Command $command): <Aggregate>` returns the saved aggregate. The command carries the whole use-case
+input as public properties — the aggregate id and the acting author's id included where the use case has them, so
+`CreateMovementCommand` carries an author id but no movement id, because the handler mints it — and nothing else: no
+behaviour beyond the inherited `hasProperty()`, no framework attributes. Promote a field that is always supplied;
+declare one the caller may omit plain and assign it conditionally (`application-commands-0003`). The handler only
+orchestrates — load, mutate, save — with the rules staying in the aggregate (`domain-common-0001`).
 
 **Example:**
 
@@ -46,12 +45,10 @@ map to a status code. Reads stay a direct call on the domain service — no quer
 meaningful value for that field (clearing a movement's location, say)
 
 **THEN** leave the property **unassigned** when the input omitted it, rather than storing `null` or pairing it with a
-`<field>Provided` boolean. Declare such fields as plain (non-promoted) properties on the `final readonly class` and
-assign them conditionally in the constructor; the handler then reads them through `hasProperty('<field>')` and only
-touches the aggregate when it returns `true`.
-
-`hasProperty()` and the PHPStan exception it requires belong to the `Command` base — see
-`application-helpers-0002` for how it tells the two states apart and why `isset()` cannot.
+`<field>Provided` boolean: declare it as a plain (non-promoted) property on the `final readonly class`, assign it
+conditionally in the constructor, and read it in the handler through `hasProperty('<field>')`, touching the aggregate
+only when that returns `true`. `hasProperty()` and the PHPStan ignore it requires belong to the `Command` base
+(`application-helpers-0002`).
 
 **Example:**
 
@@ -67,7 +64,7 @@ touches the aggregate when it returns `true`.
 
 **THEN** name both for the use case's intent, never for the HTTP verb or the persistence operation that happens to sit
 under it. The command takes a `Command` suffix and lives in a file of the same name; the handler repeats that same
-intent followed by `Handler` and does **not** carry `Command` twice over — `CreateMovementHandler`, never
+intent followed by `Handler`, without carrying `Command` twice over — `CreateMovementHandler`, never
 `CreateMovementCommandHandler`. A controller dispatching the command takes the same intent again
 (`application-framework-0001`).
 
@@ -79,32 +76,3 @@ intent followed by `Handler` and does **not** carry `Command` twice over — `Cr
 | `CreateMovementCommandHandler`                       | `CreateMovementHandler`                               |
 | `UpsertMovementCommand`, `SaveOrEditMovementCommand` | `CreateMovementCommand`, `UpdateMovementCommand`      |
 | `PostMovementSubmitController`                       | `SubmitMovementController`                            |
-
-## application-commands-0005: Create and edit are separate commands
-
-**WHEN** an aggregate needs both a create and an edit write, even where the two take the same fields
-
-**THEN** give each its own command and handler — `CreateMovementCommand` / `CreateMovementHandler` and
-`UpdateMovementCommand` / `UpdateMovementHandler` — rather than one command with a nullable id and a handler branching
-on it. The two use cases only look alike from the payload's side. They differ in everything that follows it: an id
-minted against one bound from the path, a named constructor against a load-mutate-save, `MovementNotFound` and
-`MovementNotDraft` reachable from only one of them, and — the reason the fields cannot be shared either — a different
-answer to what an omitted field means. Creating has nothing to preserve, so an absent field is the empty value the
-domain rejects (`application-framework-0002`); editing must leave the movement's current value standing, so an absent
-field stays unassigned and the handler reads it through `hasProperty()` (`application-commands-0003`). One command
-serving both has to leave *every* field unassigned to keep the stricter of the two contracts, pushing a defaulting
-decision into the handler that neither branch actually shares.
-
-The duplicated `fromPayload` parsing is the price, and it is the smaller one: each copy states its own use case's rule
-about absence instead of deferring it. Two commands also let each handler take only what it needs —
-`CreateMovementHandler` has no `MovementService`, `UpdateMovementHandler` no `IdentityGenerator`.
-
-`SubmitMovementCommand` stays separate for the same reason it always did: it guards `draft → proposed`.
-
-**Example:**
-
-| Wrong                                                                    | Right                                                     |
-|--------------------------------------------------------------------------|-----------------------------------------------------------|
-| one `SaveMovementCommand` with `?string $id`, the handler branching      | `CreateMovementCommand` and `UpdateMovementCommand`       |
-| `CreateMovementCommand` leaving omitted fields unassigned "for symmetry" | `?? ''` — a new movement has no current value to preserve |
-| folding `SubmitMovementCommand` in as a `bool $submit` flag              | a separate command — it guards a status transition        |

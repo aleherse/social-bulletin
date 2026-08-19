@@ -19,12 +19,10 @@ included — there is no `<HttpVerb><Resource>Controller` fallback.
 - a **write with no command behind it** is named the same way, for what it does to the session or the resource:
   `LogoutController`.
 
-One class serves exactly one route. Where two routes look like one use case wearing two verbs — `POST /api/movements`
-and `PATCH /api/movements/{id}` — they are still two controllers, `CreateMovementController` and
-`UpdateMovementController`, because the command behind each is its own (`application-commands-0005`) and so is the
-response: `201` with no id to read, against `200` with one bound from the path. A single `__invoke` serving both would
-carry an `?string $id = null` parameter it has to branch on, and a status code chosen from that same branch — a route
-distinction the router already made, re-made in the body.
+One class serves exactly one route. `POST /api/movements` and `PATCH /api/movements/{id}` look like one use case
+wearing two verbs, but each has its own command (`application-commands-0005`) and its own response — `201` with no id
+to read against `200` with one bound from the path — so they stay two controllers. A single `__invoke` serving both
+would branch on an `?string $id = null` parameter to re-make a distinction the router already made.
 
 **Example:**
 
@@ -42,34 +40,23 @@ distinction the router already made, re-made in the body.
 and hand them to a `core` write use case
 
 **THEN** parse and validate the payload on the `Core\Application` command the controller dispatches, through a static
-`fromPayload(array $payload, ...): self` entry point on the command itself (e.g.
-`UpdateMovementCommand::fromPayload`) validating each field's shape with `Webmozart\Assert\Assert` (e.g.
-`Assert::nullOrString`) — never inline field-pulling in the controller body.
-
-Put the parsing in the command's **private constructor** and keep `fromPayload` as the named wrapper over it. This is
-not cosmetic: PHPStan's `property.readOnlyAssignNotInConstructor` rejects assigning `readonly` properties anywhere else,
-so lifting the `Assert` calls up into `fromPayload` reopens one error per field (`application-commands-0003`).
-
-Every write already has a `Core\Application` command behind it, so that is where the factory belongs — an `apps/api`
-wrapper re-mapping a payload the command could take itself is banned. `SignInController` used to hold one
-(`App\Controller\User\PostSessionCommand`) while sign-in was a direct `UserService` call; it went the moment the write
-became `SignInCommand`. Only a payload-taking write with no command behind it at all may fall back to an
-`apps/api`-side `<HttpVerb><Aggregate>[<Action>]Command`.
+`fromPayload(array $payload, ...): self` entry point on the command itself (e.g. `UpdateMovementCommand::fromPayload`)
+— never inline field-pulling in the controller body. Keep `fromPayload` a named wrapper over a **private constructor**
+that does both the assigning and the `Webmozart\Assert\Assert` shape checks (e.g. `Assert::nullOrString`): PHPStan's
+`property.readOnlyAssignNotInConstructor` rejects assigning `readonly` properties anywhere else. Every write already
+has a command behind it, so an `apps/api` wrapper re-mapping a payload the command could take itself is banned; only a
+payload-taking write with no command behind it at all may fall back to an `apps/api`-side
+`<HttpVerb><Aggregate>[<Action>]Command`.
 
 Business rules (blank checks, format, length) stay in the domain aggregate, and `fromPayload` never resolves a
 **use-case default** — a value standing in for one the caller did not give. Where absence could mean more than one
-thing, it must therefore assign nothing at all and leave the property uninitialised (`application-commands-0003`):
+thing, it must assign nothing at all and leave the property uninitialised (`application-commands-0003`):
 `UpdateMovementCommand` leaves every omitted field unassigned, because the value standing in for it is the one the
-movement already holds and only `UpdateMovementHandler` has loaded it.
-
-A field the use case always requires is the narrower case, and there `fromPayload` may normalise absence to the empty
-value: `SignInCommand` assigns `''` for a missing `email`, because absent, `null` and `''` all mean the same thing and
-the domain rejects all three as `email.blank`. `CreateMovementCommand` does the same for all five of its fields — a
-movement being created has no current value to preserve, so absent, `null` and empty all reach the domain as the one
-thing it rejects. That is normalisation, not a default — nothing is being stood in for, and `hasProperty()` would have
-no second state to report. Reach for it only when the empty value is genuinely indistinguishable from absence; the
-moment the two could diverge, leave the property unassigned instead. Splitting one write into a create and an edit
-command (`application-commands-0005`) is often what makes that possible: each branch then knows its own fallback.
+movement already holds and only `UpdateMovementHandler` has loaded it. Normalising absence to the empty value is
+allowed only where the domain cannot tell the two apart — `SignInCommand` assigns `''` for a missing `email`, and
+`CreateMovementCommand` does the same for all five of its fields, because absent, `null` and `''` all reach the domain
+as the one thing it rejects. The moment the two could diverge, leave the property unassigned instead; splitting one
+write into a create and an edit command (`application-commands-0005`) is often what makes that possible.
 
 **Example:**
 

@@ -5,9 +5,8 @@
 **WHEN** adding a class or interface under `core/src/Domain/` that no single aggregate owns
 
 **THEN** put it in `core/src/Domain/Helper/` — never flat in `Domain/`, and never inside an aggregate folder that does
-not own it. This is the same shape as `core/src/Application/Helper/`
-(`application-helpers-0001`), so each layer has exactly one home for what its aggregates share, and a helper carries no
-aggregate vocabulary.
+not own it. This is the same shape as `core/src/Application/Helper/` (`application-helpers-0001`): one home per layer
+for what its aggregates share, and a helper carries no aggregate vocabulary.
 
 Pick the layer by who needs it, not by who happens to call it first. `Core\Application` may depend on `Core\Domain`
 and never the reverse (ADR-0017), so a `Domain/Helper/` interface is reachable from a domain service and an application
@@ -30,14 +29,13 @@ reaching anything outside the process
 
 **THEN** declare it in `Domain/Helper/` as an **interface** named for the capability (`IdentityGenerator::generate()`),
 implement it in `apps/api` (`App\Identity\UuidV7IdentityGenerator`), and alias the two in
-`apps/api/config/services.yaml`. That is what keeps `core` framework-free (ADR-0005): `Symfony\Component\Uid`
-is the adapter's business, not the domain's. Callers depend on the interface and go through it —
-`$this->identities->generate()`, never a `Uuid::v7()` call inline — which is also what lets PHPSpec double the
-capability (`SignInHandlerSpec`, `CreateMovementHandlerSpec`) instead of asserting against a random value.
+`apps/api/config/services.yaml` — that is what keeps `core` framework-free (ADR-0005). Callers go through the
+interface, `$this->identities->generate()` and never a `Uuid::v7()` call inline, which is also what lets PHPSpec double
+the capability (`SignInHandlerSpec`, `CreateMovementHandlerSpec`) instead of asserting against a random value.
 
-Repositories are the deliberate exception and not a precedent to follow: they are concrete DBAL classes living in their
-aggregate's folder, because `core` owns its persistence outright (ADR-0012 — deptrac allows
-`CoreDomain → DBAL`). Do not add a `*RepositoryInterface` to `Helper/` to make them match this rule.
+Repositories are the deliberate exception and not a precedent: they are concrete DBAL classes in their aggregate's
+folder, because `core` owns its persistence outright (ADR-0012 — deptrac allows `CoreDomain → DBAL`). Do not add a
+`*RepositoryInterface` to `Helper/` to make them match this rule.
 
 **Example:**
 
