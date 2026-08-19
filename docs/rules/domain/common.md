@@ -11,12 +11,12 @@ Commands are an application-layer concern (`application-commands-0001`): no `app
 
 **Example:**
 
-| Wrong                                                         | Right                                                                |
-|---------------------------------------------------------------|----------------------------------------------------------------------|
-| `$movement->apply(new SaveMovementCommand($title, …))`        | `$movement->edit($title, $description, $category, $area, $location)` |
-| `$movement->apply(new SubmitMovementCommand())`               | `$movement->submit()`                                                |
-| `Movement::draft($id, new SaveMovementCommand($authorId, …))` | `Movement::draft($id, $authorId, $title, …)`                         |
-| draft guard inside `apply()`, dispatching by `instanceof`     | `assertDraft()` called by `edit()` and `submit()`                    |
+| Wrong                                                           | Right                                                                |
+|-----------------------------------------------------------------|----------------------------------------------------------------------|
+| `$movement->apply(new UpdateMovementCommand($title, …))`        | `$movement->edit($title, $description, $category, $area, $location)` |
+| `$movement->apply(new SubmitMovementCommand())`                 | `$movement->submit()`                                                |
+| `Movement::draft($id, new CreateMovementCommand($authorId, …))` | `Movement::draft($id, $authorId, $title, …)`                         |
+| draft guard inside `apply()`, dispatching by `instanceof`       | `assertDraft()` called by `edit()` and `submit()`                    |
 
 Files: `Movement.php` holds `draft()`, `edit()`, `submit()` and the private `assertDraft()`; the commands they used to
 take live in `core/src/Application/Movement/` (ADR-0017).

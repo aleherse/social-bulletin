@@ -15,7 +15,7 @@ through `createdAt()` / `updatedAt()`, so an aggregate built by `draft()` has no
 | Wrong                                                                       | Right                                                                        |
 |-----------------------------------------------------------------------------|------------------------------------------------------------------------------|
 | `Movement::draft($id, $authorId, $title, …, new \DateTimeImmutable())`      | `Movement::draft($id, $authorId, $title, …)`                                 |
-| `SaveMovementHandler` calling `new \DateTimeImmutable()`                    | Postgres `now()` inside `MovementRepository::save()`                         |
+| `CreateMovementHandler` calling `new \DateTimeImmutable()`                  | Postgres `now()` inside `MovementRepository::save()`                         |
 | `save(Movement $movement): void` plus a public `markSaved()`                | `save(Movement $movement): Movement`, returning `$this->byId($movement->id)` |
 | `'updated_at' => $movement->updatedAt()->format(ATOM)` bound as a parameter | `updated_at = now()` in the SQL                                              |
 

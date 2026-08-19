@@ -11,7 +11,7 @@ aggregate vocabulary.
 
 Pick the layer by who needs it, not by who happens to call it first. `Core\Application` may depend on `Core\Domain`
 and never the reverse (ADR-0017), so a `Domain/Helper/` interface is reachable from a domain service and an application
-handler alike — `IdentityGenerator` serves `SignInHandler` and `SaveMovementHandler`. Something only the application
+handler alike — `IdentityGenerator` serves `SignInHandler` and `CreateMovementHandler`. Something only the application
 layer could want stays in `Application/Helper/`.
 
 **Example:**
@@ -33,7 +33,7 @@ implement it in `apps/api` (`App\Identity\UuidV7IdentityGenerator`), and alias t
 `apps/api/config/services.yaml`. That is what keeps `core` framework-free (ADR-0005): `Symfony\Component\Uid`
 is the adapter's business, not the domain's. Callers depend on the interface and go through it —
 `$this->identities->generate()`, never a `Uuid::v7()` call inline — which is also what lets PHPSpec double the
-capability (`SignInHandlerSpec`, `SaveMovementHandlerSpec`) instead of asserting against a random value.
+capability (`SignInHandlerSpec`, `CreateMovementHandlerSpec`) instead of asserting against a random value.
 
 Repositories are the deliberate exception and not a precedent to follow: they are concrete DBAL classes living in their
 aggregate's folder, because `core` owns its persistence outright (ADR-0012 — deptrac allows

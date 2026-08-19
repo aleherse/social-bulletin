@@ -30,8 +30,8 @@ Uninitialised properties trip PHPStan's `property.uninitializedReadonly`. Silenc
 
 **Example:**
 
-| Wrong                                                     | Right                                                      |
-|-----------------------------------------------------------|------------------------------------------------------------|
-| `isset($command->location)`                               | `$command->hasProperty('location')`                        |
-| `final readonly class SaveMovementCommand` standing alone | `final readonly class SaveMovementCommand extends Command` |
-| dropping `readonly` to satisfy PHPStan                    | keep it; ignore the one identifier instead                 |
+| Wrong                                                       | Right                                                        |
+|-------------------------------------------------------------|--------------------------------------------------------------|
+| `isset($command->location)`                                 | `$command->hasProperty('location')`                          |
+| `final readonly class UpdateMovementCommand` standing alone | `final readonly class UpdateMovementCommand extends Command` |
+| dropping `readonly` to satisfy PHPStan                      | keep it; ignore the one identifier instead                   |
