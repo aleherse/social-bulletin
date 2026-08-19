@@ -9,8 +9,9 @@ use Behat\Gherkin\Node\PyStringNode;
 use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
+use App\Messenger\CommandBus;
 use Doctrine\DBAL\Connection;
-use SocialBulletin\Core\Domain\User\UserService;
+use SocialBulletin\Core\Application\User\SignInCommand;
 use Webmozart\Assert\Assert;
 
 use function JmesPath\search;
@@ -19,7 +20,7 @@ final class SessionContext implements Context
 {
     public function __construct(
         private readonly ApiClient $apiClient,
-        private readonly UserService $userService,
+        private readonly CommandBus $commandBus,
         private readonly Connection $connection,
     ) {
     }
@@ -28,7 +29,7 @@ final class SessionContext implements Context
     public function aUserExistsWithEmail(string $email): void
     {
         // ADR-0015: Given steps create state through application code.
-        $this->userService->findOrCreateByEmail($email);
+        $this->commandBus->dispatch(SignInCommand::fromPayload(['email' => $email]));
     }
 
     #[When('I send a :method request to :path')]

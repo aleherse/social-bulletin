@@ -13,8 +13,9 @@ use Doctrine\DBAL\Connection;
 use App\Messenger\CommandBus;
 use SocialBulletin\Core\Application\Movement\SubmitMovementCommand;
 use SocialBulletin\Core\Application\Movement\SaveMovementCommand;
+use SocialBulletin\Core\Application\User\SignInCommand;
 use SocialBulletin\Core\Domain\Movement\Movement;
-use SocialBulletin\Core\Domain\User\UserService;
+use SocialBulletin\Core\Domain\User\User;
 use Webmozart\Assert\Assert;
 
 use function JmesPath\search;
@@ -26,7 +27,6 @@ final class MovementContext implements Context
 
     public function __construct(
         private readonly ApiClient $apiClient,
-        private readonly UserService $userService,
         private readonly CommandBus $commandBus,
         private readonly Connection $connection,
     ) {
@@ -48,7 +48,7 @@ final class MovementContext implements Context
     #[Given(':email has a proposed movement titled :title')]
     public function hasAProposedMovementTitled(string $email, string $title): void
     {
-        $user = $this->userService->findOrCreateByEmail($email);
+        $user = $this->signIn($email);
         $this->createMovement($email, $title, "## Why\nBecause it matters.");
         $this->commandBus->dispatch(new SubmitMovementCommand($this->movementId($title), $user->id));
     }
@@ -114,9 +114,20 @@ final class MovementContext implements Context
         Assert::count($result, $count);
     }
 
+    /**
+     * Both a movement's author and the caller acting on it start as a sign-in.
+     */
+    private function signIn(string $email): User
+    {
+        $user = $this->commandBus->dispatch(SignInCommand::fromPayload(['email' => $email]));
+        Assert::isInstanceOf($user, User::class);
+
+        return $user;
+    }
+
     private function createMovement(string $email, string $title, string $description): void
     {
-        $user = $this->userService->findOrCreateByEmail($email);
+        $user = $this->signIn($email);
         $movement = $this->commandBus->dispatch(SaveMovementCommand::fromPayload([
             'title' => $title,
             'description' => $description,
