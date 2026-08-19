@@ -9,7 +9,7 @@ use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-final readonly class GetMovementsController
+final readonly class ListMovementsController
 {
     public function __construct(
         private MovementService $movementService,

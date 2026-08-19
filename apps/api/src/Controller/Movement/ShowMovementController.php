@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final readonly class GetMovementController
+final readonly class ShowMovementController
 {
     public function __construct(
         private MovementService $movementService,
