@@ -31,4 +31,4 @@ init = "make init"
 compose-down = "make down"
 
 [list]
-url = "http://localhost:{{ ('http-' ~ branch) | hash_port }}"
+url = "https://dev.app.social.aleherse.com:{{ ('node-' ~ branch) | hash_port }}"
