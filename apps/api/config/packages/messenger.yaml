@@ -1,0 +1,8 @@
+# ADR-0017: Symfony Messenger owns the command bus.
+# One bus, no transports: commands are handled synchronously in the request that dispatched
+# them, so the handler's result is still available to the controller.
+framework:
+    messenger:
+        default_bus: command.bus
+        buses:
+            command.bus: ~
