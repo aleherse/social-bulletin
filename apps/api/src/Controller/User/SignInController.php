@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace App\Controller\User;
 
+use App\Messenger\CommandBus;
 use App\Security\ApiUser;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use SocialBulletin\Core\Application\User\SignInCommand;
 use SocialBulletin\Core\Domain\User\InvalidEmailAddress;
-use SocialBulletin\Core\Domain\User\UserService;
+use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final readonly class PostSessionController
+final readonly class SignInController
 {
     public function __construct(
-        private UserService $userService,
+        private CommandBus $commandBus,
         private JWTTokenManagerInterface $tokenManager,
     ) {
     }
@@ -26,10 +28,10 @@ final readonly class PostSessionController
     {
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
-        $command = PostSessionCommand::fromPayload($payload);
 
         try {
-            $user = $this->userService->findOrCreateByEmail($command->email);
+            $user = $this->commandBus->dispatch(SignInCommand::fromPayload($payload));
+            \assert($user instanceof User);
         } catch (InvalidEmailAddress $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
