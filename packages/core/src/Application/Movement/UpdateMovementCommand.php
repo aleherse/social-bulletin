@@ -8,13 +8,14 @@ use SocialBulletin\Core\Application\Helper\Command;
 use Webmozart\Assert\Assert;
 
 /**
- * Command: create a `draft` movement, or edit the fields of an existing one.
+ * Command: edit the fields of an existing `draft` movement.
  *
- * A `null` id creates; a present id edits. Fields the payload omitted are left uninitialised,
- * so {@see Command::hasProperty()} tells them from an explicit `null`.
- * Handled by {@see SaveMovementHandler}.
+ * Fields the payload omitted are left uninitialised, so {@see Command::hasProperty()} tells them
+ * from an explicit `null` — the movement already holds a value for each, and only an omission
+ * should leave it standing.
+ * Handled by {@see UpdateMovementHandler}.
  */
-final readonly class SaveMovementCommand extends Command
+final readonly class UpdateMovementCommand extends Command
 {
     // @phpstan-ignore property.uninitializedReadonly (unassigned when the payload omits it)
     public string $title;
@@ -32,14 +33,13 @@ final readonly class SaveMovementCommand extends Command
     public ?string $location;
 
     /**
-     * Validates shape only, and assigns nothing for a key the payload never carried — what an
-     * absent field falls back to is the handler's call, since only it knows whether this is a
-     * creation or an edit.
+     * Validates shape only, and assigns nothing for a key the payload never carried — an absent
+     * field falls back to the movement's current value, which only the handler has loaded.
      *
      * @param array<string, mixed> $payload
      */
     private function __construct(
-        public ?string $id,
+        public string $id,
         public string $authorId,
         array $payload,
     ) {
@@ -72,7 +72,7 @@ final readonly class SaveMovementCommand extends Command
     /**
      * @param array<string, mixed> $payload
      */
-    public static function fromPayload(array $payload, string $authorId, ?string $id = null): self
+    public static function fromPayload(array $payload, string $authorId, string $id): self
     {
         return new self($id, $authorId, $payload);
     }
