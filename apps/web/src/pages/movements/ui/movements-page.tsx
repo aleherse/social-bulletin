@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import {
   useCreateMovement,
   useMovement,
@@ -48,6 +50,22 @@ function MovementList() {
     );
   }
 
+  let body: ReactNode;
+
+  if (movements.isPending) {
+    body = <p className="text-sm text-muted-foreground">{t('movements.loading')}</p>;
+  } else if (movements.data !== undefined && movements.data.length > 0) {
+    body = (
+      <ul className="flex flex-col gap-3">
+        {movements.data.map((movement) => (
+          <MovementRow key={movement.id} movement={movement} />
+        ))}
+      </ul>
+    );
+  } else {
+    body = <p className="text-sm text-muted-foreground">{t('movements.empty')}</p>;
+  }
+
   return (
     <>
       <header className="flex items-center justify-between">
@@ -59,17 +77,7 @@ function MovementList() {
           {t('movements.new')}
         </a>
       </header>
-      {movements.isPending ? (
-        <p className="text-sm text-muted-foreground">{t('movements.loading')}</p>
-      ) : movements.data !== undefined && movements.data.length > 0 ? (
-        <ul className="flex flex-col gap-3">
-          {movements.data.map((movement) => (
-            <MovementRow key={movement.id} movement={movement} />
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground">{t('movements.empty')}</p>
-      )}
+      {body}
     </>
   );
 }
@@ -107,11 +115,11 @@ function NewMovement() {
   const createMovement = useCreateMovement();
 
   const apiError = createMovement.error instanceof ApiError ? createMovement.error : null;
-  const serverError = createMovement.isError
-    ? apiError === null || Object.keys(apiError.fieldErrors).length === 0
-      ? (apiError?.message ?? t('movements.form.requestFailed'))
-      : null
-    : null;
+  const serverError = formServerError(
+    apiError,
+    createMovement.isError,
+    t('movements.form.requestFailed'),
+  );
 
   return (
     <>
@@ -139,11 +147,35 @@ function EditMovement({ id }: { id: string }) {
   const updateMovement = useUpdateMovement();
 
   const apiError = updateMovement.error instanceof ApiError ? updateMovement.error : null;
-  const serverError = updateMovement.isError
-    ? apiError === null || Object.keys(apiError.fieldErrors).length === 0
-      ? (apiError?.message ?? t('movements.form.requestFailed'))
-      : null
-    : null;
+  const serverError = formServerError(
+    apiError,
+    updateMovement.isError,
+    t('movements.form.requestFailed'),
+  );
+
+  let body: ReactNode;
+
+  if (movement.isPending) {
+    body = <p className="text-sm text-muted-foreground">{t('movements.loading')}</p>;
+  } else if (movement.isError || movement.data.status !== 'draft') {
+    body = (
+      <p role="alert" className="text-sm text-destructive">
+        {t('movements.notFound')}
+      </p>
+    );
+  } else {
+    body = (
+      <MovementForm
+        initial={movement.data}
+        pending={updateMovement.isPending}
+        serverError={serverError}
+        fieldErrors={apiError?.fieldErrors ?? {}}
+        onSubmit={(input) => {
+          updateMovement.mutate({ id, input }, { onSuccess: goToMovements });
+        }}
+      />
+    );
+  }
 
   return (
     <>
@@ -153,23 +185,24 @@ function EditMovement({ id }: { id: string }) {
           {t('movements.backToList')}
         </a>
       </header>
-      {movement.isPending ? (
-        <p className="text-sm text-muted-foreground">{t('movements.loading')}</p>
-      ) : movement.isError || movement.data.status !== 'draft' ? (
-        <p role="alert" className="text-sm text-destructive">
-          {t('movements.notFound')}
-        </p>
-      ) : (
-        <MovementForm
-          initial={movement.data}
-          pending={updateMovement.isPending}
-          serverError={serverError}
-          fieldErrors={apiError?.fieldErrors ?? {}}
-          onSubmit={(input) => {
-            updateMovement.mutate({ id, input }, { onSuccess: goToMovements });
-          }}
-        />
-      )}
+      {body}
     </>
   );
+}
+
+/** The form owns field-level errors, so a server message is shown only when there are none. */
+function formServerError(
+  apiError: ApiError | null,
+  isError: boolean,
+  fallback: string,
+): string | null {
+  if (!isError) {
+    return null;
+  }
+
+  if (apiError !== null && Object.keys(apiError.fieldErrors).length > 0) {
+    return null;
+  }
+
+  return apiError?.message ?? fallback;
 }
