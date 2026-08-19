@@ -4,7 +4,6 @@ import { ApiError } from '@/shared/api';
 import { useTranslation } from '@/shared/i18n';
 import { Button } from '@/shared/ui';
 
-/** Submits a draft as a proposal; renders nothing once the movement left `draft`. */
 export function SubmitMovementButton({ movement }: { movement: Movement }) {
   const { t } = useTranslation();
   const submit = useSubmitMovement();
