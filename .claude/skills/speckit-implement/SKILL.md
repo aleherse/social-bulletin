@@ -161,6 +161,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Core development**: Implement models, services, CLI commands, endpoints
    - **Integration work**: Database connections, middleware, logging, external services
    - **Polish and validation**: Unit tests, performance optimization, documentation
+   - **Comments are exceptional** (Constitution Principle V): make the code self-explanatory through naming and structure, and write a comment only when it carries what the code cannot — a why, an external constraint, a deliberate deviation. Do not narrate readable code, and do not commit commented-out code. Machine-read annotations (PHPDoc/PHPStan types, `@throws`, reasoned suppressions) are exempt.
 
 8. Progress tracking and error handling:
    - Report progress after each completed task
