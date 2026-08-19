@@ -9,7 +9,7 @@ use SocialBulletin\Core\Domain\Movement\CategoryRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-final readonly class GetCategoriesController
+final readonly class ListCategoriesController
 {
     public function __construct(
         private CategoryRepository $categories,
