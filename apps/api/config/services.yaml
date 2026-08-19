@@ -19,7 +19,7 @@ services:
     App\:
         resource: '../src/'
 
-    # packages/core services: the framework-free application logic
+    # packages/core services: the framework-free domain logic
     SocialBulletin\Core\Domain\User\UserService: ~
     SocialBulletin\Core\Domain\Helper\IdentityGenerator: '@App\Identity\UuidV7IdentityGenerator'
     SocialBulletin\Core\Domain\Movement\MovementService: ~
@@ -27,6 +27,14 @@ services:
     # makes every packages/core `*Repository` class available as a service
     SocialBulletin\Core\Domain\:
         resource: '../../../packages/core/src/Domain/*/*Repository.php'
+
+    # packages/core command handlers: tagged here rather than with #[AsMessageHandler],
+    # so the core package stays framework-free (ADR-0005, ADR-0017)
+    SocialBulletin\Core\Application\:
+        resource: '../../../packages/core/src/Application/*/*Handler.php'
+        tags:
+            - name: messenger.message_handler
+              bus: command.bus
 
 when@test:
     services:

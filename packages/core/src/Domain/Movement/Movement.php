@@ -30,26 +30,27 @@ final class Movement
     /**
      * @throws InvalidMovement when any field fails stage validation
      */
-    public static function draft(string $id, DraftMovement $command): self
-    {
+    public static function draft(
+        string $id,
+        string $authorId,
+        string $title,
+        string $description,
+        string $category,
+        string $area,
+        ?string $location,
+    ): self {
         Assert::uuid($id);
-        Assert::uuid($command->authorId);
-        $areaValue = self::assertValidFields(
-            $command->title,
-            $command->description,
-            $command->category,
-            $command->area,
-            $command->location,
-        );
+        Assert::uuid($authorId);
+        $areaValue = self::assertValidFields($title, $description, $category, $area, $location);
 
         return new self(
             $id,
-            $command->authorId,
-            trim($command->title),
-            $command->description,
-            $command->category,
+            $authorId,
+            trim($title),
+            $description,
+            $category,
             $areaValue,
-            Area::International === $areaValue ? null : trim((string) $command->location),
+            Area::International === $areaValue ? null : trim((string) $location),
             MovementStatus::Draft,
         );
     }
@@ -86,25 +87,45 @@ final class Movement
     }
 
     /**
-     * FR-007: a movement only changes while it is a `draft`.
-     *
-     * The single entry point for mutating a movement: every change is expressed
-     * as a command and handled here.
+     * Replaces every editable field.
      *
      * @throws MovementNotDraft when the movement already left `draft`
-     * @throws InvalidMovement  when the command fails stage validation
+     * @throws InvalidMovement  when any field fails stage validation
      */
-    public function apply(MovementCommand $command): void
+    public function edit(
+        string $title,
+        string $description,
+        string $category,
+        string $area,
+        ?string $location,
+    ): void {
+        $this->assertDraft();
+        $areaValue = self::assertValidFields($title, $description, $category, $area, $location);
+
+        $this->title = trim($title);
+        $this->description = $description;
+        $this->category = $category;
+        $this->area = $areaValue;
+        $this->location = Area::International === $areaValue ? null : trim((string) $location);
+    }
+
+    /**
+     * FR-006: `draft` -> `proposed`, only with a non-empty description.
+     *
+     * @throws MovementNotDraft when the movement already left `draft`
+     * @throws InvalidMovement  when the description is still empty
+     */
+    public function submit(): void
     {
-        if (MovementStatus::Draft !== $this->status) {
-            throw new MovementNotDraft('movement.not_draft');
+        $this->assertDraft();
+
+        if ('' === trim($this->description)) {
+            throw new InvalidMovement([
+                'description' => 'movement.description.required',
+            ], 'movement.invalid');
         }
 
-        match (true) {
-            $command instanceof EditMovement => $this->edit($command),
-            $command instanceof SubmitMovement => $this->submit(),
-            default => throw new \LogicException(sprintf('Movement cannot handle %s.', $command::class)),
-        };
+        $this->status = MovementStatus::Proposed;
     }
 
     public function title(): string
@@ -148,39 +169,15 @@ final class Movement
     }
 
     /**
-     * @throws InvalidMovement when any field fails stage validation
-     */
-    private function edit(EditMovement $command): void
-    {
-        $areaValue = self::assertValidFields(
-            $command->title,
-            $command->description,
-            $command->category,
-            $command->area,
-            $command->location,
-        );
-
-        $this->title = trim($command->title);
-        $this->description = $command->description;
-        $this->category = $command->category;
-        $this->area = $areaValue;
-        $this->location = Area::International === $areaValue ? null : trim((string) $command->location);
-    }
-
-    /**
-     * FR-006: `draft` -> `proposed`, only with a non-empty description.
+     * FR-007: a movement only changes while it is a `draft`.
      *
-     * @throws InvalidMovement when the description is still empty
+     * @throws MovementNotDraft when the movement already left `draft`
      */
-    private function submit(): void
+    private function assertDraft(): void
     {
-        if ('' === trim($this->description)) {
-            throw new InvalidMovement([
-                'description' => 'movement.description.required',
-            ], 'movement.invalid');
+        if (MovementStatus::Draft !== $this->status) {
+            throw new MovementNotDraft('movement.not_draft');
         }
-
-        $this->status = MovementStatus::Proposed;
     }
 
     /**
