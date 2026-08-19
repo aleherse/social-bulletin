@@ -11,7 +11,7 @@ input as public properties — the aggregate id and the acting author's id inclu
 `CreateMovementCommand` carries an author id but no movement id, because the handler mints it — and nothing else: no
 behaviour beyond the inherited `hasProperty()`, no framework attributes. Promote a field that is always supplied;
 declare one the caller may omit plain and assign it conditionally (`application-commands-0003`). The handler only
-orchestrates — load, mutate, save — with the rules staying in the aggregate (`domain-common-0001`).
+orchestrates — load, mutate, save — with the rules staying in the aggregate.
 
 **Example:**
 
