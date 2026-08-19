@@ -9,7 +9,7 @@ match — not flat in `Controller/` with a bare `App\Controller` namespace.
 
 **Example:**
 
-| Wrong                                                                          | Right                                                                                            |
-|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| `apps/api/src/Controller/CategoryController.php` (`namespace App\Controller;`) | `apps/api/src/Controller/Movement/CategoryController.php` (`namespace App\Controller\Movement;`) |
-| `apps/api/src/Controller/SessionController.php` (`namespace App\Controller;`)  | `apps/api/src/Controller/User/SessionController.php` (`namespace App\Controller\User;`)          |
+| Wrong                                                                                | Right                                                                                                  |
+|--------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| `apps/api/src/Controller/ListCategoriesController.php` (`namespace App\Controller;`) | `apps/api/src/Controller/Movement/ListCategoriesController.php` (`namespace App\Controller\Movement;`) |
+| `apps/api/src/Controller/SignInController.php` (`namespace App\Controller;`)         | `apps/api/src/Controller/User/SignInController.php` (`namespace App\Controller\User;`)                 |

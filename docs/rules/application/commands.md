@@ -7,10 +7,12 @@
 **THEN** put it in `src/Application/<Aggregate>/` as a `final readonly` command extending the `Command` base
 (`application-helpers-0002`), paired one-to-one with a `final readonly` handler exposing a single
 `__invoke(<Intent>Command $command): <Aggregate>` that returns the saved aggregate. The command carries the whole
-use-case input as public properties — including the aggregate id and the acting author's id — promoted where the field
-is always supplied, plain and conditionally assigned where the caller may omit it (`application-commands-0003`); beyond
-the inherited `hasProperty()` it holds no behaviour and no framework attributes. The handler only orchestrates —
-load-or-generate-id, mutate, save — with the rules staying in the aggregate (`domain-common-0001`).
+use-case input as public properties, the aggregate id and the acting author's id included where the use case has them —
+`SignInCommand` has neither, because signing in is what registers the user it identifies, leaving the id for the handler
+to mint. A field is promoted where it is always supplied, and plain and conditionally assigned where the caller may omit
+it (`application-commands-0003`); beyond the inherited `hasProperty()` the command holds no behaviour and no framework
+attributes. The handler only orchestrates — load-or-generate-id, mutate, save — with the rules staying in the aggregate
+(`domain-common-0001`).
 
 **Example:**
 
