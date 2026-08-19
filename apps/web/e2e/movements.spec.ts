@@ -39,7 +39,6 @@ async function fillMovementForm(page: Page, fields: MovementFields) {
   }
 }
 
-/** Creates a draft from the list page and returns once the list is showing again. */
 async function createDraft(page: Page, fields: MovementFields) {
   await page.getByRole('link', { name: 'New movement' }).click();
   await fillMovementForm(page, fields);

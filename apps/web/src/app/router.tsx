@@ -11,7 +11,6 @@ function subscribe(onChange: () => void) {
   };
 }
 
-/** Minimal hash router: `#/movements…` renders the movements page, anything else the home page. */
 export function AppRouter() {
   const hash = useSyncExternalStore(subscribe, () => window.location.hash);
 
