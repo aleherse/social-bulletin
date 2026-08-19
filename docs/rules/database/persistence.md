@@ -23,12 +23,11 @@ through `createdAt()` / `updatedAt()`, so an aggregate built by `draft()` has no
 
 **WHEN** a repository in `core/src/Domain/<Aggregate>/` reads rows to hydrate its aggregate
 
-**THEN** declare the selected columns once, in a private
-`getQueryBuilder(): \Doctrine\DBAL\Query\QueryBuilder` holding only `select(...)` and `from(...)`; every finder starts
-from it, adds nothing but its own `where` / `orderBy` / `setParameter`, and ends in `fetchAssociative()` or
-`fetchAllAssociative()` feeding a private `hydrate()`. Never repeat the column list — not as a `COLUMNS` const, not
-inline per query, and not in a `RETURNING` clause: a
-`save()` that needs the stored row calls a finder instead, since the QueryBuilder cannot express
+**THEN** declare the selected columns once, in a private `getQueryBuilder(): \Doctrine\DBAL\Query\QueryBuilder`
+holding only `select(...)` and `from(...)`; every finder starts from it, adds nothing but its own
+`where` / `orderBy` / `setParameter`, and ends in `fetchAssociative()` or `fetchAllAssociative()` feeding a private
+`hydrate()`. Never repeat the column list — not as a `COLUMNS` const, not inline per query, and not in a `RETURNING`
+clause: a `save()` that needs the stored row calls a finder instead, since the QueryBuilder cannot express
 `ON CONFLICT` or `RETURNING`.
 
 **Example:**
