@@ -122,7 +122,7 @@ Apps/
         │   └── SyncCrmCommand.php          # Symfony console command
         ├─ Controller/
         │   ├── Order/                      # Aggregate folder
-        │   │   └ GetOrderController.php    # Use case controller
+        │   │   └ ShowOrderController.php   # Use case controller
         │   │   └ PlaceOrderController.php  # Use case controller
         │   └── Customer/                   # Aggregate folder
         │       └── ...

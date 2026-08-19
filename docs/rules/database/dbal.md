@@ -43,8 +43,7 @@ the aggregate's own validation exception — do not run a separate
 
 ```php
 try {
-    /** @var array<string, string|null>|false $row */
-    $row = $this->connection->fetchAssociative(/* INSERT ... RETURNING ... */);
+    $this->connection->executeStatement(/* INSERT ... ON CONFLICT (id) DO UPDATE ... */, [/* ... */]);
 } catch (ForeignKeyConstraintViolationException $exception) {
     if (! str_contains($exception->getMessage(), 'movements_category_fk')) {
         throw $exception;
@@ -57,4 +56,5 @@ try {
 ```
 
 Check the exception message for the specific constraint name so unrelated FK violations (e.g. `movements_author_fk`) are
-not misreported as the wrong field.
+not misreported as the wrong field. Only the write is wrapped: the stored row is read back afterwards through
+`byId()`, since the insert carries no `RETURNING` clause (`database-persistence-0002`).

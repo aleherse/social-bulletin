@@ -9,6 +9,6 @@
 
 **Example:**
 
-| Wrong                                                                                                         | Right                                                                                                         |
-|---------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
-| `final class SessionController { public function __construct(private readonly UserService $userService) {} }` | `final readonly class SessionController { public function __construct(private UserService $userService) {} }` |
+| Wrong                                                                                                      | Right                                                                                                      |
+|------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| `final class SignInController { public function __construct(private readonly CommandBus $commandBus) {} }` | `final readonly class SignInController { public function __construct(private CommandBus $commandBus) {} }` |
