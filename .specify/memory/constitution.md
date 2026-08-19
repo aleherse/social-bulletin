@@ -1,49 +1,57 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.0.0 → 2.1.0
-Bump rationale: MINOR — Principle II gained materially expanded guidance (the
-test pyramid: where each kind of case belongs). No principle was removed,
-renamed, or renumbered, and nothing previously permitted became forbidden.
+Version change: 2.1.0 → 2.2.0
+Bump rationale: MINOR — a new principle (V) was added. No existing principle was
+removed, renamed, or renumbered, and nothing previously permitted by principles
+I–IV became forbidden.
 
-Principles amended:
-  II. Every Layer Is Tested In Its Own Tool — added the pyramid rule: error
-      and edge cases are proven once at the lowest layer that can prove them
-      and MUST NOT be repeated higher; happy paths MUST be covered up the
-      stack including end to end.
+Principles added:
+  V. Code Explains Itself; Comments Are Exceptional — comments that restate
+     readable code are noise and MUST NOT be written; a comment is warranted
+     only when it carries what the code cannot (a why, an external constraint,
+     a deliberate deviation, a non-local consequence). Machine-read annotations
+     (PHPStan/PHPDoc types, `@throws`, justified suppressions) are exempt.
 
 Current principles:
   I.   Tests Are First-Class Citizens (NON-NEGOTIABLE)
   II.  Every Layer Is Tested In Its Own Tool
   III. Decisions Are Recorded Before They Are Coded
   IV.  Automated Gates Over Human Vigilance
+  V.   Code Explains Itself; Comments Are Exceptional
 
-Sections added: none (unchanged since 1.0.0)
+Sections added: none
 Sections removed: none
 
 Templates requiring updates:
-  ✅ .specify/templates/plan-template.md     — gate II now asks for a happy-path
-     journey per story, not a journey per case
-  ✅ .specify/templates/tasks-template.md    — test tasks note where each kind
-     of case belongs
-  ✅ .claude/skills/speckit-analyze/SKILL.md — pass G checks happy-path journeys
-     and flags duplicated error coverage as redundancy
-  ✅ .specify/templates/spec-template.md     — no change; cites Principle I only
-  ✅ AGENTS.md (CLAUDE.md symlink)           — no change; cites no principle by number
+  ✅ .claude/skills/speckit-implement/SKILL.md — implementation execution rules
+     now state the comment discipline that applies while code is written
+  ✅ .specify/templates/plan-template.md     — no change; Principle V governs code,
+     not planning artifacts, so it adds no plan-stage gate
+  ✅ .specify/templates/tasks-template.md    — no change; comment discipline is a
+     property of every implementation task, not a task of its own
+  ✅ .specify/templates/spec-template.md     — no change; specs contain no code
+  ✅ .claude/skills/speckit-analyze/SKILL.md — no change; analyze inspects
+     spec/plan/tasks artifacts, and Principle V is checked in code review
+  ✅ AGENTS.md (CLAUDE.md symlink)           — no change; already defers to this
+     file for principles and to docs/rules/ for coding rules
 
-Standing note (from 2.0.0): dropping Principle III did not delete the rule from
-the project. The hexagonal boundary remains specified by ADR-0005 and
-docs/engineering/backend/hexagonal.md, and stays mechanically enforced by
+Standing note (from 2.0.0): dropping the original Principle III did not delete
+the rule from the project. The hexagonal boundary remains specified by ADR-0005
+and docs/engineering/backend/hexagonal.md, and stays mechanically enforced by
 deptrac via `make lint`. It simply no longer carries constitutional force.
 
 Deferred items:
   - A replacement architectural principle is expected in a future amendment.
     Until it lands, architecture questions defer to the ADRs.
+  - Principle V is enforced by review, not by a linter. If a mechanical check
+    proves feasible, it belongs under Principle IV as an automated gate.
 
 --- History ---
 1.0.0 (2026-08-09): Initial ratification; five principles adopted.
 2.0.0 (2026-08-09): Principle III removed; IV and V renumbered.
 2.1.0 (2026-08-09): Principle II expanded with the test pyramid rule.
+2.2.0 (2026-08-19): Principle V added — comment discipline.
 -->
 
 # Social Bulletin Constitution
@@ -147,6 +155,41 @@ enforcing them forever in review.
 **Rationale**: Gates a human has to remember are gates that fail on the busy
 day. Anything worth checking is worth automating.
 
+### V. Code Explains Itself; Comments Are Exceptional
+
+Readable code needs no narration. A comment that restates what the code already
+says is noise: it doubles the reading cost, drifts out of date without failing a
+single test, and buries the few comments that genuinely carry information.
+Naming and structure are the primary tools for clarity; a comment is what is
+left when they cannot carry the meaning.
+
+- Clarity MUST be pursued in the code first — rename, extract, restructure. A
+  comment MUST NOT stand in for a name that could have been clearer or a
+  function that could have been smaller.
+- Comments MUST NOT restate the code, and MUST NOT repeat what a signature,
+  a type, or a test already states. "Constructor", "loop over the movements",
+  and "returns the user" are all deletions.
+- A comment is warranted only when it carries what the code cannot: why a
+  non-obvious choice was made, a constraint imposed from outside the file, a
+  deliberate deviation, or a consequence that is not visible locally. For
+  example `apps/web/src/pages/home/model/email.ts` opens with "Lightweight
+  pre-submit check; the API remains the validation authority" — that ownership
+  boundary is nowhere in the code.
+- Machine-read annotations are not prose and are exempt: the PHPDoc types static
+  analysis needs (`@param array<string, mixed>`, `@var array{…}`), `@throws`, and
+  tool suppressions. Every suppression MUST state its reason, the way
+  `@phpstan-ignore property.uninitializedReadonly` in
+  `packages/core/src/Application/Movement/UpdateMovementCommand.php` names the
+  payload case that leaves the property unassigned.
+- Commented-out code MUST NOT be committed. Version control already keeps it.
+- Comments MUST be kept true. A comment contradicted by the code it sits above
+  MUST be corrected or deleted in the same change, never left to rot.
+
+**Rationale**: A wrong comment is worse than no comment, because it is believed.
+The cheapest way to avoid wrong comments is to write few of them and make each
+one earn its line — and the reader who has learned that every comment here says
+something the code could not will actually read them.
+
 ## Testing Standards
 
 These are the operational rules that make Principle I checkable.
@@ -211,4 +254,4 @@ violates a principle MUST be recorded in the plan's Complexity Tracking table
 with the simpler alternative that was rejected and why — an unjustified
 violation blocks merge.
 
-**Version**: 2.1.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-09
+**Version**: 2.2.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-19
