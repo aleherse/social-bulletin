@@ -12,7 +12,7 @@ use Behat\Step\When;
 use Doctrine\DBAL\Connection;
 use App\Messenger\CommandBus;
 use SocialBulletin\Core\Application\Movement\SubmitMovementCommand;
-use SocialBulletin\Core\Application\Movement\SaveMovementCommand;
+use SocialBulletin\Core\Application\Movement\CreateMovementCommand;
 use SocialBulletin\Core\Application\User\SignInCommand;
 use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\User\User;
@@ -128,7 +128,7 @@ final class MovementContext implements Context
     private function createMovement(string $email, string $title, string $description): void
     {
         $user = $this->signIn($email);
-        $movement = $this->commandBus->dispatch(SaveMovementCommand::fromPayload([
+        $movement = $this->commandBus->dispatch(CreateMovementCommand::fromPayload([
             'title' => $title,
             'description' => $description,
             'category' => 'cooperative',
