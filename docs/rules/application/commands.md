@@ -8,21 +8,21 @@
 (`application-helpers-0002`), paired one-to-one with a `final readonly` handler exposing a single
 `__invoke(<Intent>Command $command): <Aggregate>` that returns the saved aggregate. The command carries the whole
 use-case input as public properties, the aggregate id and the acting author's id included where the use case has them —
-`SignInCommand` has neither, because signing in is what registers the user it identifies, leaving the id for the handler
-to mint. A field is promoted where it is always supplied, and plain and conditionally assigned where the caller may omit
-it (`application-commands-0003`); beyond the inherited `hasProperty()` the command holds no behaviour and no framework
-attributes. The handler only orchestrates — load-or-generate-id, mutate, save — with the rules staying in the aggregate
-(`domain-common-0001`).
+`CreateMovementCommand` carries the author's id but no aggregate id, because the handler mints it; `SignInCommand`
+carries neither, because signing in is what registers the user it identifies. A field is promoted where it is always
+supplied, and plain and conditionally assigned where the caller may omit it (`application-commands-0003`); beyond the
+inherited `hasProperty()` the command holds no behaviour and no framework attributes. The handler only orchestrates —
+load, mutate, save — with the rules staying in the aggregate (`domain-common-0001`).
 
 **Example:**
 
-| Wrong                                                | Right                                                        |
-|------------------------------------------------------|--------------------------------------------------------------|
-| `MovementService::update($id, $authorId, $title, …)` | `SaveMovementHandler::__invoke(SaveMovementCommand $c)`      |
-| a handler returning `void`                           | `__invoke(…): Movement`, returning the saved aggregate       |
-| `#[AsMessageHandler]` on `SaveMovementHandler`       | tagged in `apps/api/config/services.yaml`                    |
-| validation inside `SubmitMovementHandler`            | `Movement::submit()` throwing `InvalidMovement`              |
-| id passed to the handler beside the command          | `SaveMovementCommand::fromPayload($payload, $authorId, $id)` |
+| Wrong                                                | Right                                                          |
+|------------------------------------------------------|----------------------------------------------------------------|
+| `MovementService::update($id, $authorId, $title, …)` | `UpdateMovementHandler::__invoke(UpdateMovementCommand $c)`    |
+| a handler returning `void`                           | `__invoke(…): Movement`, returning the saved aggregate         |
+| `#[AsMessageHandler]` on `UpdateMovementHandler`     | tagged in `apps/api/config/services.yaml`                      |
+| validation inside `SubmitMovementHandler`            | `Movement::submit()` throwing `InvalidMovement`                |
+| id passed to the handler beside the command          | `UpdateMovementCommand::fromPayload($payload, $authorId, $id)` |
 
 ## application-commands-0002: Writes dispatch, reads call directly
 
@@ -67,36 +67,44 @@ touches the aggregate when it returns `true`.
 
 **THEN** name both for the use case's intent, never for the HTTP verb or the persistence operation that happens to sit
 under it. The command takes a `Command` suffix and lives in a file of the same name; the handler repeats that same
-intent followed by `Handler` and does **not** carry `Command` twice over — `SaveMovementHandler`, never
-`SaveMovementCommandHandler`. A controller dispatching the command takes the same intent again
+intent followed by `Handler` and does **not** carry `Command` twice over — `CreateMovementHandler`, never
+`CreateMovementCommandHandler`. A controller dispatching the command takes the same intent again
 (`application-framework-0001`).
 
 **Example:**
 
-| Wrong                                                    | Right                                             |
-|----------------------------------------------------------|---------------------------------------------------|
-| `SaveMovement` / `SaveMovement.php`                      | `SaveMovementCommand` / `SaveMovementCommand.php` |
-| `SaveMovementCommandHandler`                             | `SaveMovementHandler`                             |
-| `UpsertMovementCommand`, `CreateOrUpdateMovementCommand` | `SaveMovementCommand`                             |
-| `PostMovementSubmitController`                           | `SubmitMovementController`                        |
+| Wrong                                                | Right                                                 |
+|------------------------------------------------------|-------------------------------------------------------|
+| `CreateMovement` / `CreateMovement.php`              | `CreateMovementCommand` / `CreateMovementCommand.php` |
+| `CreateMovementCommandHandler`                       | `CreateMovementHandler`                               |
+| `UpsertMovementCommand`, `SaveOrEditMovementCommand` | `CreateMovementCommand`, `UpdateMovementCommand`      |
+| `PostMovementSubmitController`                       | `SubmitMovementController`                            |
 
-## application-commands-0005: Create and edit share one command when the fields match
+## application-commands-0005: Create and edit are separate commands
 
-**WHEN** an aggregate needs both a create and an edit write, and the two take the same fields
+**WHEN** an aggregate needs both a create and an edit write, even where the two take the same fields
 
-**THEN** collapse them into one command whose aggregate id is nullable, and let the handler branch on it: a `null` id
-creates (generate an id, call the aggregate's named constructor), a present id edits (load, mutate, save) — see
-`SaveMovementHandler`. The controller never picks the branch; it passes the id it has, or `null`. What an absent field
-falls back to differs between the two branches and so stays the handler's call (`application-framework-0002`).
+**THEN** give each its own command and handler — `CreateMovementCommand` / `CreateMovementHandler` and
+`UpdateMovementCommand` / `UpdateMovementHandler` — rather than one command with a nullable id and a handler branching
+on it. The two use cases only look alike from the payload's side. They differ in everything that follows it: an id
+minted against one bound from the path, a named constructor against a load-mutate-save, `MovementNotFound` and
+`MovementNotDraft` reachable from only one of them, and — the reason the fields cannot be shared either — a different
+answer to what an omitted field means. Creating has nothing to preserve, so an absent field is the empty value the
+domain rejects (`application-framework-0002`); editing must leave the movement's current value standing, so an absent
+field stays unassigned and the handler reads it through `hasProperty()` (`application-commands-0003`). One command
+serving both has to leave *every* field unassigned to keep the stricter of the two contracts, pushing a defaulting
+decision into the handler that neither branch actually shares.
 
-Keep them as separate commands as soon as the use cases diverge in more than the id — a different field set, different
-authorisation, a guarded transition — rather than forcing every write through one branching command.
-`SubmitMovementCommand` stays its own command for exactly that reason: it guards `draft → proposed`.
+The duplicated `fromPayload` parsing is the price, and it is the smaller one: each copy states its own use case's rule
+about absence instead of deferring it. Two commands also let each handler take only what it needs —
+`CreateMovementHandler` has no `MovementService`, `UpdateMovementHandler` no `IdentityGenerator`.
+
+`SubmitMovementCommand` stays separate for the same reason it always did: it guards `draft → proposed`.
 
 **Example:**
 
-| Wrong                                                                  | Right                                              |
-|------------------------------------------------------------------------|----------------------------------------------------|
-| `DraftMovementCommand` + `EditMovementCommand` taking identical fields | one `SaveMovementCommand` with `?string $id`       |
-| the controller choosing create vs edit before dispatching              | `SaveMovementHandler` branching on `$command->id`  |
-| folding `SubmitMovementCommand` in as a `bool $submit` flag            | a separate command — it guards a status transition |
+| Wrong                                                                    | Right                                                     |
+|--------------------------------------------------------------------------|-----------------------------------------------------------|
+| one `SaveMovementCommand` with `?string $id`, the handler branching      | `CreateMovementCommand` and `UpdateMovementCommand`       |
+| `CreateMovementCommand` leaving omitted fields unassigned "for symmetry" | `?? ''` — a new movement has no current value to preserve |
+| folding `SubmitMovementCommand` in as a `bool $submit` flag              | a separate command — it guards a status transition        |
