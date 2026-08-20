@@ -18,7 +18,7 @@ final class MovementPresenter
     public static function toArray(Movement $movement): array
     {
         return [
-            'id' => $movement->id,
+            'id' => (string) $movement->id,
             'title' => $movement->title(),
             'description' => $movement->description(),
             'category' => $movement->category(),

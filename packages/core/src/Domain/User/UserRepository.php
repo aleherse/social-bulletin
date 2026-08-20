@@ -38,7 +38,7 @@ class UserRepository
                 (:id, :email, now())
             SQL
             , [
-                'id' => $user->id,
+                'id' => (string) $user->id,
                         'email' => $user->email,
             ]);
 
@@ -66,6 +66,6 @@ class UserRepository
      */
     private function hydrate(array $row): User
     {
-        return User::restore($row['id'], $row['email'], new \DateTimeImmutable($row['created_at']));
+        return User::restore(UserId::from($row['id']), $row['email'], new \DateTimeImmutable($row['created_at']));
     }
 }

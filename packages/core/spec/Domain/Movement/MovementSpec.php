@@ -7,8 +7,10 @@ namespace spec\SocialBulletin\Core\Domain\Movement;
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Domain\Movement\Area;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
+use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementStatus;
+use SocialBulletin\Core\Domain\User\UserId;
 
 final class MovementSpec extends ObjectBehavior
 {
@@ -22,8 +24,8 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_creates_a_draft_with_all_fields(): void
     {
-        $this->id->shouldBe(self::ID);
-        $this->authorId->shouldBe(self::AUTHOR_ID);
+        $this->id->shouldBeLike(MovementId::from(self::ID));
+        $this->authorId->shouldBeLike(UserId::from(self::AUTHOR_ID));
         $this->title()->shouldBe('Community Gardens for Everyone');
         $this->description()->shouldBe("## Why\nGardens for all.");
         $this->category()->shouldBe('cooperative');
@@ -165,8 +167,8 @@ final class MovementSpec extends ObjectBehavior
         string|null $location = 'Sheffield',
     ): void {
         $this->beConstructedThrough('draft', [
-            self::ID,
-            self::AUTHOR_ID,
+            MovementId::from(self::ID),
+            UserId::from(self::AUTHOR_ID),
             $title,
             $description,
             $category,
