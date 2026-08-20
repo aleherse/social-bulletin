@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SocialBulletin\Core\Application\Movement;
 
 use SocialBulletin\Core\Application\Helper\Command;
+use SocialBulletin\Core\Domain\User\UserId;
 use Webmozart\Assert\Assert;
 
 /**
@@ -34,7 +35,7 @@ final readonly class CreateMovementCommand extends Command
      * @param array<string, mixed> $payload
      */
     private function __construct(
-        public string $authorId,
+        public UserId $authorId,
         array $payload,
     ) {
         $title = $payload['title'] ?? null;
@@ -61,7 +62,7 @@ final readonly class CreateMovementCommand extends Command
     /**
      * @param array<string, mixed> $payload
      */
-    public static function fromPayload(array $payload, string $authorId): self
+    public static function fromPayload(array $payload, UserId $authorId): self
     {
         return new self($authorId, $payload);
     }

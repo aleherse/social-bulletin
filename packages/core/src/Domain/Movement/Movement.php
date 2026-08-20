@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SocialBulletin\Core\Domain\Movement;
 
-use Webmozart\Assert\Assert;
+use SocialBulletin\Core\Domain\User\UserId;
 
 final class Movement
 {
@@ -16,8 +16,8 @@ final class Movement
     private \DateTimeImmutable $updatedAt;
 
     private function __construct(
-        public readonly string $id,
-        public readonly string $authorId,
+        public readonly MovementId $id,
+        public readonly UserId $authorId,
         private string $title,
         private string $description,
         private string $category,
@@ -31,16 +31,14 @@ final class Movement
      * @throws InvalidMovement when any field fails stage validation
      */
     public static function draft(
-        string $id,
-        string $authorId,
+        MovementId $id,
+        UserId $authorId,
         string $title,
         string $description,
         string $category,
         string $area,
         ?string $location,
     ): self {
-        Assert::uuid($id);
-        Assert::uuid($authorId);
         $areaValue = self::assertValidFields($title, $description, $category, $area, $location);
 
         return new self(
@@ -59,8 +57,8 @@ final class Movement
      * Trusted hydration from persistence; skips draft-time validation.
      */
     public static function restore(
-        string $id,
-        string $authorId,
+        MovementId $id,
+        UserId $authorId,
         string $title,
         string $description,
         string $category,

@@ -7,31 +7,28 @@ namespace spec\SocialBulletin\Core\Application\Movement;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use SocialBulletin\Core\Application\Movement\CreateMovementCommand;
-use SocialBulletin\Core\Domain\Helper\IdentityGenerator;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
 use SocialBulletin\Core\Domain\Movement\MovementStatus;
+use SocialBulletin\Core\Domain\User\UserId;
+use Symfony\Component\Uid\Uuid;
 
 final class CreateMovementHandlerSpec extends ObjectBehavior
 {
-    private const ID = '0198f2f0-6d2c-7cf0-a2b8-222222222222';
     private const AUTHOR_ID = '0198f2f0-6d2c-7cf0-a2b8-111111111111';
 
-    public function let(
-        MovementRepository $movements,
-        IdentityGenerator $identities,
-    ): void {
-        $this->beConstructedWith($movements, $identities);
-        $identities->generate()->willReturn(self::ID);
+    public function let(MovementRepository $movements): void
+    {
+        $this->beConstructedWith($movements);
     }
 
     public function it_saves_a_new_draft_under_a_generated_identity(
         MovementRepository $movements,
     ): void {
         $movements->save(Argument::that(
-            static fn (Movement $movement): bool => self::ID === $movement->id
-                && self::AUTHOR_ID === $movement->authorId
+            static fn (Movement $movement): bool => Uuid::isValid((string) $movement->id)
+                && self::AUTHOR_ID === (string) $movement->authorId
                 && MovementStatus::Draft === $movement->status(),
         ))->will(self::echoesBackTheSavedMovement())
             ->shouldBeCalled();
@@ -74,7 +71,7 @@ final class CreateMovementHandlerSpec extends ObjectBehavior
                 'description' => 'Gardens for all.',
                 'category' => 'cooperative',
                 'area' => 'international',
-            ], self::AUTHOR_ID),
+            ], UserId::from(self::AUTHOR_ID)),
         ]);
     }
 
@@ -108,6 +105,6 @@ final class CreateMovementHandlerSpec extends ObjectBehavior
             'category' => $category,
             'area' => $area,
             'location' => $location,
-        ], self::AUTHOR_ID);
+        ], UserId::from(self::AUTHOR_ID));
     }
 }

@@ -137,7 +137,7 @@ final class MovementContext implements Context
         ], $user->id));
         Assert::isInstanceOf($movement, Movement::class);
 
-        $this->movementIds[$title] = $movement->id;
+        $this->movementIds[$title] = (string) $movement->id;
     }
 
     private function movementId(string $title): string

@@ -6,8 +6,10 @@ namespace spec\SocialBulletin\Core\Domain\Movement;
 
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Domain\Movement\Movement;
+use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
+use SocialBulletin\Core\Domain\User\UserId;
 
 final class MovementServiceSpec extends ObjectBehavior
 {
@@ -23,9 +25,9 @@ final class MovementServiceSpec extends ObjectBehavior
         MovementRepository $movements,
     ): void {
         $movement = $this->describedDraft();
-        $movements->byAuthor(self::AUTHOR_ID)->willReturn([$movement]);
+        $movements->byAuthor(UserId::from(self::AUTHOR_ID))->willReturn([$movement]);
 
-        $this->byAuthor(self::AUTHOR_ID)->shouldBe([$movement]);
+        $this->byAuthor(UserId::from(self::AUTHOR_ID))->shouldBe([$movement]);
     }
 
     public function it_returns_the_authors_movement(
@@ -34,7 +36,7 @@ final class MovementServiceSpec extends ObjectBehavior
         $movement = $this->describedDraft();
         $movements->byId(self::ID)->willReturn($movement);
 
-        $this->authorMovement(self::ID, self::AUTHOR_ID)->shouldBe($movement);
+        $this->authorMovement(self::ID, UserId::from(self::AUTHOR_ID))->shouldBe($movement);
     }
 
     public function it_hides_movements_that_belong_to_another_user(
@@ -44,7 +46,7 @@ final class MovementServiceSpec extends ObjectBehavior
         $movements->byId(self::ID)->willReturn($movement);
 
         $this->shouldThrow(MovementNotFound::class)
-            ->during('authorMovement', [self::ID, '0198f2f0-6d2c-7cf0-a2b8-333333333333']);
+            ->during('authorMovement', [self::ID, UserId::from('0198f2f0-6d2c-7cf0-a2b8-333333333333')]);
     }
 
     public function it_reports_an_unknown_movement_as_not_found(
@@ -53,14 +55,14 @@ final class MovementServiceSpec extends ObjectBehavior
         $movements->byId(self::ID)->willReturn(null);
 
         $this->shouldThrow(MovementNotFound::class)
-            ->during('authorMovement', [self::ID, self::AUTHOR_ID]);
+            ->during('authorMovement', [self::ID, UserId::from(self::AUTHOR_ID)]);
     }
 
     private function describedDraft(): Movement
     {
         return Movement::draft(
-            self::ID,
-            self::AUTHOR_ID,
+            MovementId::from(self::ID),
+            UserId::from(self::AUTHOR_ID),
             'Community Gardens for Everyone',
             "## Why\nGardens for all.",
             'cooperative',
