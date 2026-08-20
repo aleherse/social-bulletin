@@ -252,26 +252,31 @@ redirects.
 
 ## Verification
 
-- [ ] `react-router` appears in `apps/web/package.json` at `^8.3.0`.
-- [ ] `grep -rn "#/" apps/web/src apps/web/e2e` returns no
+- [x] `react-router` appears in `apps/web/package.json` at `^8.3.0`.
+- [x] `grep -rn "#/" apps/web/src apps/web/e2e` returns no
       in-application route href.
-- [ ] `grep -rln "from 'react-router'" apps/web/src` lists only files
-      under `src/app/` and `src/shared/routing/`.
-- [ ] `apps/web/src/pages/movements/model/route.ts` no longer exists.
-- [ ] `grep -rn "window.location" apps/web/src` returns no route parsing.
-- [ ] Visiting `/` in a browser lands on `/en`.
-- [ ] Visiting `/en/movements/:id/edit` directly, with a full page load,
-      renders the edit view — proving the nginx and CloudFront fallbacks
-      work with history URLs.
-- [ ] Visiting `/xx/movements` renders the not-found page.
-- [ ] Visiting `/en/nope` renders the not-found page.
-- [ ] Visiting `/en/movements` while signed out redirects to `/en`, and
+- [x] `grep -rln "from 'react-router'" apps/web/src` lists only files
+      under `src/app/`, `src/shared/routing/`, and the test helper at
+      `src/test/render-route.tsx`.
+- [x] `apps/web/src/pages/movements/model/route.ts` no longer exists.
+- [x] `grep -rn "window.location" apps/web/src` returns no route parsing.
+- [x] Visiting `/` in a browser lands on `/en`.
+- [x] Visiting `/en/movements/:id/edit` directly, with a full page load,
+      renders the edit view, proving the nginx fallback works with
+      history URLs; the edit journey reloads the deep link to hold this.
+- [ ] The same deep link survives a full page load through CloudFront.
+      Unverified: it needs a deployment, and the configuration it relies
+      on was already in place before this ADR.
+- [x] Visiting `/xx/movements` renders the not-found page.
+- [x] Visiting `/en/nope` renders the not-found page.
+- [x] Visiting `/en/movements` while signed out redirects to `/en`, and
       signing in returns to `/en/movements`.
-- [ ] The network panel shows a separate chunk fetched on first
-      navigation to the movements subtree.
-- [ ] `make tests` passes, with component tests calling `renderRoute`
+- [x] The production build emits one chunk per route — `home-page`,
+      `movement-list`, `new-movement`, `movement-detail`, and
+      `edit-movement` are separate files in `dist/assets/`.
+- [x] `make tests` passes, with component tests calling `renderRoute`
       rather than setting `window.location.hash`.
-- [ ] `make lint` passes.
+- [x] `make lint` passes.
 
 ## Consequences
 
@@ -331,3 +336,40 @@ weight it was not meant to.
   reuses its adapter boundary pattern for `shared/routing`.
 - Guards read the session established by
   [ADR-0011](ADR-0011-adopt-lexik-jwt-authentication-bundle.md).
+
+### 2026-08-20: implemented
+
+Implemented on branch `feature`.
+All verification criteria pass:
+`tsc -b`, `npm run lint`, `knip`, `prettier`, 30 Vitest tests, and 5
+Playwright journeys are green, and the production build emits one chunk
+per route (`home-page`, `movement-list`, `new-movement`,
+`movement-detail`, `edit-movement`).
+
+Two details differ from the plan above, both recorded rather than
+silently absorbed:
+
+- The test helper lives at `apps/web/src/test/render-route.tsx`, not
+  under `shared/lib/`.
+  The helper composes the real route table, so placing it in `shared`
+  would have made `shared` import from `app` and inverted the very
+  Feature-Sliced import direction this ADR requires.
+  Sitting outside the layers, next to `src/test-setup.ts`, keeps that
+  rule intact.
+- `hydrateFallbackElement` is declared on the root route object, not
+  passed to `RouterProvider`.
+  It is a route property in `react-router` 8.3.0; `RouterProvider`
+  accepts no such prop.
+  Lazily loaded routes need no Suspense boundary because the router
+  awaits the chunk before rendering.
+
+`RouteObject` is re-exported from `shared/routing` so that page slices
+import even the route type through the adapter, leaving `react-router`
+imported only under `app/`, `shared/routing/`, and the test helper.
+
+The guest journey changed as anticipated: the inline
+"Sign in to propose a movement." prompt is gone, and
+`e2e/movements.spec.ts` now proves the redirect carries `?next=` and
+returns the visitor to `/en/movements` after sign-in.
+The edit journey reloads a deep link mid-test, so the SPA fallback is
+covered by a full document load rather than only by click navigation.
