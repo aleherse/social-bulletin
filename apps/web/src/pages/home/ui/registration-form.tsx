@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 
+import { useCreateSession } from '@/entities/session';
 import { SessionError } from '@/shared/api';
 import { useTranslation } from '@/shared/i18n';
+import { useNavigate, useSearchParams } from '@/shared/routing';
 import {
   Button,
   Card,
@@ -14,7 +16,6 @@ import {
   Label,
 } from '@/shared/ui';
 
-import { useCreateSession } from '../api/session.ts';
 import { isValidEmail } from '../model/email.ts';
 
 export function RegistrationForm() {
@@ -22,6 +23,8 @@ export function RegistrationForm() {
   const [email, setEmail] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const createSession = useCreateSession();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const serverError = sessionErrorMessage(
     createSession.error,
@@ -40,7 +43,16 @@ export function RegistrationForm() {
     }
 
     setValidationError(null);
-    createSession.mutate(email.trim());
+    createSession.mutate(email.trim(), {
+      onSuccess: () => {
+        // ADR-0018: a guard sent the visitor here, so return them to where they were going.
+        const next = searchParams.get('next');
+
+        if (next !== null) {
+          navigate(next);
+        }
+      },
+    });
   };
 
   return (

@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { useCurrentUser } from '@/entities/session';
 import { useTranslation } from '@/shared/i18n';
-
-import { useCurrentUser } from '../api/session.ts';
 
 import { HelloView } from './hello-view.tsx';
 import { RegistrationForm } from './registration-form.tsx';

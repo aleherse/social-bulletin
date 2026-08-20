@@ -3,13 +3,16 @@ import type { ReactNode } from 'react';
 import { MovementDescription, useMovement } from '@/entities/movement';
 import { SubmitMovementButton } from '@/features/propose-movement';
 import { useTranslation } from '@/shared/i18n';
+import { Link, useParams } from '@/shared/routing';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui';
 
 import { MovementStatusBadge } from './movement-status-badge.tsx';
 
-export function MovementDetail({ id }: { id: string }) {
+export function MovementDetail() {
   const { t } = useTranslation();
-  const movement = useMovement(id);
+  // The `:id` route segment guarantees this parameter.
+  const { id } = useParams();
+  const movement = useMovement(id!);
 
   let body: ReactNode;
 
@@ -49,13 +52,13 @@ export function MovementDetail({ id }: { id: string }) {
   return (
     <>
       <header className="flex items-center justify-between">
-        <a className="text-sm underline" href="#/movements">
+        <Link className="text-sm underline" to="/movements">
           {t('movements.backToList')}
-        </a>
+        </Link>
         {movement.data?.status === 'draft' && (
-          <a className="text-sm underline" href={`#/movements/${id}/edit`}>
+          <Link className="text-sm underline" to={`/movements/${id!}/edit`}>
             {t('movements.edit')}
-          </a>
+          </Link>
         )}
       </header>
       {body}
