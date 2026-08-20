@@ -13,7 +13,9 @@ A minimal Symfony skeleton SHALL be installed under `apps/api` via `composer cre
 
 and a separate framework-free PHP core package under `packages/core`.
 
-The Symfony application owns HTTP controllers, framework configuration, public runtime files, and API-level tests. The core package owns future domain and application code and must not depend on Symfony, HTTP, containers, or application-specific infrastructure.
+The Symfony application owns HTTP controllers, framework configuration, public runtime files, and API-level tests. The core package owns future domain and application code and must not depend on the Symfony framework, HTTP, DI containers, or application-specific infrastructure.
+
+`packages/core` MAY depend directly on small, dependency-free Symfony components that carry no framework/HTTP/DI coupling.
 
 These Symfony packages SHALL be installed:
 - `nelmio/api-doc-bundle` to expose the OpenAPI specification as a JSON document only.
@@ -33,7 +35,7 @@ A `make console` target SHALL be added to execute Symfony console commands insid
 ## Consequences
 
 - Symfony owns HTTP, configuration, routing, and API tests.
-- `packages/core` stays independent from Symfony and transport concerns.
+- `packages/core` stays independent from the Symfony framework, HTTP, and DI/container concerns, while remaining free to depend directly on small, framework-free Symfony components such as `symfony/uid`.
 - API documentation, CORS, logging, IDs, and assertions have standard packages.
 - API commands run through Docker and `make console`.
 - Developers must keep framework code out of the core package.
