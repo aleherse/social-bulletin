@@ -1,5 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,10 +10,8 @@ import {
   fetchMovements,
   updateMovement,
 } from '@/entities/movement/api/client.ts';
-import { ApiError } from '@/shared/api';
-import { I18nProvider } from '@/shared/i18n';
-
-import { MovementsPage } from './movements-page.tsx';
+import { fetchCurrentUser } from '@/shared/api';
+import { renderRoute } from '@/test/render-route.tsx';
 
 vi.mock('@/entities/movement/api/client.ts', () => ({
   fetchCategories: vi.fn(),
@@ -23,6 +20,11 @@ vi.mock('@/entities/movement/api/client.ts', () => ({
   createMovement: vi.fn(),
   submitMovement: vi.fn(),
   updateMovement: vi.fn(),
+}));
+
+vi.mock('@/shared/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/api')>()),
+  fetchCurrentUser: vi.fn(),
 }));
 
 const draft: Movement = {
@@ -37,29 +39,17 @@ const draft: Movement = {
   updatedAt: '2026-07-19T10:00:00+00:00',
 };
 
-function renderPage(hash: string) {
-  window.location.hash = hash;
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-
-  render(
-    <I18nProvider>
-      <QueryClientProvider client={queryClient}>
-        <MovementsPage />
-      </QueryClientProvider>
-    </I18nProvider>,
-  );
-}
-
 beforeEach(() => {
+  vi.mocked(fetchCurrentUser).mockResolvedValue({ email: 'author@example.com' });
   vi.mocked(fetchCategories).mockResolvedValue([{ id: 'cooperative' }]);
   vi.mocked(fetchMovements).mockResolvedValue([]);
 });
 
-describe('MovementsPage', () => {
+describe('movements routes', () => {
   it('lists the movements of the signed-in user with their status', async () => {
     vi.mocked(fetchMovements).mockResolvedValue([draft]);
 
-    renderPage('#/movements');
+    renderRoute('/en/movements');
 
     expect(await screen.findByText('Save the Bees')).toBeInTheDocument();
     expect(screen.getByText('Draft')).toBeInTheDocument();
@@ -67,25 +57,26 @@ describe('MovementsPage', () => {
   });
 
   it('shows an empty state when no movements exist yet', async () => {
-    renderPage('#/movements');
+    renderRoute('/en/movements');
 
     expect(await screen.findByText('You have not proposed any movements yet.')).toBeInTheDocument();
   });
 
-  it('asks guests to sign in', async () => {
-    vi.mocked(fetchMovements).mockRejectedValue(new ApiError('Unauthorized', 401));
+  it('sends a guest to sign in instead of rendering the list', async () => {
+    vi.mocked(fetchCurrentUser).mockResolvedValue(null);
 
-    renderPage('#/movements');
+    renderRoute('/en/movements');
 
-    expect(await screen.findByText('Sign in to propose a movement.')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Email')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'My movements' })).not.toBeInTheDocument();
   });
 
   it('creates a draft from the new-movement route', async () => {
     vi.mocked(createMovement).mockResolvedValue(draft);
 
-    renderPage('#/movements/new');
+    renderRoute('/en/movements/new');
 
-    await userEvent.type(screen.getByLabelText('Title'), 'Save the Bees');
+    await userEvent.type(await screen.findByLabelText('Title'), 'Save the Bees');
     await userEvent.selectOptions(await screen.findByLabelText('Category'), 'cooperative');
     await userEvent.selectOptions(screen.getByLabelText('Area'), 'municipality');
     await userEvent.type(screen.getByLabelText('Location'), 'Sheffield');
@@ -100,11 +91,21 @@ describe('MovementsPage', () => {
     });
   });
 
+  it('shows a movement on its own detail route', async () => {
+    vi.mocked(fetchMovement).mockResolvedValue(draft);
+
+    renderRoute(`/en/movements/${draft.id}`);
+
+    expect(await screen.findByText('Save the Bees')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Submit proposal' })).toBeInTheDocument();
+    expect(vi.mocked(fetchMovement).mock.calls[0]?.[0]).toBe(draft.id);
+  });
+
   it('edits a draft from the edit route', async () => {
     vi.mocked(fetchMovement).mockResolvedValue(draft);
     vi.mocked(updateMovement).mockResolvedValue({ ...draft, title: 'Save All the Bees' });
 
-    renderPage(`#/movements/${draft.id}/edit`);
+    renderRoute(`/en/movements/${draft.id}/edit`);
 
     const title = await screen.findByLabelText('Title');
     expect(title).toHaveValue('Save the Bees');
@@ -126,9 +127,21 @@ describe('MovementsPage', () => {
   it('refuses to edit a movement that already left draft', async () => {
     vi.mocked(fetchMovement).mockResolvedValue({ ...draft, status: 'proposed' });
 
-    renderPage(`#/movements/${draft.id}/edit`);
+    renderRoute(`/en/movements/${draft.id}/edit`);
 
     expect(await screen.findByText('This movement was not found.')).toBeInTheDocument();
     expect(screen.queryByLabelText('Title')).not.toBeInTheDocument();
+  });
+
+  it('renders the not-found page for an unknown path', async () => {
+    renderRoute('/en/nope');
+
+    expect(await screen.findByText('Page not found')).toBeInTheDocument();
+  });
+
+  it('renders the not-found page for an unsupported locale', async () => {
+    renderRoute('/xx/movements');
+
+    expect(await screen.findByText('Page not found')).toBeInTheDocument();
   });
 });

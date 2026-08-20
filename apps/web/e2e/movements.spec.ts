@@ -46,13 +46,18 @@ async function createDraft(page: Page, fields: MovementFields) {
   await expect(page.getByRole('heading', { name: 'My movements' })).toBeVisible();
 }
 
-test('a guest is asked to sign in before proposing a movement', async ({ page }) => {
-  await page.goto('/#/movements');
+test('a guest is sent to sign in, then back to where they were going', async ({ page }) => {
+  // ADR-0018: the route guard redirects and records the attempted path.
+  await page.goto('/en/movements');
 
-  await expect(page.getByText('Sign in to propose a movement.')).toBeVisible();
-
-  await page.getByRole('link', { name: 'Go to sign in' }).click();
   await expect(page.getByLabel('Email')).toBeVisible();
+  await expect(page).toHaveURL(/\/en\?next=%2Fmovements$/);
+
+  await page.getByLabel('Email').fill('guest@example.com');
+  await page.getByRole('button', { name: 'Continue' }).click();
+
+  await expect(page.getByRole('heading', { name: 'My movements' })).toBeVisible();
+  await expect(page).toHaveURL(/\/en\/movements$/);
 });
 
 test('an author drafts a movement, finds it listed, and submits it as a proposal', async ({
@@ -114,6 +119,12 @@ test('an author edits a draft before submitting it', async ({ page }) => {
 
   await page.getByRole('link', { name: 'Save the Bees' }).click();
   await page.getByRole('link', { name: 'Edit' }).click();
+  await expect(page).toHaveURL(/\/en\/movements\/[^/]+\/edit$/);
+
+  // ADR-0018: a full document load of a deep link must survive the SPA
+  // fallback (nginx `try_files`, CloudFront 403/404 -> /index.html).
+  await page.reload();
+  await expect(page.getByLabel('Title')).toHaveValue('Save the Bees');
 
   await page.getByLabel('Title').fill('Save All the Bees');
   await page.getByLabel('Category').selectOption({ label: 'Cooperative' });
