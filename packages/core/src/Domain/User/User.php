@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace SocialBulletin\Core\Domain\User;
 
-use Webmozart\Assert\Assert;
-
 final class User
 {
     /**
@@ -15,7 +13,7 @@ final class User
     private \DateTimeImmutable $createdAt;
 
     private function __construct(
-        public readonly string $id,
+        public readonly UserId $id,
         public readonly string $email,
     ) {
     }
@@ -25,10 +23,8 @@ final class User
      *
      * @throws InvalidEmailAddress when the email is empty or malformed
      */
-    public static function register(string $id, string $email): self
+    public static function register(UserId $id, string $email): self
     {
-        Assert::uuid($id);
-
         return new self($id, self::normaliseEmail($email));
     }
 
@@ -57,7 +53,7 @@ final class User
     /**
      * Trusted hydration from persistence.
      */
-    public static function restore(string $id, string $email, \DateTimeImmutable $createdAt): self
+    public static function restore(UserId $id, string $email, \DateTimeImmutable $createdAt): self
     {
         $user = new self($id, $email);
         $user->createdAt = $createdAt;

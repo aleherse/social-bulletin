@@ -11,9 +11,11 @@ use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
+use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
 use SocialBulletin\Core\Domain\Movement\MovementService;
 use SocialBulletin\Core\Domain\Movement\MovementStatus;
+use SocialBulletin\Core\Domain\User\UserId;
 
 final class UpdateMovementHandlerSpec extends ObjectBehavior
 {
@@ -50,7 +52,7 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
 
         $updated = $this->__invoke(UpdateMovementCommand::fromPayload([
             'title' => 'Save All the Bees',
-        ], self::AUTHOR_ID, self::ID));
+        ], UserId::from(self::AUTHOR_ID), self::ID));
 
         $updated->title()->shouldBe('Save All the Bees');
         $updated->category()->shouldBe('cooperative');
@@ -69,7 +71,7 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
         $updated = $this->__invoke(UpdateMovementCommand::fromPayload([
             'area' => 'international',
             'location' => null,
-        ], self::AUTHOR_ID, self::ID));
+        ], UserId::from(self::AUTHOR_ID), self::ID));
 
         $updated->location()->shouldBeNull();
     }
@@ -102,15 +104,15 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
         $movements->save(Argument::any())->shouldNotBeCalled();
 
         $this->shouldThrow(MovementNotFound::class)->during('__invoke', [
-            $this->editCommand(authorId: '0198f2f0-6d2c-7cf0-a2b8-333333333333'),
+            $this->editCommand(authorId: UserId::from('0198f2f0-6d2c-7cf0-a2b8-333333333333')),
         ]);
     }
 
     private static function describedDraft(): Movement
     {
         return Movement::draft(
-            self::ID,
-            self::AUTHOR_ID,
+            MovementId::from(self::ID),
+            UserId::from(self::AUTHOR_ID),
             'Community Gardens for Everyone',
             "## Why\nGardens for all.",
             'cooperative',
@@ -121,7 +123,7 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
 
     // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.
     private function editCommand(
-        string $authorId = self::AUTHOR_ID,
+        UserId|null $authorId = null,
         string $title = 'Save All the Bees',
         string $description = 'New description.',
         string $category = 'animal_rights',
@@ -134,6 +136,6 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
             'category' => $category,
             'area' => $area,
             'location' => $location,
-        ], $authorId, self::ID);
+        ], $authorId ?? UserId::from(self::AUTHOR_ID), self::ID);
     }
 }

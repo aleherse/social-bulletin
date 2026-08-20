@@ -21,7 +21,6 @@ services:
 
     # packages/core services: the framework-free domain logic
     SocialBulletin\Core\Domain\User\UserService: ~
-    SocialBulletin\Core\Domain\Helper\IdentityGenerator: '@App\Identity\UuidV7IdentityGenerator'
     SocialBulletin\Core\Domain\Movement\MovementService: ~
 
     # makes every packages/core `*Repository` class available as a service
