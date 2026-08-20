@@ -11,9 +11,11 @@ use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
+use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
 use SocialBulletin\Core\Domain\Movement\MovementService;
 use SocialBulletin\Core\Domain\Movement\MovementStatus;
+use SocialBulletin\Core\Domain\User\UserId;
 
 final class SubmitMovementHandlerSpec extends ObjectBehavior
 {
@@ -69,15 +71,15 @@ final class SubmitMovementHandlerSpec extends ObjectBehavior
         $movements->save(Argument::any())->shouldNotBeCalled();
 
         $this->shouldThrow(MovementNotFound::class)->during('__invoke', [
-            $this->command('0198f2f0-6d2c-7cf0-a2b8-333333333333'),
+            $this->command(UserId::from('0198f2f0-6d2c-7cf0-a2b8-333333333333')),
         ]);
     }
 
     private static function draftWith(string $description): Movement
     {
         return Movement::draft(
-            self::ID,
-            self::AUTHOR_ID,
+            MovementId::from(self::ID),
+            UserId::from(self::AUTHOR_ID),
             'Community Gardens for Everyone',
             $description,
             'cooperative',
@@ -86,8 +88,8 @@ final class SubmitMovementHandlerSpec extends ObjectBehavior
         );
     }
 
-    private function command(string $authorId = self::AUTHOR_ID): SubmitMovementCommand
+    private function command(UserId|null $authorId = null): SubmitMovementCommand
     {
-        return new SubmitMovementCommand(self::ID, $authorId);
+        return new SubmitMovementCommand(self::ID, $authorId ?? UserId::from(self::AUTHOR_ID));
     }
 }

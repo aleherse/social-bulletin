@@ -7,6 +7,7 @@ namespace SocialBulletin\Core\Domain\Movement;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Query\QueryBuilder;
+use SocialBulletin\Core\Domain\User\UserId;
 use Symfony\Component\Uid\Uuid;
 
 class MovementRepository
@@ -40,8 +41,8 @@ class MovementRepository
                     updated_at = now()
                 SQL
                 , [
-                    'id' => $movement->id,
-                                'author_id' => $movement->authorId,
+                    'id' => (string) $movement->id,
+                                'author_id' => (string) $movement->authorId,
                                 'title' => $movement->title(),
                                 'description' => $movement->description(),
                                 'category' => $movement->category(),
@@ -61,7 +62,7 @@ class MovementRepository
             ], 'movement.invalid', $exception);
         }
 
-        $saved = $this->byId($movement->id);
+        $saved = $this->byId((string) $movement->id);
 
         if (null === $saved) {
             throw new \RuntimeException('The saved movement could not be read back.');
@@ -90,14 +91,14 @@ class MovementRepository
     /**
      * @return list<Movement> newest first
      */
-    public function byAuthor(string $authorId): array
+    public function byAuthor(UserId $authorId): array
     {
         /** @var list<array<string, string|null>> $rows */
         $rows = $this->getQueryBuilder()
             ->where('author_id = :author_id')
             ->orderBy('created_at', 'DESC')
             ->addOrderBy('id', 'DESC')
-            ->setParameter('author_id', $authorId)
+            ->setParameter('author_id', (string) $authorId)
             ->fetchAllAssociative();
 
         return array_map($this->hydrate(...), $rows);
@@ -130,8 +131,8 @@ class MovementRepository
     private function hydrate(array $row): Movement
     {
         return Movement::restore(
-            (string) $row['id'],
-            (string) $row['author_id'],
+            MovementId::from((string) $row['id']),
+            UserId::from((string) $row['author_id']),
             (string) $row['title'],
             (string) $row['description'],
             (string) $row['category'],

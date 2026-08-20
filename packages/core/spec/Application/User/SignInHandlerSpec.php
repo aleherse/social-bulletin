@@ -7,28 +7,27 @@ namespace spec\SocialBulletin\Core\Application\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use SocialBulletin\Core\Application\User\SignInCommand;
-use SocialBulletin\Core\Domain\Helper\IdentityGenerator;
 use SocialBulletin\Core\Domain\User\InvalidEmailAddress;
 use SocialBulletin\Core\Domain\User\User;
+use SocialBulletin\Core\Domain\User\UserId;
 use SocialBulletin\Core\Domain\User\UserRepository;
+use Symfony\Component\Uid\Uuid;
 
 final class SignInHandlerSpec extends ObjectBehavior
 {
     private const UUID = '0198f2f0-6d2c-7cf0-a2b8-111111111111';
 
-    public function let(UserRepository $users, IdentityGenerator $identities): void
+    public function let(UserRepository $users): void
     {
-        $this->beConstructedWith($users, $identities);
+        $this->beConstructedWith($users);
     }
 
     public function it_registers_a_user_for_an_unknown_email(
         UserRepository $users,
-        IdentityGenerator $identities,
     ): void {
         $users->findByEmail('new.user@example.com')->willReturn(null);
-        $identities->generate()->willReturn(self::UUID);
         $users->save(Argument::that(
-            static fn (User $user): bool => self::UUID === $user->id && 'new.user@example.com' === $user->email,
+            static fn (User $user): bool => Uuid::isValid((string) $user->id) && 'new.user@example.com' === $user->email,
         ))->will(static function (array $arguments): User {
             // The repository returns the stored row as a fresh aggregate.
             $user = $arguments[0];
@@ -39,16 +38,13 @@ final class SignInHandlerSpec extends ObjectBehavior
 
         $user = $this->__invoke(self::command('new.user@example.com'));
         $user->email->shouldBe('new.user@example.com');
-        $user->id->shouldBe(self::UUID);
     }
 
     public function it_reuses_the_existing_user_for_a_known_email(
         UserRepository $users,
-        IdentityGenerator $identities,
     ): void {
-        $existing = User::restore(self::UUID, 'existing.user@example.com', new \DateTimeImmutable());
+        $existing = User::restore(UserId::from(self::UUID), 'existing.user@example.com', new \DateTimeImmutable());
         $users->findByEmail('existing.user@example.com')->willReturn($existing);
-        $identities->generate()->shouldNotBeCalled();
         $users->save(Argument::any())->shouldNotBeCalled();
 
         $this->__invoke(self::command('existing.user@example.com'))->shouldBe($existing);
@@ -57,7 +53,7 @@ final class SignInHandlerSpec extends ObjectBehavior
     public function it_looks_up_the_email_without_surrounding_whitespace(
         UserRepository $users,
     ): void {
-        $existing = User::restore(self::UUID, 'existing.user@example.com', new \DateTimeImmutable());
+        $existing = User::restore(UserId::from(self::UUID), 'existing.user@example.com', new \DateTimeImmutable());
         $users->findByEmail('existing.user@example.com')->willReturn($existing);
 
         $this->__invoke(self::command('  existing.user@example.com  '))->shouldBe($existing);

@@ -6,6 +6,7 @@ namespace spec\SocialBulletin\Core\Domain\User;
 
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Domain\User\User;
+use SocialBulletin\Core\Domain\User\UserId;
 use SocialBulletin\Core\Domain\User\UserRepository;
 
 final class UserServiceSpec extends ObjectBehavior
@@ -19,7 +20,7 @@ final class UserServiceSpec extends ObjectBehavior
 
     public function it_finds_the_current_user_by_email(UserRepository $users): void
     {
-        $user = User::restore(self::UUID, 'existing.user@example.com', new \DateTimeImmutable());
+        $user = User::restore(UserId::from(self::UUID), 'existing.user@example.com', new \DateTimeImmutable());
         $users->findByEmail('existing.user@example.com')->willReturn($user);
 
         $this->currentUser('existing.user@example.com')->shouldBe($user);
