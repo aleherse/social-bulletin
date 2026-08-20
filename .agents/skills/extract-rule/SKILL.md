@@ -72,7 +72,7 @@ summarise the rule and ask the user which subcategory it belongs to.
 
 When the changes yield rules across several subcategories, work one subcategory at a time:
 pick one, set the other rules aside (keep an explicit list of them),
-and after finishing Step 6 for the current subcategory, restart from Step 3 with the next set-aside rule.
+and after finishing Step 7 for the current subcategory, restart from Step 3 with the next set-aside rule.
 
 For each rule in the current subcategory, expose the reasoning:
 what in the diff suggests the rule, and why it matters beyond this change.
@@ -151,10 +151,23 @@ When creating a new file, start it with a `# <Category> / <Subcategory>` heading
 Append new rules at the end, so the file reads in identifier order.
 The `## <identifier>` heading is the only separator between rules — do not add horizontal rules.
 
-If rules were set aside in Step 3, restart from Step 3 with them.
-When no set-aside rules remain, continue to Step 7.
+## Step 7: Simplify and distill the rule
 
-## Step 7: Point the agent guide at the rules
+Re-read the rule(s) just written in the target file. Tighten them: cut clauses that restate what the identifier,
+WHEN, THEN, or example already make clear; drop asides explaining something a cross-referenced rule already
+covers (link to it with its identifier instead of re-explaining it); remove qualifiers, hedges, and extra example
+rows that don't change what an agent would do. The WHEN must stay concrete enough to tell whether the rule
+applies, and the THEN actionable enough that two agents reading it make the same choice — simplify wording, not
+substance, and don't undo a distinction Step 4 or Step 5 confirmed on purpose.
+
+Apply the tightened wording directly to the file — Step 5 already confirmed the rule's content, so this step only
+removes excess words around it, without a separate confirmation gate — and mention what was cut when you
+summarise the written files at the end.
+
+If rules were set aside in Step 3, restart from Step 3 with them.
+When no set-aside rules remain, continue to Step 8.
+
+## Step 8: Point the agent guide at the rules
 
 Run this step only when this session wrote the repository's *first* rule —
 `docs/rules/` held no rule files before Step 6. Otherwise skip it.
