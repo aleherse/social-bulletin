@@ -1,5 +1,18 @@
 {
   "appName": "Social Bulletin",
+  "app": {
+    "loading": "Loading…",
+    "notFound": {
+      "title": "Page not found",
+      "description": "That address does not match anything on this site.",
+      "home": "Go to the home page"
+    },
+    "error": {
+      "title": "Something went wrong",
+      "description": "This page could not be displayed.",
+      "reload": "Go to the home page"
+    }
+  },
   "home": {
     "loading": "Loading…",
     "form": {
@@ -24,8 +37,6 @@
     "empty": "You have not proposed any movements yet.",
     "loading": "Loading…",
     "notFound": "This movement was not found.",
-    "signInPrompt": "Sign in to propose a movement.",
-    "goHome": "Go to sign in",
     "backToList": "Back to my movements",
     "submitAction": "Submit proposal",
     "edit": "Edit",

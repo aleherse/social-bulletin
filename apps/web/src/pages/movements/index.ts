@@ -1,1 +1,1 @@
-export { MovementsPage } from './ui/movements-page.tsx';
+export { movementsRoutes } from './routes.tsx';
