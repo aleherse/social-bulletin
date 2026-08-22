@@ -33,13 +33,12 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
     ): void {
         $movement = self::describedDraft();
         $movements->byId(self::ID)->willReturn($movement);
-        $movements->save($movement)->willReturn($movement)
-            ->shouldBeCalled();
+        $movements->save(Argument::that(
+            static fn (Movement $saved): bool => 'Save All the Bees' === $saved->title()
+                && MovementStatus::Draft === $saved->status(),
+        ))->shouldBeCalled();
 
-        $updated = $this->__invoke($this->editCommand());
-
-        $updated->title()->shouldBe('Save All the Bees');
-        $updated->status()->shouldBe(MovementStatus::Draft);
+        $this->__invoke($this->editCommand());
     }
 
     public function it_leaves_the_fields_an_edit_payload_omits_untouched(
@@ -47,16 +46,15 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
     ): void {
         $movement = self::describedDraft();
         $movements->byId(self::ID)->willReturn($movement);
-        $movements->save($movement)->willReturn($movement)
-            ->shouldBeCalled();
+        $movements->save(Argument::that(
+            static fn (Movement $saved): bool => 'Save All the Bees' === $saved->title()
+                && 'cooperative' === $saved->category()
+                && 'Sheffield' === $saved->location(),
+        ))->shouldBeCalled();
 
-        $updated = $this->__invoke(UpdateMovementCommand::fromPayload([
+        $this->__invoke(UpdateMovementCommand::fromPayload([
             'title' => 'Save All the Bees',
         ], UserId::from(self::AUTHOR_ID), self::ID));
-
-        $updated->title()->shouldBe('Save All the Bees');
-        $updated->category()->shouldBe('cooperative');
-        $updated->location()->shouldBe('Sheffield');
     }
 
     public function it_clears_a_location_the_edit_payload_sets_to_null(
@@ -64,16 +62,15 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
     ): void {
         $movement = self::describedDraft();
         $movements->byId(self::ID)->willReturn($movement);
-        $movements->save($movement)->willReturn($movement)
-            ->shouldBeCalled();
+        $movements->save(Argument::that(
+            static fn (Movement $saved): bool => null === $saved->location(),
+        ))->shouldBeCalled();
 
         // An explicit `null` is a value, not an omission: `hasProperty()` keeps them apart.
-        $updated = $this->__invoke(UpdateMovementCommand::fromPayload([
+        $this->__invoke(UpdateMovementCommand::fromPayload([
             'area' => 'international',
             'location' => null,
         ], UserId::from(self::AUTHOR_ID), self::ID));
-
-        $updated->location()->shouldBeNull();
     }
 
     public function it_refuses_to_edit_a_movement_that_left_draft(

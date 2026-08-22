@@ -12,7 +12,6 @@ use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
 use SocialBulletin\Core\Domain\Movement\MovementStatus;
 use SocialBulletin\Core\Domain\User\UserId;
-use Symfony\Component\Uid\Uuid;
 
 final class CreateMovementHandlerSpec extends ObjectBehavior
 {
@@ -23,32 +22,29 @@ final class CreateMovementHandlerSpec extends ObjectBehavior
         $this->beConstructedWith($movements);
     }
 
-    public function it_saves_a_new_draft_under_a_generated_identity(
+    public function it_saves_a_new_draft_under_the_identity_the_command_minted(
         MovementRepository $movements,
     ): void {
+        $command = $this->draftCommand();
+
         $movements->save(Argument::that(
-            static fn (Movement $movement): bool => Uuid::isValid((string) $movement->id)
+            static fn (Movement $movement): bool => (string) $command->id === (string) $movement->id
                 && self::AUTHOR_ID === (string) $movement->authorId
+                && 'Community Gardens for Everyone' === $movement->title()
                 && MovementStatus::Draft === $movement->status(),
-        ))->will(self::echoesBackTheSavedMovement())
-            ->shouldBeCalled();
+        ))->shouldBeCalled();
 
-        $movement = $this->__invoke($this->draftCommand());
-
-        $movement->title()->shouldBe('Community Gardens for Everyone');
-        $movement->status()->shouldBe(MovementStatus::Draft);
+        $this->__invoke($command);
     }
 
     public function it_saves_a_draft_with_an_empty_description(
         MovementRepository $movements,
     ): void {
-        $movements->save(Argument::type(Movement::class))
-            ->will(self::echoesBackTheSavedMovement())
-            ->shouldBeCalled();
+        $movements->save(Argument::that(
+            static fn (Movement $movement): bool => '' === $movement->description(),
+        ))->shouldBeCalled();
 
-        $this->__invoke($this->draftCommand(description: ''))
-            ->description()
-            ->shouldBe('');
+        $this->__invoke($this->draftCommand(description: ''));
     }
 
     public function it_saves_nothing_when_the_draft_is_invalid(
@@ -73,22 +69,6 @@ final class CreateMovementHandlerSpec extends ObjectBehavior
                 'area' => 'international',
             ], UserId::from(self::AUTHOR_ID)),
         ]);
-    }
-
-    /**
-     * The repository returns the stored row as a fresh aggregate; for these examples the
-     * movement handed to `save()` stands in for it.
-     *
-     * @return callable(array<int, mixed>): Movement
-     */
-    private static function echoesBackTheSavedMovement(): callable
-    {
-        return static function (array $arguments): Movement {
-            $movement = $arguments[0];
-            \assert($movement instanceof Movement);
-
-            return $movement;
-        };
     }
 
     // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.

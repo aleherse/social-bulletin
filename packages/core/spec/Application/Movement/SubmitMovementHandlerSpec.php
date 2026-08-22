@@ -36,12 +36,11 @@ final class SubmitMovementHandlerSpec extends ObjectBehavior
     ): void {
         $movement = self::draftWith("## Why\nGardens for all.");
         $movements->byId(self::ID)->willReturn($movement);
-        $movements->save($movement)->willReturn($movement)
-            ->shouldBeCalled();
+        $movements->save(Argument::that(
+            static fn (Movement $saved): bool => MovementStatus::Proposed === $saved->status(),
+        ))->shouldBeCalled();
 
-        $this->__invoke($this->command())
-            ->status()
-            ->shouldBe(MovementStatus::Proposed);
+        $this->__invoke($this->command());
     }
 
     public function it_saves_nothing_when_the_draft_has_no_description(

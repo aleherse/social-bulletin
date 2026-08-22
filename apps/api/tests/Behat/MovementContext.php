@@ -14,8 +14,8 @@ use App\Messenger\CommandBus;
 use SocialBulletin\Core\Application\Movement\SubmitMovementCommand;
 use SocialBulletin\Core\Application\Movement\CreateMovementCommand;
 use SocialBulletin\Core\Application\User\SignInCommand;
-use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\User\User;
+use SocialBulletin\Core\Domain\User\UserService;
 use Webmozart\Assert\Assert;
 
 use function JmesPath\search;
@@ -28,6 +28,7 @@ final class MovementContext implements Context
     public function __construct(
         private readonly ApiClient $apiClient,
         private readonly CommandBus $commandBus,
+        private readonly UserService $userService,
         private readonly Connection $connection,
     ) {
     }
@@ -119,7 +120,8 @@ final class MovementContext implements Context
      */
     private function signIn(string $email): User
     {
-        $user = $this->commandBus->dispatch(SignInCommand::fromPayload(['email' => $email]));
+        $this->commandBus->dispatch(SignInCommand::fromPayload(['email' => $email]));
+        $user = $this->userService->currentUser($email);
         Assert::isInstanceOf($user, User::class);
 
         return $user;
@@ -128,16 +130,16 @@ final class MovementContext implements Context
     private function createMovement(string $email, string $title, string $description): void
     {
         $user = $this->signIn($email);
-        $movement = $this->commandBus->dispatch(CreateMovementCommand::fromPayload([
+        $command = CreateMovementCommand::fromPayload([
             'title' => $title,
             'description' => $description,
             'category' => 'cooperative',
             'area' => 'municipality',
             'location' => 'Sheffield',
-        ], $user->id));
-        Assert::isInstanceOf($movement, Movement::class);
+        ], $user->id);
+        $this->commandBus->dispatch($command);
 
-        $this->movementIds[$title] = (string) $movement->id;
+        $this->movementIds[$title] = (string) $command->id;
     }
 
     private function movementId(string $title): string

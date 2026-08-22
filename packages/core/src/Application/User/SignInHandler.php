@@ -21,15 +21,14 @@ final readonly class SignInHandler
      *
      * @throws InvalidEmailAddress when the email is empty or malformed
      */
-    public function __invoke(SignInCommand $command): User
+    public function __invoke(SignInCommand $command): void
     {
         $email = User::normaliseEmail($command->email);
-        $existing = $this->users->findByEmail($email);
 
-        if (null !== $existing) {
-            return $existing;
+        if (null !== $this->users->findByEmail($email)) {
+            return;
         }
 
-        return $this->users->save(User::register(UserId::generate(), $email));
+        $this->users->save(User::register(UserId::generate(), $email));
     }
 }
