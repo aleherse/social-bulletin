@@ -7,7 +7,7 @@ namespace App\Controller\Movement;
 use App\Messenger\CommandBus;
 use SocialBulletin\Core\Application\Movement\CreateMovementCommand;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
-use SocialBulletin\Core\Domain\Movement\Movement;
+use SocialBulletin\Core\Domain\Movement\MovementService;
 use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +18,7 @@ final readonly class CreateMovementController
 {
     public function __construct(
         private CommandBus $commandBus,
+        private MovementService $movementService,
     ) {
     }
 
@@ -26,10 +27,11 @@ final readonly class CreateMovementController
     {
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
+        $command = CreateMovementCommand::fromPayload($payload, $author->id);
 
         try {
-            $movement = $this->commandBus->dispatch(CreateMovementCommand::fromPayload($payload, $author->id));
-            \assert($movement instanceof Movement);
+            $this->commandBus->dispatch($command);
+            $movement = $this->movementService->authorMovement((string) $command->id, $author->id);
         } catch (InvalidMovement $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
