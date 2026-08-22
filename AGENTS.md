@@ -35,6 +35,8 @@ The common ones:
 
 - `.specify/memory/constitution.md` holds the project's non-negotiable
   principles and outranks conflicting guidance elsewhere.
+  Read it before writing code — nothing loads it for you,
+  and no linter enforces it.
 - `docs/decisions/` holds ADRs; `ADR-0000` defines project constants
   (hostnames, namespaces, database schema).
   Consult relevant ADRs before structural changes,
