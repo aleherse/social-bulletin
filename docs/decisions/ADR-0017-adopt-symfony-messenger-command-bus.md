@@ -24,7 +24,7 @@ configured as a single bus named `command.bus` and set as the default bus.
 
 No Messenger transport SHALL be configured:
 commands are handled synchronously in the request that dispatched them,
-so a controller still receives the saved aggregate
+so the write has landed by the time the dispatching controller reads the aggregate back
 and existing HTTP responses are unchanged.
 
 ### Handlers live in `Core\Application` and stay framework-free
@@ -32,6 +32,13 @@ and existing HTTP responses are unchanged.
 `packages/core/src/Application/<Aggregate>/` SHALL hold the write use cases,
 one command plus one handler per use case,
 with the business rules staying in the aggregate.
+
+Handlers SHALL return `void`.
+A write use case reports failure by throwing,
+and a caller that needs the affected aggregate reads it back through a domain service,
+so the command SHALL carry the aggregate's identity:
+`CreateMovementCommand` mints its own `MovementId`
+rather than leaving the handler to generate one the caller could never learn.
 
 Handlers SHALL NOT carry `#[AsMessageHandler]`.
 They are registered from `apps/api/config/services.yaml`
@@ -41,7 +48,8 @@ which keeps `packages/core` free of Symfony (ADR-0005).
 ### `apps/api` dispatches only through `CommandBus`
 
 `apps/api` SHALL reach handlers only through `App\Messenger\CommandBus`,
-a `HandleTrait` wrapper that returns the handler's result
+a `HandleTrait` wrapper that returns nothing —
+keeping `HandleTrait`'s guarantee that exactly one handler ran, synchronously —
 and rethrows the exception nested inside Messenger's `HandlerFailedException`,
 so controllers keep catching domain exceptions
 (`MovementNotFound`, `MovementNotDraft`, `InvalidMovement`, `InvalidEmailAddress`)
@@ -68,10 +76,11 @@ for the ownership-scoped lookup that guards them.
   a reader following a controller now goes controller → bus → handler,
   and `debug:messenger` is the map.
 - The bus stays synchronous, so nothing is queued and nothing retries.
-  Moving a command to an async transport later means
-  the dispatching controller can no longer return the saved aggregate
-  and would need its own ADR.
-- `CommandBus::dispatch()` returns `mixed`,
-  so callers narrow the result themselves.
+  Moving a command to an async transport later would need its own ADR,
+  but no longer changes what a caller can do with the dispatch itself.
+- `CommandBus::dispatch()` returns `void`,
+  so a controller costs one extra read — `MovementService::authorMovement()` —
+  to render the aggregate it just wrote,
+  and that read sits inside the same `try` as the dispatch.
 - Reads and writes are now asymmetric by design;
   a future decision to introduce a query bus would supersede this one.
