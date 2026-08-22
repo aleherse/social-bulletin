@@ -6,19 +6,21 @@
 
 **THEN** put it in `src/Application/<Aggregate>/` as a `final readonly` command extending `Command`
 (`application-helpers-0002`), paired one-to-one with a `final readonly` handler whose single
-`__invoke(<Intent>Command $command): <Aggregate>` returns the saved aggregate. The command carries the whole use-case
-input as public properties — the aggregate id and the acting author's id included where the use case has them, so
-`CreateMovementCommand` carries an author id but no movement id, because the handler mints it — and nothing else: no
-behaviour beyond the inherited `hasProperty()`, no framework attributes. Promote a field that is always supplied;
-declare one the caller may omit plain and assign it conditionally (`application-commands-0003`). The handler only
-orchestrates — load, mutate, save — with the rules staying in the aggregate.
+`__invoke(<Intent>Command $command): void` returns nothing — a write use case reports failure by throwing, and a
+caller that needs the affected aggregate reads it back (`application-commands-0002`). The command carries the whole
+use-case input as public properties — the aggregate id and the acting author's id included, so `CreateMovementCommand`
+mints its own `MovementId` rather than leaving the handler to generate one the caller could never learn — and nothing
+else: no behaviour beyond the inherited `hasProperty()`, no framework attributes. Promote a field that is always
+supplied; declare one the caller may omit plain and assign it conditionally (`application-commands-0003`). The handler
+only orchestrates — load, mutate, save — with the rules staying in the aggregate.
 
 **Example:**
 
 | Wrong                                                | Right                                                          |
 |------------------------------------------------------|----------------------------------------------------------------|
 | `MovementService::update($id, $authorId, $title, …)` | `UpdateMovementHandler::__invoke(UpdateMovementCommand $c)`    |
-| a handler returning `void`                           | `__invoke(…): Movement`, returning the saved aggregate         |
+| `__invoke(…): Movement`, returning the saved aggregate | `__invoke(…): void`, leaving the caller to read it back       |
+| `MovementId::generate()` inside `CreateMovementHandler` | `$command->id`, minted by `CreateMovementCommand`            |
 | `#[AsMessageHandler]` on `UpdateMovementHandler`     | tagged in `apps/api/config/services.yaml`                      |
 | validation inside `SubmitMovementHandler`            | `Movement::submit()` throwing `InvalidMovement`                |
 | id passed to the handler beside the command          | `UpdateMovementCommand::fromPayload($payload, $authorId, $id)` |
@@ -27,15 +29,18 @@ orchestrates — load, mutate, save — with the rules staying in the aggregate.
 
 **WHEN** a controller under `apps/api/src/Controller` — or a Behat `Given` step — needs a `core` write
 
-**THEN** dispatch the command through `App\Messenger\CommandBus` and use its return value as the saved aggregate; the
-bus is synchronous and unwraps Messenger's `HandlerFailedException`, so the domain exception is still what you catch and
-map to a status code. Reads stay a direct call on the domain service — no query bus, no query objects (ADR-0017).
+**THEN** dispatch the command through `App\Messenger\CommandBus`, which returns nothing, and read the affected
+aggregate back through the domain service afterwards — `MovementService::authorMovement()` under the id the caller
+holds, `$command->id` for a create. The bus is synchronous and unwraps Messenger's `HandlerFailedException`, so the
+domain exception is still what you catch and map to a status code, and the read-back belongs inside the same `try`.
+Reads stay a direct call on the domain service — no query bus, no query objects (ADR-0017).
 
 **Example:**
 
 | Wrong                                                | Right                                                                      |
 |------------------------------------------------------|----------------------------------------------------------------------------|
 | `$this->movementService->submit($id, $author->id)`   | `$this->commandBus->dispatch(new SubmitMovementCommand($id, $author->id))` |
+| `$movement = $this->commandBus->dispatch($command)`  | `dispatch($command)`, then `$this->movementService->authorMovement(…)`     |
 | injecting `MessageBusInterface` into a controller    | injecting `App\Messenger\CommandBus`                                       |
 | `$this->commandBus->dispatch(new GetMovements(...))` | `$this->movementService->byAuthor($author->id)`                            |
 
