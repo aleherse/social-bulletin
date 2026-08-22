@@ -7,9 +7,9 @@ namespace App\Controller\Movement;
 use App\Messenger\CommandBus;
 use SocialBulletin\Core\Application\Movement\SubmitMovementCommand;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
-use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
+use SocialBulletin\Core\Domain\Movement\MovementService;
 use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +19,7 @@ final readonly class SubmitMovementController
 {
     public function __construct(
         private CommandBus $commandBus,
+        private MovementService $movementService,
     ) {
     }
 
@@ -26,8 +27,8 @@ final readonly class SubmitMovementController
     public function __invoke(string $id, User $author): JsonResponse
     {
         try {
-            $movement = $this->commandBus->dispatch(new SubmitMovementCommand($id, $author->id));
-            \assert($movement instanceof Movement);
+            $this->commandBus->dispatch(new SubmitMovementCommand($id, $author->id));
+            $movement = $this->movementService->authorMovement($id, $author->id);
         } catch (MovementNotFound $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
