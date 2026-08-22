@@ -6,7 +6,6 @@ namespace SocialBulletin\Core\Application\Movement;
 
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
-use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
 
 final readonly class CreateMovementHandler
@@ -19,10 +18,10 @@ final readonly class CreateMovementHandler
     /**
      * @throws InvalidMovement when any field fails stage validation
      */
-    public function __invoke(CreateMovementCommand $command): Movement
+    public function __invoke(CreateMovementCommand $command): void
     {
-        return $this->movements->save(Movement::draft(
-            MovementId::generate(),
+        $this->movements->save(Movement::draft(
+            $command->id,
             $command->authorId,
             $command->title,
             $command->description,

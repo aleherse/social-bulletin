@@ -18,12 +18,9 @@ class MovementRepository
     }
 
     /**
-     * Inserts the movement or updates it when the id already exists, then reads the stored
-     * row back as a fresh aggregate — including the timestamps the database assigned.
-     *
      * @throws InvalidMovement when the category isn't in the managed list
      */
-    public function save(Movement $movement): Movement
+    public function save(Movement $movement): void
     {
         try {
             $this->connection->executeStatement(<<<'SQL'
@@ -61,14 +58,6 @@ class MovementRepository
                 'category' => 'movement.category.unknown',
             ], 'movement.invalid', $exception);
         }
-
-        $saved = $this->byId((string) $movement->id);
-
-        if (null === $saved) {
-            throw new \RuntimeException('The saved movement could not be read back.');
-        }
-
-        return $saved;
     }
 
     public function byId(string $id): ?Movement

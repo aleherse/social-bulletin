@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SocialBulletin\Core\Application\Movement;
 
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
-use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
@@ -20,13 +19,11 @@ final readonly class UpdateMovementHandler
     }
 
     /**
-     * An absent field keeps the value the movement already holds.
-     *
      * @throws MovementNotFound when editing an unknown movement, or one owned by another author
      * @throws MovementNotDraft when editing a movement that already left `draft`
      * @throws InvalidMovement  when any field fails stage validation
      */
-    public function __invoke(UpdateMovementCommand $command): Movement
+    public function __invoke(UpdateMovementCommand $command): void
     {
         $movement = $this->movementService->authorMovement($command->id, $command->authorId);
         $movement->edit(
@@ -38,6 +35,6 @@ final readonly class UpdateMovementHandler
             $command->hasProperty('location') ? $command->location : $movement->location(),
         );
 
-        return $this->movements->save($movement);
+        $this->movements->save($movement);
     }
 }

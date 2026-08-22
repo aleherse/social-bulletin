@@ -25,11 +25,7 @@ class UserRepository
         return false === $row ? null : $this->hydrate($row);
     }
 
-    /**
-     * Inserts the user, then reads the stored row back as a fresh aggregate — including
-     * the creation timestamp the database assigned.
-     */
-    public function save(User $user): User
+    public function save(User $user): void
     {
         $this->connection->executeStatement(<<<'SQL'
             INSERT INTO bulletin.users
@@ -41,14 +37,6 @@ class UserRepository
                 'id' => (string) $user->id,
                         'email' => $user->email,
             ]);
-
-        $saved = $this->findByEmail($user->email);
-
-        if (null === $saved) {
-            throw new \RuntimeException('The saved user could not be read back.');
-        }
-
-        return $saved;
     }
 
     /**

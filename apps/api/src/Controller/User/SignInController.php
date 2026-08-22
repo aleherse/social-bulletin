@@ -10,15 +10,18 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use SocialBulletin\Core\Application\User\SignInCommand;
 use SocialBulletin\Core\Domain\User\InvalidEmailAddress;
 use SocialBulletin\Core\Domain\User\User;
+use SocialBulletin\Core\Domain\User\UserService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Webmozart\Assert\Assert;
 
 final readonly class SignInController
 {
     public function __construct(
         private CommandBus $commandBus,
+        private UserService $userService,
         private JWTTokenManagerInterface $tokenManager,
     ) {
     }
@@ -28,15 +31,19 @@ final readonly class SignInController
     {
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
+        $command = SignInCommand::fromPayload($payload);
 
         try {
-            $user = $this->commandBus->dispatch(SignInCommand::fromPayload($payload));
-            \assert($user instanceof User);
+            $email = User::normaliseEmail($command->email);
+            $this->commandBus->dispatch($command);
         } catch (InvalidEmailAddress $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+
+        $user = $this->userService->currentUser($email);
+        Assert::notNull($user, 'Signing in left no user to read back.');
 
         $jwt = $this->tokenManager->create(new ApiUser($user->email));
 

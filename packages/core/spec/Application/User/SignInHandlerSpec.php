@@ -28,35 +28,31 @@ final class SignInHandlerSpec extends ObjectBehavior
         $users->findByEmail('new.user@example.com')->willReturn(null);
         $users->save(Argument::that(
             static fn (User $user): bool => Uuid::isValid((string) $user->id) && 'new.user@example.com' === $user->email,
-        ))->will(static function (array $arguments): User {
-            // The repository returns the stored row as a fresh aggregate.
-            $user = $arguments[0];
-            \assert($user instanceof User);
+        ))->shouldBeCalled();
 
-            return $user;
-        })->shouldBeCalled();
-
-        $user = $this->__invoke(self::command('new.user@example.com'));
-        $user->email->shouldBe('new.user@example.com');
+        $this->__invoke(self::command('new.user@example.com'));
     }
 
     public function it_reuses_the_existing_user_for_a_known_email(
         UserRepository $users,
     ): void {
         $existing = User::restore(UserId::from(self::UUID), 'existing.user@example.com', new \DateTimeImmutable());
-        $users->findByEmail('existing.user@example.com')->willReturn($existing);
+        $users->findByEmail('existing.user@example.com')->willReturn($existing)
+            ->shouldBeCalled();
         $users->save(Argument::any())->shouldNotBeCalled();
 
-        $this->__invoke(self::command('existing.user@example.com'))->shouldBe($existing);
+        $this->__invoke(self::command('existing.user@example.com'));
     }
 
     public function it_looks_up_the_email_without_surrounding_whitespace(
         UserRepository $users,
     ): void {
         $existing = User::restore(UserId::from(self::UUID), 'existing.user@example.com', new \DateTimeImmutable());
-        $users->findByEmail('existing.user@example.com')->willReturn($existing);
+        $users->findByEmail('existing.user@example.com')->willReturn($existing)
+            ->shouldBeCalled();
+        $users->save(Argument::any())->shouldNotBeCalled();
 
-        $this->__invoke(self::command('  existing.user@example.com  '))->shouldBe($existing);
+        $this->__invoke(self::command('  existing.user@example.com  '));
     }
 
     public function it_registers_nobody_for_a_malformed_email(UserRepository $users): void
