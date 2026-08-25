@@ -1,22 +1,24 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.1.0 → 2.2.0
-Bump rationale: MINOR — a new principle (V) was added. No existing principle was
-removed, renamed, or renumbered, and nothing previously permitted by principles
-I–IV became forbidden.
+Version change: 2.2.0 → 2.2.1
+Bump rationale: PATCH — Principle III was retitled so the name covers both of
+the artefacts it already governed: recorded decisions (`docs/decisions/`) and
+coding rules (`docs/rules/`). No obligation was added, removed, or reworded;
+the bullets and rationale are unchanged.
 
-Principles added:
-  V. Code Explains Itself; Comments Are Exceptional — comments that restate
-     readable code are noise and MUST NOT be written; a comment is warranted
-     only when it carries what the code cannot (a why, an external constraint,
-     a deliberate deviation, a non-local consequence). Machine-read annotations
-     (PHPStan/PHPDoc types, `@throws`, justified suppressions) are exempt.
+Principles modified:
+  III. Decisions Are Recorded Before They Are Coded
+    →  Decisions And Rules Are Written Down, Then Followed
+    The old title named only decisions and only the write-it-down half, while
+    the principle's bullets also require reading `docs/rules/` before coding and
+    distilling new rules after a diff. The new title names both artefacts and
+    both duties.
 
 Current principles:
   I.   Tests Are First-Class Citizens (NON-NEGOTIABLE)
   II.  Every Layer Is Tested In Its Own Tool
-  III. Decisions Are Recorded Before They Are Coded
+  III. Decisions And Rules Are Written Down, Then Followed
   IV.  Automated Gates Over Human Vigilance
   V.   Code Explains Itself; Comments Are Exceptional
 
@@ -24,17 +26,15 @@ Sections added: none
 Sections removed: none
 
 Templates requiring updates:
-  ✅ .claude/skills/speckit-implement/SKILL.md — implementation execution rules
-     now state the comment discipline that applies while code is written
-  ✅ .specify/templates/plan-template.md     — no change; Principle V governs code,
-     not planning artifacts, so it adds no plan-stage gate
-  ✅ .specify/templates/tasks-template.md    — no change; comment discipline is a
-     property of every implementation task, not a task of its own
-  ✅ .specify/templates/spec-template.md     — no change; specs contain no code
-  ✅ .claude/skills/speckit-analyze/SKILL.md — no change; analyze inspects
-     spec/plan/tasks artifacts, and Principle V is checked in code review
-  ✅ AGENTS.md (CLAUDE.md symlink)           — no change; already defers to this
-     file for principles and to docs/rules/ for coding rules
+  ✅ .specify/templates/plan-template.md     — Constitution Check gate III
+     relabelled to match the new principle title; its checks are unchanged
+  ✅ .specify/templates/spec-template.md     — no change; specs cite no principle
+     titles
+  ✅ .specify/templates/tasks-template.md    — no change; no principle titles cited
+  ✅ .claude/skills/speckit-analyze/SKILL.md — no change; reads principles from
+     this file rather than naming them
+  ✅ .claude/skills/speckit-implement/SKILL.md — no change; no principle titles cited
+  ✅ AGENTS.md (CLAUDE.md symlink)           — no change; defers to this file
 
 Standing note (from 2.0.0): dropping the original Principle III did not delete
 the rule from the project. The hexagonal boundary remains specified by ADR-0005
@@ -52,6 +52,7 @@ Deferred items:
 2.0.0 (2026-08-09): Principle III removed; IV and V renumbered.
 2.1.0 (2026-08-09): Principle II expanded with the test pyramid rule.
 2.2.0 (2026-08-19): Principle V added — comment discipline.
+2.2.1 (2026-08-25): Principle III retitled to name rules alongside decisions.
 -->
 
 # Social Bulletin Constitution
@@ -125,7 +126,7 @@ the opposite failure is just as real: an end-to-end suite that re-litigates
 every validation rule is slow, brittle, and buries the journeys that matter.
 Test the rule once, low; test the journey end to end.
 
-### III. Decisions Are Recorded Before They Are Coded
+### III. Decisions And Rules Are Written Down, Then Followed
 
 - Structural changes MUST be checked against `docs/decisions/` first; diverging
   from an accepted ADR requires a new ADR, not a quiet exception.
@@ -254,4 +255,4 @@ violates a principle MUST be recorded in the plan's Complexity Tracking table
 with the simpler alternative that was rejected and why — an unjustified
 violation blocks merge.
 
-**Version**: 2.2.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-19
+**Version**: 2.2.1 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-25
