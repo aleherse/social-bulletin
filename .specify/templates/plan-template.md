@@ -51,8 +51,8 @@ Confirm each gate or record a justified violation in Complexity Tracking.
 - [ ] **II. Pyramid**: every user story has a Playwright journey for its **happy
       path**; error, edge, and validation cases are planned at the lowest layer
       that can prove them and are not repeated higher up
-- [ ] **III. Decisions recorded**: relevant ADRs consulted; divergence proposes a
-      new ADR; applicable `docs/rules/` files read
+- [ ] **III. Decisions and rules written down**: relevant ADRs consulted;
+      divergence proposes a new ADR; applicable `docs/rules/` files read
 - [ ] **IV. Automated gates**: work is runnable through `make` targets; test data
       comes from the DSLR `fixtures` snapshot and no test run recreates it
 
