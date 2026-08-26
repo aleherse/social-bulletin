@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 
+import { useCreateSession } from '@/entities/session';
 import { SessionError } from '@/shared/api';
 import { useTranslation } from '@/shared/i18n';
+import { useNavigate, useSearchParams } from '@/shared/routing';
 import {
   Button,
   Card,
@@ -14,7 +16,6 @@ import {
   Label,
 } from '@/shared/ui';
 
-import { useCreateSession } from '../api/session.ts';
 import { isValidEmail } from '../model/email.ts';
 
 export function RegistrationForm() {
@@ -22,12 +23,14 @@ export function RegistrationForm() {
   const [email, setEmail] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const createSession = useCreateSession();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const serverError = createSession.isError
-    ? createSession.error instanceof SessionError
-      ? createSession.error.message
-      : t('home.form.requestFailed')
-    : null;
+  const serverError = sessionErrorMessage(
+    createSession.error,
+    createSession.isError,
+    t('home.form.requestFailed'),
+  );
   const errorMessage = validationError ?? serverError;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -40,7 +43,16 @@ export function RegistrationForm() {
     }
 
     setValidationError(null);
-    createSession.mutate(email.trim());
+    createSession.mutate(email.trim(), {
+      onSuccess: () => {
+        // ADR-0018: a guard sent the visitor here, so return them to where they were going.
+        const next = searchParams.get('next');
+
+        if (next !== null) {
+          navigate(next);
+        }
+      },
+    });
   };
 
   return (
@@ -74,4 +86,12 @@ export function RegistrationForm() {
       </CardContent>
     </Card>
   );
+}
+
+function sessionErrorMessage(error: unknown, isError: boolean, fallback: string): string | null {
+  if (!isError) {
+    return null;
+  }
+
+  return error instanceof SessionError ? error.message : fallback;
 }

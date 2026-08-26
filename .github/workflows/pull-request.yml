@@ -1,29 +1,57 @@
 # ADR-0013: optional CI jobs are requested by ticking the matching checkbox
 # in the pull request body (see .github/PULL_REQUEST_TEMPLATE.md).
+#
+# Every job runs on its own runner, so the `setup` job warms two caches once
+# - the image layers (docker-compose.ci.yml) and the installed dependencies
+# - and the gated jobs restore both in parallel. See .github/actions/prepare.
 name: Pull request
 
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
 
+env:
+  COMPOSE_FILE: docker-compose.yml:docker-compose.ci.yml
+  COMPOSE_BAKE: "1"
+
 jobs:
+  setup:
+    name: Setup
+    if: >-
+      contains(github.event.pull_request.body, '- [x] PHPSpec') ||
+      contains(github.event.pull_request.body, '- [x] Behat') ||
+      contains(github.event.pull_request.body, '- [x] Vitest') ||
+      contains(github.event.pull_request.body, '- [x] Playwright')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/prepare
+        with:
+          service: all
+
   phpspec:
     name: PHPSpec
+    needs: setup
     if: contains(github.event.pull_request.body, '- [x] PHPSpec')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/prepare
+        with:
+          service: php
       - name: Run core package unit tests
         run: make php-unit
 
   behat:
     name: Behat
+    needs: setup
     if: contains(github.event.pull_request.body, '- [x] Behat')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Generate JWT keypair
-        run: HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose run --rm --workdir /app/apps/api php php bin/console lexik:jwt:generate-keypair --skip-if-exists
+      - uses: ./.github/actions/prepare
+        with:
+          service: php
       - name: Prepare the test database snapshot
         run: make db
       - name: Run API tests
@@ -31,21 +59,27 @@ jobs:
 
   vitest:
     name: Vitest
+    needs: setup
     if: contains(github.event.pull_request.body, '- [x] Vitest')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/prepare
+        with:
+          service: node
       - name: Run frontend unit tests
         run: make web-unit
 
   playwright:
     name: Playwright
+    needs: setup
     if: contains(github.event.pull_request.body, '- [x] Playwright')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Generate JWT keypair
-        run: HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose run --rm --workdir /app/apps/api php php bin/console lexik:jwt:generate-keypair --skip-if-exists
+      - uses: ./.github/actions/prepare
+        with:
+          service: all
       - name: Prepare the test database snapshot
         run: make db
       - name: Run browser E2E tests

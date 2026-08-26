@@ -24,7 +24,9 @@
 
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Testing**: [Required — name every suite this feature needs, per ADR-0015:
+PHPSpec, Behat, Vitest, Playwright. "None" is not a valid answer; a layer left
+out needs a written waiver]
 
 **Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
 
@@ -40,7 +42,32 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Confirm each gate or record a justified violation in Complexity Tracking.
+
+- [ ] **I. Tests first-class**: every layer this feature touches is listed below
+      with the tool that will cover it; no layer is left implicit
+- [ ] **II. Layer/tool mapping**: `packages/core` → PHPSpec, `apps/api` → Behat,
+      `apps/web` units → Vitest, user journeys → Playwright
+- [ ] **II. Pyramid**: every user story has a Playwright journey for its **happy
+      path**; error, edge, and validation cases are planned at the lowest layer
+      that can prove them and are not repeated higher up
+- [ ] **III. Decisions and rules written down**: relevant ADRs consulted;
+      divergence proposes a new ADR; applicable `docs/rules/` files read
+- [ ] **IV. Automated gates**: work is runnable through `make` targets; test data
+      comes from the DSLR `fixtures` snapshot and no test run recreates it
+
+Architecture boundaries (hexagonal layering, deptrac, FSD imports) are not a
+constitutional gate; they are governed by ADR-0005/ADR-0007 and enforced by
+`make lint`. Gate III covers consulting them.
+
+**Layers touched by this feature**:
+
+| Layer | Touched? | Test tool | Where |
+|-------|----------|-----------|-------|
+| `packages/core` | [yes/no] | PHPSpec | `packages/core/spec/…` |
+| `apps/api` | [yes/no] | Behat | `apps/api/features/…` |
+| `apps/web` | [yes/no] | Vitest | next to the source |
+| User journeys | [yes/no] | Playwright | `apps/web/e2e/…` |
 
 ## Project Structure
 

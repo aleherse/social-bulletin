@@ -1,1 +1,1 @@
-export { HomePage } from './ui/home-page.tsx';
+export { homeRoutes } from './routes.tsx';

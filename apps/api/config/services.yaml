@@ -19,11 +19,27 @@ services:
     App\:
         resource: '../src/'
 
-    # packages/core services: the framework-free application logic and the
-    # adapters that implement its ports (ADR-0005).
-    SocialBulletin\Core\UserService: ~
-    SocialBulletin\Core\UserRepository: '@App\Repository\DbalUserRepository'
-    SocialBulletin\Core\IdentityGenerator: '@App\Identity\UuidV7IdentityGenerator'
+    # packages/core services: the framework-free domain logic
+    SocialBulletin\Core\Domain\User\UserService: ~
+    SocialBulletin\Core\Domain\Movement\MovementService: ~
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # makes every packages/core `*Repository` class available as a service
+    SocialBulletin\Core\Domain\:
+        resource: '../../../packages/core/src/Domain/*/*Repository.php'
+
+    # packages/core command handlers: tagged here rather than with #[AsMessageHandler],
+    # so the core package stays framework-free (ADR-0005, ADR-0017)
+    SocialBulletin\Core\Application\:
+        resource: '../../../packages/core/src/Application/*/*Handler.php'
+        tags:
+            - name: messenger.message_handler
+              bus: command.bus
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true
+
+        # Shared HTTP machinery for the Behat contexts (ADR-0015).
+        App\Tests\Behat\ApiClient: ~

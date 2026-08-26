@@ -1,35 +1,51 @@
 # ADR-0012: Deptrac owns package and layer dependency rules.
-# packages/core stays framework-free (contracts only); apps depend on packages, never the reverse.
+# packages/core stays framework-free but owns its DBAL repositories; apps depend on packages, never the reverse.
+# ADR-0017: inside packages/core, Application may use Domain; Domain never reaches back into Application.
 deptrac:
   paths:
     - apps/api/src
     - packages/core/src
 
   layers:
-    - name: App
+    - name: Framework
       collectors:
         - type: directory
           value: apps/api/src/.*
 
-    - name: Core
+    - name: Application
       collectors:
         - type: directory
-          value: packages/core/src/.*
+          value: packages/core/src/Application/.*
+
+    - name: Domain
+      collectors:
+        - type: directory
+          value: packages/core/src/Domain/.*
+
+    - name: Symfony
+      collectors:
+        - type: classNameRegex
+          value: '/^Symfony\\(?!Contracts|Component\\Uid)/'
 
     - name: SymfonyContracts
       collectors:
         - type: classNameRegex
           value: '/^Symfony\\Contracts/'
 
-    - name: Symfony
+    - name: SymfonyUid
       collectors:
         - type: classNameRegex
-          value: '/^Symfony\\(?!Contracts)/'
+          value: '/^Symfony\\Component\\Uid/'
 
     - name: Doctrine
       collectors:
         - type: classNameRegex
-          value: '/^Doctrine/'
+          value: '/^Doctrine\\(?!DBAL)/'
+
+    - name: DBAL
+      collectors:
+        - type: classNameRegex
+          value: '/^Doctrine\\DBAL/'
 
     - name: Psr
       collectors:
@@ -42,5 +58,6 @@ deptrac:
           value: '/^Webmozart/'
 
   ruleset:
-    App: [Core, Symfony, SymfonyContracts, Doctrine, Psr, Assert]
-    Core: [SymfonyContracts, Psr, Assert]
+    Framework: [Application, Domain, Symfony, SymfonyContracts, SymfonyUid, Doctrine, DBAL, Psr, Assert]
+    Application: [Domain, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
+    Domain: [SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]

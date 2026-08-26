@@ -21,6 +21,12 @@
   - Tested independently
   - Deployed independently
   - Demonstrated to users independently
+
+  Constitution Principle I: acceptance scenarios are the source material for
+  test tasks. Write each one so it states observable behaviour a test can
+  assert — concrete inputs and a concrete outcome, not "works correctly".
+  Every user story here becomes at least one end-to-end journey later, so
+  describe the journey as a user actually walks it.
 -->
 
 ### User Story 1 - [Brief Title] (Priority: P1)
