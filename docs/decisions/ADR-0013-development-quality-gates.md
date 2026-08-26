@@ -40,7 +40,8 @@ Closes {LINK TO GH ISSUE}
 [Include any additional information or notes that may be helpful for deployment.]
 ```
 
-Use a GitHub Actions `pull_request` workflow for optional checks controlled by a PR description checkbox.
+Use a GitHub Actions `pull_request` workflow
+for optional checks controlled by a PR description checkbox.
 
 The workflow SHALL use these event types:
 
@@ -56,6 +57,30 @@ Optional jobs SHALL be gated by the checked state in the PR body:
 if: contains(github.event.pull_request.body, '- [x] PHPSpec')
 ```
 
+Every job runs on its own runner,
+so the containers and dependencies a gated job needs
+cannot be prepared before those jobs start.
+A dedicated setup job SHALL prepare them once per run,
+and the gated jobs SHALL restore that work from the workflow cache
+in parallel rather than repeating it.
+
+Container images and installed dependencies SHALL be cached separately.
+The development stack bind-mounts the repository into its containers,
+so dependency trees live in the workspace rather than inside an image,
+and a prepared image alone would still leave every job installing them.
+
+Build configuration that only CI can satisfy
+SHALL be applied as a CI-only overlay
+rather than added to the development stack definition,
+so that local builds keep working unchanged.
+
+`make setup-ci` SHALL be the only entry point for that preparation,
+and SHALL be decomposable per service
+so a job prepares just the part of the stack it uses.
+
+The gating condition SHALL cover the setup job as well as the checks,
+so a pull request that requests no checks runs nothing.
+
 ## Consequences
 
 - Lefthook runs checks before commit and push.
@@ -64,5 +89,10 @@ if: contains(github.event.pull_request.body, '- [x] PHPSpec')
 - Pre-push runs medium-cost checks before sharing work.
 - Commit messages follow Conventional Commits.
 - PR checkboxes control optional CI jobs.
-- Checkbox labels must stay stable between the PR template and workflows.
+- Checkbox labels must stay stable across the PR template, the gated jobs,
+  and the setup job condition that repeats them.
+- Gated jobs restore cached image layers and dependencies
+  rather than building them.
+- A run that changes an image definition or a dependency lock file
+  misses the caches and saves nothing.
 - Hook and workflow configuration need ongoing maintenance as checks change.
