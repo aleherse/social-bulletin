@@ -1,0 +1,28 @@
+# CI-only overlay: share image layers between jobs through the GitHub Actions
+# cache, so each job's `docker compose build` restores layers instead of
+# rebuilding them. `type=gha` needs a buildx builder and the Actions runtime
+# token, so this file is never merged into the local development stack.
+services:
+  php:
+    build:
+      context: docker/php
+      cache_from:
+        - type=gha,scope=php
+      cache_to:
+        - type=gha,scope=php,mode=max
+
+  node:
+    build:
+      context: docker/node
+      cache_from:
+        - type=gha,scope=node
+      cache_to:
+        - type=gha,scope=node,mode=max
+
+  nginx:
+    build:
+      context: docker/nginx
+      cache_from:
+        - type=gha,scope=nginx
+      cache_to:
+        - type=gha,scope=nginx,mode=max
