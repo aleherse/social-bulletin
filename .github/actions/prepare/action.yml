@@ -1,0 +1,46 @@
+name: Prepare
+description: >-
+  Restore the container image layers and the installed dependencies for a CI
+  job, then top up whatever the caches did not supply.
+
+inputs:
+  service:
+    description: Which side of the stack to prepare - php, node, or all.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: docker/setup-buildx-action@v3
+
+    # Exports ACTIONS_RUNTIME_TOKEN and the cache URLs into the job
+    # environment. docker/build-push-action injects them on its own, but a
+    # plain `docker compose build` step cannot reach the GitHub Actions cache
+    # backend without them.
+    - uses: crazy-max/ghaction-github-runtime@v3
+
+    - if: inputs.service == 'php' || inputs.service == 'all'
+      uses: actions/cache@v4
+      with:
+        path: |
+          apps/api/vendor
+          packages/core/vendor
+        key: php-deps-${{ runner.os }}-${{ hashFiles('apps/api/composer.lock', 'packages/core/composer.lock') }}
+
+    - if: inputs.service == 'node' || inputs.service == 'all'
+      uses: actions/cache@v4
+      with:
+        path: apps/web/node_modules
+        key: web-deps-${{ runner.os }}-${{ hashFiles('apps/web/package-lock.json') }}
+
+    - if: inputs.service == 'all'
+      shell: bash
+      run: make setup-ci
+
+    - if: inputs.service == 'php'
+      shell: bash
+      run: make setup-ci-php
+
+    - if: inputs.service == 'node'
+      shell: bash
+      run: make setup-ci-node

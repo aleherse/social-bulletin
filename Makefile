@@ -8,7 +8,22 @@ export HOST_GID ?= $(shell id -g)
 
 .PHONY: help
 help: ## List supported targets and their purpose
-	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+.PHONY: setup-ci
+setup-ci: setup-ci-php setup-ci-node ## Prepare the whole CI environment
+
+.PHONY: setup-ci-php
+setup-ci-php: ## Build the PHP image and install its dependencies
+	$(COMPOSE) build php
+	$(COMPOSE) run --rm --no-deps php composer install --working-dir=/app/packages/core --no-interaction
+	$(COMPOSE) run --rm --no-deps php composer install --working-dir=/app/apps/api --no-interaction
+	$(COMPOSE) run --rm --no-deps --workdir /app/apps/api php php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
+.PHONY: setup-ci-node
+setup-ci-node: ## Build the Node and nginx images and install the frontend dependencies
+	$(COMPOSE) build node nginx
+	$(COMPOSE) run --rm --no-deps node npm install --prefix /app/apps/web
 
 .PHONY: setup
 setup: ## Prepare the local development environment (env templates, containers, infrastructure)
