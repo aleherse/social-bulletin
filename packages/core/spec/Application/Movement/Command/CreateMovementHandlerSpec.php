@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace spec\SocialBulletin\Core\Application\Movement;
+namespace spec\SocialBulletin\Core\Application\Movement\Command;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use SocialBulletin\Core\Application\Movement\CreateMovementCommand;
+use SocialBulletin\Core\Application\Movement\Command\CreateMovementCommand;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;

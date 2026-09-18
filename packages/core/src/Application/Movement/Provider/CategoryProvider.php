@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Domain\Movement;
+namespace SocialBulletin\Core\Application\Movement\Provider;
 
 use Doctrine\DBAL\Connection;
+use SocialBulletin\Core\Application\Movement\Model\Category;
 
-class CategoryRepository
+/**
+ * Reads the managed category list. Nothing in the application writes it;
+ * `bulletin.categories` is seeded by migration.
+ */
+class CategoryProvider
 {
     public function __construct(
         private readonly Connection $connection,
@@ -24,15 +29,5 @@ class CategoryRepository
         );
 
         return array_map(static fn (string $id): Category => new Category($id), $ids);
-    }
-
-    public function exists(string $id): bool
-    {
-        return false !== $this->connection->fetchOne(
-            'SELECT 1 FROM bulletin.categories WHERE id = :id',
-            [
-                'id' => $id,
-            ],
-        );
     }
 }

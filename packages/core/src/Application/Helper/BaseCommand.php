@@ -13,7 +13,7 @@ use Webmozart\Assert\Assert;
  * would be indistinguishable from an explicit one, so `null` stays usable as a real value
  * (clearing a movement's location). `hasProperty()` is how a handler tells the two apart.
  */
-abstract readonly class Command
+abstract readonly class BaseCommand
 {
     /**
      * Whether the caller supplied this field at all — `true` even when they supplied `null`.

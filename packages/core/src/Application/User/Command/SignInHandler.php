@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Application\User;
+namespace SocialBulletin\Core\Application\User\Command;
 
 use SocialBulletin\Core\Domain\User\InvalidEmailAddress;
 use SocialBulletin\Core\Domain\User\User;

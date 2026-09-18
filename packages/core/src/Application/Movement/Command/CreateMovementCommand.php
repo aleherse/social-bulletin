@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Application\Movement;
+namespace SocialBulletin\Core\Application\Movement\Command;
 
-use SocialBulletin\Core\Application\Helper\Command;
+use SocialBulletin\Core\Application\Helper\BaseCommand;
 use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\User\UserId;
 use Webmozart\Assert\Assert;
@@ -12,7 +12,7 @@ use Webmozart\Assert\Assert;
 /**
  * Handled by {@see CreateMovementHandler}.
  */
-final readonly class CreateMovementCommand extends Command
+final readonly class CreateMovementCommand extends BaseCommand
 {
     public MovementId $id;
 

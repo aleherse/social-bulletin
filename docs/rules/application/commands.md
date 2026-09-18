@@ -4,8 +4,8 @@
 
 **WHEN** adding a write operation to `core`
 
-**THEN** put it in `src/Application/<Aggregate>/` as a `final readonly` command extending `Command`
-(`application-helpers-0002`), paired one-to-one with a `final readonly` handler whose single
+**THEN** put it in `src/Application/<Aggregate>/Command/` as a `final readonly` command extending
+`BaseCommand` (`application-helpers-0002`), paired one-to-one with a `final readonly` handler whose single
 `__invoke(<Intent>Command $command): void` returns nothing — a write use case reports failure by throwing, and a
 caller that needs the affected aggregate reads it back (`application-commands-0002`). The command carries the whole
 use-case input as public properties — the aggregate id and the acting author's id included, so `CreateMovementCommand`
@@ -18,31 +18,35 @@ only orchestrates — load, mutate, save — with the rules staying in the aggre
 
 | Wrong                                                | Right                                                          |
 |------------------------------------------------------|----------------------------------------------------------------|
-| `MovementService::update($id, $authorId, $title, …)` | `UpdateMovementHandler::__invoke(UpdateMovementCommand $c)`    |
+| a service method carrying a write (`update($id, …)`)  | `UpdateMovementHandler::__invoke(UpdateMovementCommand $c)`    |
 | `__invoke(…): Movement`, returning the saved aggregate | `__invoke(…): void`, leaving the caller to read it back       |
 | `MovementId::generate()` inside `CreateMovementHandler` | `$command->id`, minted by `CreateMovementCommand`            |
+| `Application/Movement/CreateMovementCommand.php`     | `Application/Movement/Command/CreateMovementCommand.php`       |
 | `#[AsMessageHandler]` on `UpdateMovementHandler`     | tagged in `apps/api/config/services.yaml`                      |
 | validation inside `SubmitMovementHandler`            | `Movement::submit()` throwing `InvalidMovement`                |
 | id passed to the handler beside the command          | `UpdateMovementCommand::fromPayload($payload, $authorId, $id)` |
 
-## application-commands-0002: Writes dispatch, reads call directly
+## application-commands-0002: Writes and reads each dispatch on their own bus
 
-**WHEN** a controller under `apps/api/src/Controller` — or a Behat `Given` step — needs a `core` write
+**WHEN** a controller under `apps/api/src/Controller` — or a Behat `Given` step — needs a `core` write or read
 
 **THEN** dispatch the command through `App\Messenger\CommandBus`, which returns nothing, and read the affected
-aggregate back through the domain service afterwards — `MovementService::authorMovement()` under the id the caller
-holds, `$command->id` for a create. The bus is synchronous and unwraps Messenger's `HandlerFailedException`, so the
-domain exception is still what you catch and map to a status code, and the read-back belongs inside the same `try`.
-Reads stay a direct call on the domain service — no query bus, no query objects (ADR-0017).
+movement back by dispatching `ShowMovementQuery` through `App\Messenger\QueryBus` — under the id the caller holds,
+`$command->id` for a create. A read dispatches the same way and gets the handler's result back
+(`application-queries-0003`). Both buses are synchronous and unwrap Messenger's `HandlerFailedException`, so the
+`DomainError` the domain threw is still what you catch and map to a status code (`domain-helpers-0003`), and the
+read-back belongs inside the same `try`.
+Nothing in `apps/api` injects a provider or a repository — the bus is the only way in (ADR-0020).
 
 **Example:**
 
-| Wrong                                                | Right                                                                      |
-|------------------------------------------------------|----------------------------------------------------------------------------|
-| `$this->movementService->submit($id, $author->id)`   | `$this->commandBus->dispatch(new SubmitMovementCommand($id, $author->id))` |
-| `$movement = $this->commandBus->dispatch($command)`  | `dispatch($command)`, then `$this->movementService->authorMovement(…)`     |
-| injecting `MessageBusInterface` into a controller    | injecting `App\Messenger\CommandBus`                                       |
-| `$this->commandBus->dispatch(new GetMovements(...))` | `$this->movementService->byAuthor($author->id)`                            |
+| Wrong                                                | Right                                                                           |
+|------------------------------------------------------|---------------------------------------------------------------------------------|
+| `$this->movements->submit($id, $author->id)`         | `$this->commandBus->dispatch(new SubmitMovementCommand($id, $author->id))`      |
+| `$movement = $this->commandBus->dispatch($command)`  | `dispatch($command)`, then `$this->queryBus->dispatch(new ShowMovementQuery(…))` |
+| injecting `MessageBusInterface` into a controller    | injecting `App\Messenger\CommandBus` or `App\Messenger\QueryBus`              |
+| injecting `MovementProvider` into a controller       | `$this->queryBus->dispatch(new ListMovementsQuery($author->id))`                |
+| a query dispatched on `command.bus`                  | `query.bus`, where the query handlers are tagged                                |
 
 ## application-commands-0003: An absent field is uninitialised, not null
 
@@ -52,7 +56,7 @@ meaningful value for that field (clearing a movement's location, say)
 **THEN** leave the property **unassigned** when the input omitted it, rather than storing `null` or pairing it with a
 `<field>Provided` boolean: declare it as a plain (non-promoted) property on the `final readonly class`, assign it
 conditionally in the constructor, and read it in the handler through `hasProperty('<field>')`, touching the aggregate
-only when that returns `true`. `hasProperty()` and the PHPStan ignore it requires belong to the `Command` base
+only when that returns `true`. `hasProperty()` and the PHPStan ignore it requires belong to the `BaseCommand` base
 (`application-helpers-0002`).
 
 **Example:**

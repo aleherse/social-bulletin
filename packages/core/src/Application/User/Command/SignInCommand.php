@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Application\User;
+namespace SocialBulletin\Core\Application\User\Command;
 
-use SocialBulletin\Core\Application\Helper\Command;
+use SocialBulletin\Core\Application\Helper\BaseCommand;
 use Webmozart\Assert\Assert;
 
 /**
@@ -14,7 +14,7 @@ use Webmozart\Assert\Assert;
  * empty address, which the domain then rejects like any other unusable one.
  * Handled by {@see SignInHandler}.
  */
-final readonly class SignInCommand extends Command
+final readonly class SignInCommand extends BaseCommand
 {
     public string $email;
 

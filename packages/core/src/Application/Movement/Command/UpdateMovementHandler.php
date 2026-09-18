@@ -2,18 +2,16 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Application\Movement;
+namespace SocialBulletin\Core\Application\Movement\Command;
 
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
-use SocialBulletin\Core\Domain\Movement\MovementService;
 
 final readonly class UpdateMovementHandler
 {
     public function __construct(
-        private MovementService $movementService,
         private MovementRepository $movements,
     ) {
     }
@@ -25,7 +23,7 @@ final readonly class UpdateMovementHandler
      */
     public function __invoke(UpdateMovementCommand $command): void
     {
-        $movement = $this->movementService->authorMovement($command->id, $command->authorId);
+        $movement = $this->movements->authorMovement($command->id, $command->authorId);
         $movement->edit(
             $command->hasProperty('title') ? $command->title : $movement->title(),
             $command->hasProperty('description') ? $command->description : $movement->description(),

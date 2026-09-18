@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Application\Movement;
+namespace SocialBulletin\Core\Application\Movement\Command;
 
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;

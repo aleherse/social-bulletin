@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use SocialBulletin\Core\Domain\Movement\Category;
-use SocialBulletin\Core\Domain\Movement\CategoryRepository;
+use App\Messenger\QueryBus;
+use SocialBulletin\Core\Application\Movement\Model\Category;
+use SocialBulletin\Core\Application\Movement\Query\ListCategoriesQuery;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 final readonly class ListCategoriesController
 {
     public function __construct(
-        private CategoryRepository $categories,
+        private QueryBus $queryBus,
     ) {
     }
 
@@ -24,7 +25,7 @@ final readonly class ListCategoriesController
                 static fn (Category $category): array => [
                     'id' => $category->id,
                 ],
-                $this->categories->all(),
+                $this->queryBus->dispatch(new ListCategoriesQuery()),
             ),
         ]);
     }

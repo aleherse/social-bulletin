@@ -123,6 +123,28 @@ Feature: Propose a movement
     Then the response status code should be 200
     And the JSON at "movements" should have 0 items
 
+  Scenario: An author's movements are listed newest first
+    Given "author@example.com" has a movement draft titled "Save the Bees"
+    And "author@example.com" has a movement draft titled "Community Gardens for Everyone"
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I send a GET request to "/api/movements"
+    Then the response status code should be 200
+    And the JSON at "movements" should have 2 items
+    And the JSON at "movements[0].title" should equal "Community Gardens for Everyone"
+    And the JSON at "movements[1].title" should equal "Save the Bees"
+
+  Scenario: A movement id that is not a UUID is not found
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I send a GET request to "/api/movements/not-a-uuid"
+    Then the response status code should be 404
+    And the JSON at "message" should not be empty
+
   Scenario: An author can fetch their own movement
     Given "author@example.com" has a movement draft titled "Save the Bees"
     When I send a POST request to "/api/session" with body:

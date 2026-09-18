@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Application\Movement;
+namespace SocialBulletin\Core\Application\Movement\Command;
 
-use SocialBulletin\Core\Application\Helper\Command;
+use SocialBulletin\Core\Application\Helper\BaseCommand;
 use SocialBulletin\Core\Domain\User\UserId;
 
 /**
@@ -13,7 +13,7 @@ use SocialBulletin\Core\Domain\User\UserId;
  * Every field is required, so all of them are promoted and always initialised.
  * Handled by {@see SubmitMovementHandler}.
  */
-final readonly class SubmitMovementCommand extends Command
+final readonly class SubmitMovementCommand extends BaseCommand
 {
     public function __construct(
         public string $id,

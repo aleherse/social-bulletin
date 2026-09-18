@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace spec\SocialBulletin\Core\Application\User;
+namespace spec\SocialBulletin\Core\Application\User\Command;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use SocialBulletin\Core\Application\User\SignInCommand;
+use SocialBulletin\Core\Application\User\Command\SignInCommand;
 use SocialBulletin\Core\Domain\User\InvalidEmailAddress;
 use SocialBulletin\Core\Domain\User\User;
 use SocialBulletin\Core\Domain\User\UserId;

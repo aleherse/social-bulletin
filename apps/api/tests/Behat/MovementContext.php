@@ -11,11 +11,12 @@ use Behat\Step\Then;
 use Behat\Step\When;
 use Doctrine\DBAL\Connection;
 use App\Messenger\CommandBus;
-use SocialBulletin\Core\Application\Movement\SubmitMovementCommand;
-use SocialBulletin\Core\Application\Movement\CreateMovementCommand;
-use SocialBulletin\Core\Application\User\SignInCommand;
-use SocialBulletin\Core\Domain\User\User;
-use SocialBulletin\Core\Domain\User\UserService;
+use App\Messenger\QueryBus;
+use SocialBulletin\Core\Application\Movement\Command\SubmitMovementCommand;
+use SocialBulletin\Core\Application\Movement\Command\CreateMovementCommand;
+use SocialBulletin\Core\Application\User\Command\SignInCommand;
+use SocialBulletin\Core\Application\User\Query\CurrentUserQuery;
+use SocialBulletin\Core\Application\User\Model\User;
 use Webmozart\Assert\Assert;
 
 use function JmesPath\search;
@@ -28,7 +29,7 @@ final class MovementContext implements Context
     public function __construct(
         private readonly ApiClient $apiClient,
         private readonly CommandBus $commandBus,
-        private readonly UserService $userService,
+        private readonly QueryBus $queryBus,
         private readonly Connection $connection,
     ) {
     }
@@ -121,7 +122,7 @@ final class MovementContext implements Context
     private function signIn(string $email): User
     {
         $this->commandBus->dispatch(SignInCommand::fromPayload(['email' => $email]));
-        $user = $this->userService->currentUser($email);
+        $user = $this->queryBus->dispatch(new CurrentUserQuery($email));
         Assert::isInstanceOf($user, User::class);
 
         return $user;

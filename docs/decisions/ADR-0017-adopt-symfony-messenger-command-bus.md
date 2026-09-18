@@ -32,6 +32,7 @@ and existing HTTP responses are unchanged.
 `packages/core/src/Application/<Aggregate>/` SHALL hold the write use cases,
 one command plus one handler per use case,
 with the business rules staying in the aggregate.
+(ADR-0019 moved them one level down, into `<Aggregate>/Command/`.)
 
 Handlers SHALL return `void`.
 A write use case reports failure by throwing,
@@ -56,6 +57,12 @@ so controllers keep catching domain exceptions
 and keep mapping them to 404, 409, 400, and 422.
 
 ### Reads are out of scope
+
+**Superseded by [ADR-0019](ADR-0019-adopt-cqrs-read-providers.md).**
+Queries now go through a provider returning DTOs,
+and the ownership-scoped lookup that guards a write
+is a repository method rather than a query service.
+The rest of this decision stands.
 
 Queries SHALL keep their current shape:
 a domain service method reached directly from the controller.
@@ -84,3 +91,4 @@ for the ownership-scoped lookup that guards them.
   and that read sits inside the same `try` as the dispatch.
 - Reads and writes are now asymmetric by design;
   a future decision to introduce a query bus would supersede this one.
+  ADR-0019 kept reads as direct calls and split them onto providers instead.

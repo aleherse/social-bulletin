@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace SocialBulletin\Core\Domain\Movement;
 
-final class InvalidMovement extends \DomainException
+use SocialBulletin\Core\Domain\Helper\DomainError;
+
+final class InvalidMovement extends \DomainException implements DomainError
 {
     /**
      * @param array<string, string> $errors field name => translation key

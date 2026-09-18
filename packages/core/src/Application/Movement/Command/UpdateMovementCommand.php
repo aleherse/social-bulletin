@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Application\Movement;
+namespace SocialBulletin\Core\Application\Movement\Command;
 
-use SocialBulletin\Core\Application\Helper\Command;
+use SocialBulletin\Core\Application\Helper\BaseCommand;
 use SocialBulletin\Core\Domain\User\UserId;
 use Webmozart\Assert\Assert;
 
 /**
  * Command: edit the fields of an existing `draft` movement.
  *
- * Fields the payload omitted are left uninitialised, so {@see Command::hasProperty()} tells them
+ * Fields the payload omitted are left uninitialised, so {@see BaseCommand::hasProperty()} tells them
  * from an explicit `null` — the movement already holds a value for each, and only an omission
  * should leave it standing.
  * Handled by {@see UpdateMovementHandler}.
  */
-final readonly class UpdateMovementCommand extends Command
+final readonly class UpdateMovementCommand extends BaseCommand
 {
     // @phpstan-ignore property.uninitializedReadonly (unassigned when the payload omits it)
     public string $title;

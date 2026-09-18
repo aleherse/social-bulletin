@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use SocialBulletin\Core\Domain\Movement\MovementService;
-use SocialBulletin\Core\Domain\User\User;
+use App\Messenger\QueryBus;
+use SocialBulletin\Core\Application\Movement\Query\ListMovementsQuery;
+use SocialBulletin\Core\Application\User\Model\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 final readonly class ListMovementsController
 {
     public function __construct(
-        private MovementService $movementService,
+        private QueryBus $queryBus,
     ) {
     }
 
@@ -22,7 +23,7 @@ final readonly class ListMovementsController
         return new JsonResponse([
             'movements' => array_map(
                 MovementPresenter::toArray(...),
-                $this->movementService->byAuthor($author->id),
+                $this->queryBus->dispatch(new ListMovementsQuery($author->id)),
             ),
         ]);
     }

@@ -69,3 +69,21 @@ write into a create and an edit command (`application-commands-0005`) is often w
 | absent-field merge (`$payload['title'] ?? $movement->title()`, …) inline in the controller              | resolved in `UpdateMovementHandler`, from the aggregate it loads                              |
 | `$this->title = $payload['title'] ?? ''` in `UpdateMovementCommand` — it would silently blank the field | left unassigned; `UpdateMovementHandler` falls back to the movement's current title           |
 | `SignInCommand::$email` left unassigned, so every reader must ask `hasProperty('email')` first          | `$this->email = $email ?? ''` — absent, `null` and `''` are all `email.blank`                 |
+
+## application-framework-0003: A controller reaches core through Application and DomainError only
+
+**WHEN** writing a controller under `apps/api/src/Controller`
+
+**THEN** import from `Core\Application` — the command, the query, the model it renders — plus the `DomainError`
+implementors it maps to status codes (`domain-helpers-0003`), and nothing else from `Domain`. Naming a domain class
+puts a business rule in the controller and duplicates one the use case already runs. `deptrac.yaml` enforces it:
+`Framework: [Application, DomainError, ...]`, with plain `Domain`, `Provider` and `Repository` all out of reach.
+
+**Example:**
+
+| Wrong                                                               | Right                                                              |
+|-----------------------------------------------------------------------|----------------------------------------------------------------------|
+| `use SocialBulletin\Core\Domain\User\User;` in `SignInController`     | only the `SignInCommand` and `CurrentUserQuery` it dispatches        |
+| `$email = User::normaliseEmail($command->email);`, then querying it   | `new CurrentUserQuery($command->email)`, normalised in the handler   |
+| injecting `MovementProvider` into a controller                        | dispatching on `QueryBus` (`application-commands-0002`)              |
+
