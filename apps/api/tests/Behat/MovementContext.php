@@ -6,6 +6,7 @@ namespace App\Tests\Behat;
 
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
+use Behat\Gherkin\Node\TableNode;
 use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
@@ -51,6 +52,22 @@ final class MovementContext implements Context
         $user = $this->signIn($email);
         $this->createMovement($email, $title, "## Why\nBecause it matters.");
         $this->commandBus->dispatch(new SubmitMovementCommand($this->movementId($title), $user->id));
+    }
+
+    #[Given(':email has a movement draft with:')]
+    public function hasAMovementDraftWith(string $email, TableNode $table): void
+    {
+        $fields = $table->getRowsHash();
+        Assert::keyExists($fields, 'title', 'The movement draft table must have a "title" row.');
+
+        $this->createMovement(
+            $email,
+            $fields['title'],
+            $fields['description'] ?? '',
+            $fields['category'] ?? 'cooperative',
+            $fields['area'] ?? 'municipality',
+            $fields['location'] ?? 'Sheffield',
+        );
     }
 
     #[When('I send a :method request to the movement titled :title')]
@@ -125,28 +142,42 @@ final class MovementContext implements Context
         return $user;
     }
 
-    private function createMovement(string $email, string $title, string $description): void
-    {
+    private function createMovement(
+        string $email,
+        string $title,
+        string $description,
+        string $category = 'cooperative',
+        string $area = 'municipality',
+        string $location = 'Sheffield',
+    ): void {
         $user = $this->signIn($email);
         $movement = $this->commandBus->dispatch(CreateMovementCommand::fromPayload([
             'title' => $title,
             'description' => $description,
-            'category' => 'cooperative',
-            'area' => 'municipality',
-            'location' => 'Sheffield',
+            'category' => $category,
+            'area' => $area,
+            'location' => $location,
         ], $user->id));
         Assert::isInstanceOf($movement, Movement::class);
 
         $this->movementIds[$title] = (string) $movement->id;
     }
 
+    /**
+     * Falls back to the database for movements seeded by the baseline fixture rather than by a
+     * Given step in the current scenario.
+     */
     private function movementId(string $title): string
     {
-        Assert::keyExists(
-            $this->movementIds,
-            $title,
-            sprintf('No movement titled "%s" was created by a Given step.', $title),
-        );
+        if (!isset($this->movementIds[$title])) {
+            $id = $this->connection->fetchOne(
+                'SELECT id FROM bulletin.movements WHERE title = :title',
+                ['title' => $title],
+            );
+            Assert::string($id, sprintf('No movement titled "%s" exists.', $title));
+
+            $this->movementIds[$title] = $id;
+        }
 
         return $this->movementIds[$title];
     }

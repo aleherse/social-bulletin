@@ -110,7 +110,7 @@ Feature: Propose a movement
       """
     And I send a GET request to "/api/categories"
     Then the response status code should be 200
-    And the JSON at "categories" should have 4 items
+    And the JSON at "categories" should have 5 items
     And the JSON at "categories[0].id" should equal "animal_rights"
 
   Scenario: Users only see their own movements
@@ -263,3 +263,14 @@ Feature: Propose a movement
       {"title": "Save All the Bees"}
       """
     Then the response status code should be 404
+
+  Scenario: The baseline movement carries its custom category
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "canadiense.social@malinator.com"}
+      """
+    And I send a GET request to the movement titled "La Canadiense"
+    Then the response status code should be 200
+    And the JSON at "category" should equal "labor"
+    And the JSON at "area" should equal "municipality"
+    And the JSON at "location" should equal "Barcelona"

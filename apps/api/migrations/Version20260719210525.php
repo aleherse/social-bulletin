@@ -32,7 +32,8 @@ final class Version20260719210525 extends AbstractMigration
                 ('animal_rights', 10),
                 ('anti-racism', 20),
                 ('black_power', 30),
-                ('cooperative', 40)
+                ('cooperative', 40),
+                ('labor', 50)
             SQL);
         $this->addSql(<<<'SQL'
             CREATE TABLE bulletin.movements (
