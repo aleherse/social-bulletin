@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace spec\SocialBulletin\Core\Movement;
+namespace spec\SocialBulletin\Core\Domain\Movement;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use SocialBulletin\Core\Helper\IdentityGenerator;
-use SocialBulletin\Core\Movement\DraftMovement;
-use SocialBulletin\Core\Movement\EditMovement;
-use SocialBulletin\Core\Movement\InvalidMovement;
-use SocialBulletin\Core\Movement\Movement;
-use SocialBulletin\Core\Movement\MovementNotDraft;
-use SocialBulletin\Core\Movement\MovementNotFound;
-use SocialBulletin\Core\Movement\MovementRepository;
-use SocialBulletin\Core\Movement\MovementStatus;
-use SocialBulletin\Core\Movement\SubmitMovement;
+use SocialBulletin\Core\Domain\Helper\IdentityGenerator;
+use SocialBulletin\Core\Domain\Movement\DraftMovement;
+use SocialBulletin\Core\Domain\Movement\EditMovement;
+use SocialBulletin\Core\Domain\Movement\InvalidMovement;
+use SocialBulletin\Core\Domain\Movement\Movement;
+use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
+use SocialBulletin\Core\Domain\Movement\MovementNotFound;
+use SocialBulletin\Core\Domain\Movement\MovementRepository;
+use SocialBulletin\Core\Domain\Movement\MovementStatus;
+use SocialBulletin\Core\Domain\Movement\SubmitMovement;
 
 final class MovementServiceSpec extends ObjectBehavior
 {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Security;
 
-use SocialBulletin\Core\User\User;
-use SocialBulletin\Core\User\UserService;
+use SocialBulletin\Core\Domain\User\User;
+use SocialBulletin\Core\Domain\User\UserService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ValueResolverInterface;

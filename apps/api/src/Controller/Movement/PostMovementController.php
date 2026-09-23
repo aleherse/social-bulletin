@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use SocialBulletin\Core\Movement\InvalidMovement;
-use SocialBulletin\Core\Movement\MovementService;
-use SocialBulletin\Core\User\User;
+use SocialBulletin\Core\Domain\Movement\InvalidMovement;
+use SocialBulletin\Core\Domain\Movement\MovementService;
+use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

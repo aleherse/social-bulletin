@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\User;
+namespace SocialBulletin\Core\Domain\User;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
