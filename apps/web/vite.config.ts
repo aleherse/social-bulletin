@@ -13,7 +13,6 @@ const httpsConfig =
     ? { cert: fs.readFileSync(certFile), key: fs.readFileSync(keyFile) }
     : undefined;
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {

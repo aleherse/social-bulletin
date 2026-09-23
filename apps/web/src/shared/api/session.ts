@@ -5,13 +5,7 @@ export interface SessionUser {
 /** API rejected the session request; `message` is already translated by the backend. */
 export class SessionError extends Error {}
 
-const API_URL: string =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://dev.api.social.aleherse.com';
-
-function request(path: string, init?: RequestInit): Promise<Response> {
-  // The JWT lives in an httpOnly cookie, so every call must send credentials.
-  return fetch(`${API_URL}${path}`, { credentials: 'include', ...init });
-}
+import { apiRequest as request } from './http.ts';
 
 export async function fetchCurrentUser(): Promise<SessionUser | null> {
   const response = await request('/api/me');

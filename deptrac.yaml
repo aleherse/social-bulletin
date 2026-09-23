@@ -1,35 +1,82 @@
 # ADR-0012: Deptrac owns package and layer dependency rules.
-# packages/core stays framework-free (contracts only); apps depend on packages, never the reverse.
+# packages/core stays framework-free but owns its DBAL repositories; apps depend on packages, never the reverse.
+# ADR-0017: inside packages/core, Application may use Domain; Domain never reaches back into Application.
+# Framework reaches core through Application only, plus the domain errors it maps to status codes (DomainError).
+# Providers read; they never touch a repository (ADR-0020), and nothing in apps/api injects one either.
 deptrac:
   paths:
     - apps/api/src
     - packages/core/src
 
   layers:
-    - name: App
+    - name: Framework
       collectors:
         - type: directory
           value: apps/api/src/.*
 
-    - name: Core
+    - name: Provider
       collectors:
         - type: directory
-          value: packages/core/src/.*
+          value: packages/core/src/Application/.*/Provider/.*
+
+    - name: Application
+      collectors:
+        - type: bool
+          must:
+            - type: directory
+              value: packages/core/src/Application/.*
+          must_not:
+            - type: layer
+              value: Provider
+
+    - name: DomainError
+      collectors:
+        - type: implements
+          value: 'SocialBulletin\Core\Domain\Helper\DomainError'
+        - type: classLike
+          value: 'SocialBulletin\Core\Domain\Helper\DomainError'
+
+    - name: Repository
+      collectors:
+        - type: classNameRegex
+          value: '/^SocialBulletin\\Core\\Domain\\\w+\\\w*Repository$/'
+
+    - name: Domain
+      collectors:
+        - type: bool
+          must:
+            - type: directory
+              value: packages/core/src/Domain/.*
+          must_not:
+            - type: layer
+              value: DomainError
+            - type: layer
+              value: Repository
+
+    - name: Symfony
+      collectors:
+        - type: classNameRegex
+          value: '/^Symfony\\(?!Contracts|Component\\Uid)/'
 
     - name: SymfonyContracts
       collectors:
         - type: classNameRegex
           value: '/^Symfony\\Contracts/'
 
-    - name: Symfony
+    - name: SymfonyUid
       collectors:
         - type: classNameRegex
-          value: '/^Symfony\\(?!Contracts)/'
+          value: '/^Symfony\\Component\\Uid/'
 
     - name: Doctrine
       collectors:
         - type: classNameRegex
-          value: '/^Doctrine/'
+          value: '/^Doctrine\\(?!DBAL)/'
+
+    - name: DBAL
+      collectors:
+        - type: classNameRegex
+          value: '/^Doctrine\\DBAL/'
 
     - name: Psr
       collectors:
@@ -42,5 +89,9 @@ deptrac:
           value: '/^Webmozart/'
 
   ruleset:
-    App: [Core, Symfony, SymfonyContracts, Doctrine, Psr, Assert]
-    Core: [SymfonyContracts, Psr, Assert]
+    Framework: [Application, DomainError, Symfony, SymfonyContracts, SymfonyUid, Doctrine, DBAL, Psr, Assert]
+    Application: [Provider, Domain, DomainError, Repository, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
+    Provider: [Application, Domain, DomainError, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
+    Repository: [Domain, DomainError, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
+    Domain: [DomainError, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
+    DomainError: [Domain, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]

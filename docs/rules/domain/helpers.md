@@ -39,3 +39,22 @@ Don't add a `*RepositoryInterface` to `Helper/` to match this pattern.
 | a `Helper/` interface with no adapter aliased                       | aliased in `apps/api/config/services.yaml`                             |
 | `MovementRepositoryInterface` in `Domain/Helper/`                    | concrete `MovementRepository` in `Domain/Movement/`                    |
 | a concrete `Clock` class in `Domain/Helper/`                         | a `Clock` interface there, implemented in `apps/api`                   |
+
+## domain-helpers-0003: A domain failure apps/api maps implements DomainError
+
+**WHEN** adding an exception under `core/src/Domain/` that a controller must turn into a status code
+
+**THEN** have it `implements Domain\Helper\DomainError` alongside whatever it extends. `DomainError` is an empty
+`\Throwable` marker in `Domain/Helper/` (`domain-helpers-0001`) — the domain's published error surface.
+`deptrac.yaml` collects its implementors into a `DomainError` layer, the only part of `Domain` the `Framework` layer
+may name (`application-framework-0003`), so a domain exception that skips the interface is one no controller can
+catch.
+
+**Example:**
+
+| Wrong                                                          | Right                                                       |
+|------------------------------------------------------------------|---------------------------------------------------------------|
+| `final class MovementNotFound extends \DomainException {}`       | `... extends \DomainException implements DomainError`         |
+| a `MovementError` marker per aggregate                           | one `Domain\Helper\DomainError` shared by every aggregate    |
+| an `Application` copy of the exception for `apps/api` to catch   | the domain class itself, marked `DomainError`                 |
+

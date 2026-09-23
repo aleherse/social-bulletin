@@ -20,6 +20,5 @@
     "shadcn",
     // Part of the Testing Library toolchain (ADR-0015); first used by the
     // walking-skeleton component tests (T43).
-    "@testing-library/user-event",
   ],
 }
