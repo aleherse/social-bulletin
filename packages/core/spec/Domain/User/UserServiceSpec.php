@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace spec\SocialBulletin\Core\User;
+namespace spec\SocialBulletin\Core\Domain\User;
 
 use PhpSpec\ObjectBehavior;
-use SocialBulletin\Core\Helper\IdentityGenerator;
-use SocialBulletin\Core\User\InvalidEmailAddress;
-use SocialBulletin\Core\User\User;
-use SocialBulletin\Core\User\UserRepository;
+use SocialBulletin\Core\Domain\Helper\IdentityGenerator;
+use SocialBulletin\Core\Domain\User\InvalidEmailAddress;
+use SocialBulletin\Core\Domain\User\User;
+use SocialBulletin\Core\Domain\User\UserRepository;
 
 final class UserServiceSpec extends ObjectBehavior
 {

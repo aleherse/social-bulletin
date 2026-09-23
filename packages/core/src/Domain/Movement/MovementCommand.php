@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Movement;
+namespace SocialBulletin\Core\Domain\Movement;
 
 /**
  * An intent to change an existing movement, handled by {@see Movement::apply()}.

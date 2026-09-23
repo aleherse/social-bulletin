@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Helper;
+namespace SocialBulletin\Core\Domain\Helper;
 
 interface IdentityGenerator
 {
