@@ -26,19 +26,40 @@ class UserRepository
             ],
         );
 
-        if (false === $row) {
-            return null;
-        }
-
-        return new User($row['id'], $row['email'], new \DateTimeImmutable($row['created_at']));
+        return false === $row ? null : $this->hydrate($row);
     }
 
-    public function add(User $user): void
+    /**
+     * Inserts the user and returns the stored row as a fresh aggregate — including the
+     * creation timestamp the database assigned.
+     */
+    public function save(User $user): User
     {
-        $this->connection->insert('bulletin.users', [
-            'id' => $user->id,
-            'email' => $user->email,
-            'created_at' => $user->createdAt->format(\DateTimeInterface::ATOM),
-        ]);
+        /** @var array{id: string, email: string, created_at: string}|false $row */
+        $row = $this->connection->fetchAssociative(<<<'SQL'
+            INSERT INTO bulletin.users
+                (id, email, created_at)
+            VALUES
+                (:id, :email, now())
+            RETURNING id, email, created_at
+            SQL
+            , [
+                        'id' => $user->id,
+                        'email' => $user->email,
+                    ]);
+
+        if (false === $row) {
+            throw new \RuntimeException('Saving a user returned no row.');
+        }
+
+        return $this->hydrate($row);
+    }
+
+    /**
+     * @param array{id: string, email: string, created_at: string} $row
+     */
+    private function hydrate(array $row): User
+    {
+        return User::restore($row['id'], $row['email'], new \DateTimeImmutable($row['created_at']));
     }
 }
