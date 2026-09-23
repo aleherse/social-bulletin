@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace SocialBulletin\Core\Movement;
+namespace SocialBulletin\Core\Domain\Movement;
 
 /**
- * Intent to start a movement as a `draft`.
+ * Intent to replace every editable field of a `draft` movement.
  */
-final readonly class DraftMovement
+final readonly class EditMovement implements MovementCommand
 {
     public function __construct(
-        public string $authorId,
         public string $title,
         public string $description,
         public string $category,

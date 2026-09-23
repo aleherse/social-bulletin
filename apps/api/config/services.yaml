@@ -20,13 +20,13 @@ services:
         resource: '../src/'
 
     # packages/core services: the framework-free application logic
-    SocialBulletin\Core\User\UserService: ~
-    SocialBulletin\Core\Helper\IdentityGenerator: '@App\Identity\UuidV7IdentityGenerator'
-    SocialBulletin\Core\Movement\MovementService: ~
+    SocialBulletin\Core\Domain\User\UserService: ~
+    SocialBulletin\Core\Domain\Helper\IdentityGenerator: '@App\Identity\UuidV7IdentityGenerator'
+    SocialBulletin\Core\Domain\Movement\MovementService: ~
 
     # makes every packages/core `*Repository` class available as a service
-    SocialBulletin\Core\:
-        resource: '../../../packages/core/src/*/*Repository.php'
+    SocialBulletin\Core\Domain\:
+        resource: '../../../packages/core/src/Domain/*/*Repository.php'
 
 when@test:
     services:

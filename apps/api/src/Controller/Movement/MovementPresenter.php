@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use SocialBulletin\Core\Movement\Movement;
+use SocialBulletin\Core\Domain\Movement\Movement;
 
 final class MovementPresenter
 {

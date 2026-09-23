@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use SocialBulletin\Core\Movement\DraftMovement;
-use SocialBulletin\Core\Movement\EditMovement;
-use SocialBulletin\Core\Movement\Movement;
+use SocialBulletin\Core\Domain\Movement\DraftMovement;
+use SocialBulletin\Core\Domain\Movement\EditMovement;
+use SocialBulletin\Core\Domain\Movement\Movement;
 use Webmozart\Assert\Assert;
 
 final readonly class UpsertMovementCommand

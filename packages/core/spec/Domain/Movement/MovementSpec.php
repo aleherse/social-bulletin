@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace spec\SocialBulletin\Core\Movement;
+namespace spec\SocialBulletin\Core\Domain\Movement;
 
 use PhpSpec\ObjectBehavior;
-use SocialBulletin\Core\Movement\Area;
-use SocialBulletin\Core\Movement\DraftMovement;
-use SocialBulletin\Core\Movement\EditMovement;
-use SocialBulletin\Core\Movement\InvalidMovement;
-use SocialBulletin\Core\Movement\MovementNotDraft;
-use SocialBulletin\Core\Movement\MovementStatus;
-use SocialBulletin\Core\Movement\SubmitMovement;
+use SocialBulletin\Core\Domain\Movement\Area;
+use SocialBulletin\Core\Domain\Movement\DraftMovement;
+use SocialBulletin\Core\Domain\Movement\EditMovement;
+use SocialBulletin\Core\Domain\Movement\InvalidMovement;
+use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
+use SocialBulletin\Core\Domain\Movement\MovementStatus;
+use SocialBulletin\Core\Domain\Movement\SubmitMovement;
 
 final class MovementSpec extends ObjectBehavior
 {

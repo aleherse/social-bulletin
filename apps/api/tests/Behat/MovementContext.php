@@ -10,9 +10,9 @@ use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
 use Doctrine\DBAL\Connection;
-use SocialBulletin\Core\Movement\DraftMovement;
-use SocialBulletin\Core\Movement\MovementService;
-use SocialBulletin\Core\User\UserService;
+use SocialBulletin\Core\Domain\Movement\DraftMovement;
+use SocialBulletin\Core\Domain\Movement\MovementService;
+use SocialBulletin\Core\Domain\User\UserService;
 use Webmozart\Assert\Assert;
 
 use function JmesPath\search;

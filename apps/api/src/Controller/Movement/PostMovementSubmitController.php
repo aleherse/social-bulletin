@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller\Movement;
 
-use SocialBulletin\Core\Movement\InvalidMovement;
-use SocialBulletin\Core\Movement\MovementNotDraft;
-use SocialBulletin\Core\Movement\MovementNotFound;
-use SocialBulletin\Core\Movement\MovementService;
-use SocialBulletin\Core\User\User;
+use SocialBulletin\Core\Domain\Movement\InvalidMovement;
+use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
+use SocialBulletin\Core\Domain\Movement\MovementNotFound;
+use SocialBulletin\Core\Domain\Movement\MovementService;
+use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
