@@ -27,9 +27,15 @@ final class UserServiceSpec extends ObjectBehavior
     ): void {
         $users->findByEmail('new.user@example.com')->willReturn(null);
         $identities->generate()->willReturn(self::UUID);
-        $users->add(\Prophecy\Argument::that(
+        $users->save(\Prophecy\Argument::that(
             static fn (User $user): bool => self::UUID === $user->id && 'new.user@example.com' === $user->email,
-        ))->shouldBeCalled();
+        ))->will(static function (array $arguments): User {
+            // The repository returns the stored row as a fresh aggregate.
+            $user = $arguments[0];
+            \assert($user instanceof User);
+
+            return $user;
+        })->shouldBeCalled();
 
         $user = $this->findOrCreateByEmail('new.user@example.com');
         $user->email->shouldBe('new.user@example.com');
@@ -40,10 +46,10 @@ final class UserServiceSpec extends ObjectBehavior
         UserRepository $users,
         IdentityGenerator $identities,
     ): void {
-        $existing = new User(self::UUID, 'existing.user@example.com', new \DateTimeImmutable());
+        $existing = User::restore(self::UUID, 'existing.user@example.com', new \DateTimeImmutable());
         $users->findByEmail('existing.user@example.com')->willReturn($existing);
         $identities->generate()->shouldNotBeCalled();
-        $users->add(\Prophecy\Argument::any())->shouldNotBeCalled();
+        $users->save(\Prophecy\Argument::any())->shouldNotBeCalled();
 
         $this->findOrCreateByEmail('existing.user@example.com')->shouldBe($existing);
     }
@@ -51,7 +57,7 @@ final class UserServiceSpec extends ObjectBehavior
     public function it_rejects_a_malformed_email(
         UserRepository $users,
     ): void {
-        $users->add(\Prophecy\Argument::any())->shouldNotBeCalled();
+        $users->save(\Prophecy\Argument::any())->shouldNotBeCalled();
 
         $this->shouldThrow(
             new InvalidEmailAddress('email.invalid'),
