@@ -15,6 +15,3 @@ an aggregate built by `draft()` has no timestamps until it has been saved.
     | `MovementService` calling `new \DateTimeImmutable()`         | Postgres `now()` inside `MovementRepository::save()` |
     | `save(Movement $movement): void` plus a public `markSaved()` | `save(Movement $movement): Movement`, hydrated from `RETURNING` |
     | `'updated_at' => $movement->updatedAt()->format(ATOM)` bound as a parameter | `updated_at = now()` in the SQL      |
-
-    Known deviation: `packages/core/src/User/User.php` still receives `createdAt` from
-    `UserService` — it predates this rule.
