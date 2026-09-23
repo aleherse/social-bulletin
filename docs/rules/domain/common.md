@@ -2,7 +2,7 @@
 
 ## domain-common-0001: Aggregate mutations go through commands
 
-**WHEN** adding or changing an operation that mutates an aggregate in `packages/core/src/<Aggregate>/`
+**WHEN** adding or changing an operation that mutates an aggregate in `packages/core/src/Domain/<Aggregate>/`
 
 **THEN** express the operation as a command object and handle it in the aggregate's single
 `apply(<Aggregate>Command $command): void` method — a `final readonly class` per intent, flat in the aggregate folder,
