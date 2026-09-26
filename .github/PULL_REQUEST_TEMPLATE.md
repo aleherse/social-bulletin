@@ -1,8 +1,10 @@
-Closes {LINK TO GH ISSUE}
+<!-- Delete any heading that does not apply. -->
 
-## Description
+## What this changes
 
-[Provide a brief description of the changes or features implemented in this pull request.]
+## Why
+
+<!-- The problem, not the solution. Link the card or issue. -->
 
 ## CI checks
 
