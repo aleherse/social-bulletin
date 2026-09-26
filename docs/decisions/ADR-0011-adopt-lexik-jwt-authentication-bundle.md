@@ -28,7 +28,7 @@ The nginx entrypoint SHALL, on startup, run `mkcert -install` once and then issu
 
 - `mkcert -cert-file docker/certs/cert.pem -key-file docker/certs/cert-key.pem <DEV_TLS_HOSTNAME> localhost 127.0.0.1` for the API hostname.
 - Copy `$(mkcert -CAROOT)/rootCA.pem` to `docker/certs/`
-- Ensure files in `dockers/cert` have the right ownership
+- Ensure files in `docker/certs` have the right ownership
 
 Nginx configuration SHALL server HTTPS using the generated certificate and redirect HTTP to HTTPS requests.
 

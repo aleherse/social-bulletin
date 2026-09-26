@@ -74,4 +74,4 @@ Aggregate boundaries?
 | File                                                       | Purpose                                                    |
 |------------------------------------------------------------|------------------------------------------------------------|
 | [hexagonal/LAYERS.md](hexagonal/LAYERS.md)                | Complete layer specifications                              |
-| [hexagonal/DDD-TACTICAL.md](hexagonal/DDD-TACTICAL.md)   | Entities, value objects, aggregates, repository, providers |
+| [hexagonal/DDD_TACTICAL.md](hexagonal/DDD_TACTICAL.md)   | Entities, value objects, aggregates, repository, providers |
