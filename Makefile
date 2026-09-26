@@ -30,7 +30,7 @@ setup-ci-node: ## Build the Node and nginx images and install the frontend depen
 
 .PHONY: setup
 setup: ## Prepare the local development environment (env templates, containers, infrastructure)
-	@test -f docker-compose.override.yml || cp docker-compose.override.yml.dist docker-compose.override.yml
+	@test -f .env || cp .env.dist .env
 	$(COMPOSE) build
 	$(COMPOSE) up -d
 	$(COMPOSE) exec --user root node sh -c 'npm install -g npm@latest'

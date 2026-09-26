@@ -19,14 +19,12 @@ branches' stacks run at the same time without collisions.
 
 Worktrunk SHALL be configured through `.config/wt.toml`:
 
-- `pre-start` SHALL generate a per-worktree
-  `docker-compose.override.yml` that assigns every service binding a
-  host port (e.g. app server, reverse proxy, database) a
-  deterministic port hashed from the branch name, and set any
-  per-worktree connection details services need to reach each other
-  (e.g. a debugger's remote host/port). It SHALL also write a
-  per-worktree `.env` with a `COMPOSE_PROJECT_NAME` derived from the
-  branch name so Compose projects do not collide.
+- `pre-start` SHALL write a per-worktree `.env`
+  that sets a `COMPOSE_PROJECT_NAME` derived from the branch name,
+  so Compose projects do not collide,
+  and sets every host port variable declared in `.env.dist`
+  (e.g. app server, reverse proxy, database)
+  to a deterministic port hashed from the branch name.
 - `copy` SHALL run `wt step copy-ignored --require-include` to copy
   files listed in `.worktreeinclude` into the new worktree.
 - `init` SHALL run `make init` to bring the worktree's stack up.
@@ -37,14 +35,6 @@ Worktrunk SHALL be configured through `.config/wt.toml`:
 `.worktreeinclude` SHALL list generated, git-ignored paths a new
 worktree cannot produce on its own (e.g. TLS certificates, signing
 keys, or other generated secrets).
-
-`docker-compose.yml` SHALL NOT bind static host ports for any
-service that needs to run without collisions across worktrees; host
-ports are assigned per branch through the generated override file
-instead.
-
-`.env` SHALL be git-ignored, since Worktrunk generates one per
-worktree.
 
 `make init` SHALL be the single entrypoint Worktrunk calls to
 prepare a new worktree end to end (environment setup, dependency
@@ -62,13 +52,10 @@ install, database).
 - Host ports for app-facing services are no longer fixed; developers
   must use `wt list` (or the per-branch `.env`) to find a worktree's
   URL instead of assuming a fixed `localhost` port.
-- `docker-compose.override.yml.dist` at the repo root remains the
-  fallback for developers not using Worktrunk, but its ports may
-  collide with a Worktrunk-managed worktree running at the same
-  time.
 - Onboarding requires installing Rust/Cargo and Worktrunk
   (`cargo install worktrunk`) to get parallel worktrees; single-branch
   development still only needs Docker and `make`.
-- `.config/wt.toml` and `.worktreeinclude` need updating whenever a
-  new service needs a per-branch port, or a new generated/ignored
-  path is introduced that worktrees cannot regenerate.
+- A new published port needs a variable in `docker-compose.yml`, `.env.dist`
+  and `.config/wt.toml`;
+  `.worktreeinclude` needs updating whenever a new generated/ignored path
+  is introduced that worktrees cannot regenerate.

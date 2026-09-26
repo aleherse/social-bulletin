@@ -17,11 +17,17 @@ Container SHALL have an `entrypoint.sh` that installs related dependencies and `
 
 Project commands SHALL run through Docker Compose, via `docker compose exec` so developers do not need host language runtimes, package managers, browsers, or daemons.
 
+Docker Official Images SHALL be pulled from `public.ecr.aws/docker/library`, not Docker Hub,
+whose anonymous pull limit fails parallel builds.
+
 When apps are required inside a container those SHALL be installed from official Docker images.
 
 `gosu` SHALL be used to avoid issues with files ownership.
 
-A git ignored compose override file SHALL exist so developers could personalise ports and environment variables.
+Every host port the stack publishes SHALL come from an environment variable
+with the conventional port as its default (e.g. `${POSTGRES_PORT:-5432}:5432`),
+so developers personalise ports without editing Compose files.
+A versioned `.env.dist` SHALL list those variables with their defaults and `.env` git ignored;
 
 ## Consequences
 

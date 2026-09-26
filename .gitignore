@@ -17,7 +17,6 @@ coverage/
 .env
 .env.local
 .env.*.local
-docker-compose.override.yml
 
 # Secrets and certificates
 docker/certs/
