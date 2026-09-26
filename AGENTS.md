@@ -3,33 +3,18 @@
 Conventions for agent-driven work in this repository.
 Read this before making changes; the README covers human onboarding.
 
-## Everyday commands
-
-`make help` lists every target.
-The common ones:
-
-| Command      | Purpose                                                     |
-|--------------|-------------------------------------------------------------|
-| `make up`    | Start the development stack                                 |
-| `make down`  | Stop the development stack                                  |
-| `make logs`  | Follow service logs (`make logs service=php`)               |
-| `make shell` | Open a shell in a container (`make shell service=node`)     |
-| `make db`    | Rebuild the test database and fixtures snapshot             |
-| `make tests` | Run the full test suite (PHPSpec, Behat, Vitest, Playwright)|
-| `make lint`  | Run all linting and static analysis checks                  |
-
 ## Repository layout
 
-| Path              | Contents                                            |
-|-------------------|-----------------------------------------------------|
-| `apps/api`        | Symfony HTTP application                            |
-| `apps/web`        | React + Vite frontend (Feature-Sliced Design)       |
-| `packages/core`   | Framework-free PHP domain and application logic     |
-| `infrastructure`  | AWS CDK deployment app (`live` and `preview`)       |
-| `docker`          | Container images, nginx config, generated certs     |
-| `docs/decisions`  | Architecture Decision Records                       |
-| `docs/rules`      | Distilled engineering rules, by category/subcategory |
-| `specs/changes`   | Change specifications and task lists                |
+| Path             | Contents                                             |
+|------------------|------------------------------------------------------|
+| `apps/api`       | Symfony HTTP application                             |
+| `apps/web`       | React + Vite frontend (Feature-Sliced Design)        |
+| `packages/core`  | Framework-free PHP domain and application logic      |
+| `infrastructure` | AWS CDK deployment app (`live` and `preview`)        |
+| `docker`         | Container images, nginx config, generated certs      |
+| `docs/decisions` | Architecture Decision Records                        |
+| `docs/rules`     | Distilled engineering rules, by category/subcategory |
+| `specs/changes`  | Change specifications and task lists                 |
 
 ## Decisions and specs
 
@@ -37,15 +22,14 @@ The common ones:
   principles and outranks conflicting guidance elsewhere.
   Read it before writing code — nothing loads it for you,
   and no linter enforces it.
-- `docs/decisions/` holds ADRs; `ADR-0000` defines project constants
-  (hostnames, namespaces, database schema).
+- `docs/decisions/` holds ADRs; `ADR-0000` defines project constants (hostnames, namespaces, database schema).
   Consult relevant ADRs before structural changes,
   and propose a new ADR instead of silently diverging from one.
 
 ## Coding Rules
 
-- `docs/rules/<category>/<subcategory>.md` holds distilled, checkable engineering rules
-  (`WHEN` a condition applies, `THEN` what to do, with a repo-grounded example) —
+- `docs/rules/<category>/<subcategory>.md` holds distilled, checkable engineering rules (`WHEN` a condition applies,
+  `THEN` what to do, with a repo-grounded example) —
   decisions already made once that should guide every future change in that area.
 - Each rule's heading is a permanent identifier followed by a short title —
   `<category>-<subcategory>-<NNNN>: <title>`,
