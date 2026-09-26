@@ -1,5 +1,6 @@
 SHELL := /bin/sh
 COMPOSE := docker compose
+MAKE := make --no-print-directory
 
 export HOST_UID ?= $(shell id -u)
 export HOST_GID ?= $(shell id -g)
@@ -10,8 +11,30 @@ export HOST_GID ?= $(shell id -g)
 help: ## List supported targets and their purpose
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
+.PHONY: init
+init: setup build db setup-claude ## Initialise the repository to make it ready to work
+
+.PHONY: setup
+setup: ## Prepare the local development environment (env templates, containers, infrastructure)
+	@test -f .env || cp .env.dist .env
+	$(COMPOSE) build
+	$(COMPOSE) up -d
+	$(COMPOSE) exec --user root node sh -c 'npm install -g npm@latest'
+	@if command -v npm >/dev/null 2>&1; then \
+		{ test -x node_modules/.bin/lefthook || npm install --no-audit --no-fund; } && npx lefthook install; \
+	else \
+		echo "npm not found on the host: skipping lefthook install"; \
+	fi
+
+.PHONY: build
+build: ## Install all package manager dependencies and build the frontend assets
+	$(COMPOSE) run --rm php sh -c 'test -f apps/api/composer.json && composer install --working-dir=apps/api --no-interaction || true'
+	$(COMPOSE) run --rm node sh -c 'test -f /app/apps/web/package.json && npm install --prefix /app/apps/web || true'
+	$(COMPOSE) run --rm node sh -c 'test -f /app/apps/web/package.json && npm run build --prefix /app/apps/web || true'
+	@test -f apps/api/config/jwt/private.pem || $(COMPOSE) exec --workdir /app/apps/api php php bin/console lexik:jwt:generate-keypair
+
 .PHONY: ci
-ci: setup-ci lint tests ## Prepare the whole CI environment, run linters and tests
+ci: setup-ci db lint tests ## Prepare the whole CI environment, run linters and tests
 
 .PHONY: setup-ci
 setup-ci: setup-ci-php setup-ci-node ## Prepare the whole CI environment
@@ -27,22 +50,6 @@ setup-ci-php: ## Build the PHP image and install its dependencies
 setup-ci-node: ## Build the Node and nginx images and install the frontend dependencies
 	$(COMPOSE) build node nginx
 	$(COMPOSE) run --rm --no-deps node npm install --prefix /app/apps/web
-
-.PHONY: setup
-setup: ## Prepare the local development environment (env templates, containers, infrastructure)
-	@test -f .env || cp .env.dist .env
-	$(COMPOSE) build
-	$(COMPOSE) up -d
-	$(COMPOSE) exec --user root node sh -c 'npm install -g npm@latest'
-	@test -x node_modules/.bin/lefthook || npm install --no-audit --no-fund
-	npx lefthook install
-
-.PHONY: build
-build: ## Install all package manager dependencies and build the frontend assets
-	$(COMPOSE) run --rm php sh -c 'test -f apps/api/composer.json && composer install --working-dir=apps/api --no-interaction || true'
-	$(COMPOSE) run --rm node sh -c 'test -f /app/apps/web/package.json && npm install --prefix /app/apps/web || true'
-	$(COMPOSE) run --rm node sh -c 'test -f /app/apps/web/package.json && npm run build --prefix /app/apps/web || true'
-	@test -f apps/api/config/jwt/private.pem || $(COMPOSE) exec --workdir /app/apps/api php php bin/console lexik:jwt:generate-keypair
 
 .PHONY: up
 up: ## Start the development stack without building containers
@@ -73,12 +80,9 @@ db: ## Prepare the test database: create, migrate, load @fixtures dataset, snaps
 	$(COMPOSE) run --rm --workdir /app/apps/api php vendor/bin/behat --tags=@fixtures
 	$(COMPOSE) run --rm php sh -c 'dslr --url "$$DSLR_DATABASE_URL" delete fixtures 2>/dev/null; dslr --url "$$DSLR_DATABASE_URL" snapshot fixtures'
 
-.PHONY: init
-init: setup build db setup-claude ## Initialise the repository to make it ready to work
-
 .PHONY: php-unit
 php-unit: ## Run core package unit tests with PHPSpec
-	$(COMPOSE) run --rm --workdir /app/packages/core php vendor/bin/phpspec run --no-interaction
+	$(COMPOSE) run --rm --no-deps --workdir /app/packages/core php vendor/bin/phpspec run --no-interaction
 
 .PHONY: api-tests
 api-tests: ## Run API tests with Behat (requires a `make db` snapshot)
@@ -86,16 +90,16 @@ api-tests: ## Run API tests with Behat (requires a `make db` snapshot)
 
 .PHONY: web-unit
 web-unit: ## Run frontend unit tests with Vitest
-	$(COMPOSE) run --rm node npm run test
+	$(COMPOSE) run --rm --no-deps node npm run test
 
 .PHONY: web-e2e
 web-e2e: ## Run frontend E2E tests with Playwright (builds the frontend first)
-	$(COMPOSE) run --rm node npm run build
+	$(COMPOSE) run --rm --no-deps node npm run build
 	$(COMPOSE) run --rm node npx playwright test
 
 .PHONY: web-e2e-ui
 web-e2e-ui: ## Open the Playwright UI on https://dev.app.social.aleherse.com:9323
-	$(COMPOSE) run --rm node npm run build
+	$(COMPOSE) run --rm --no-deps node npm run build
 	$(COMPOSE) run --rm -p 9323:9323 node npx playwright test --ui-host=0.0.0.0 --ui-port=9323
 
 .PHONY: tests
@@ -106,31 +110,35 @@ lint: php-deptrac php-stan php-ecs web-tsc web-eslint web-knip web-prettier ## R
 
 .PHONY: php-deptrac
 php-deptrac: ## Check PHP architecture boundaries with Deptrac
-	$(COMPOSE) run --rm php apps/api/vendor/bin/deptrac analyse --config-file=deptrac.yaml --no-progress
+	$(COMPOSE) run --rm --no-deps php apps/api/vendor/bin/deptrac analyse --config-file=deptrac.yaml --no-progress
 
 .PHONY: php-stan
 php-stan: ## Run PHP static analysis with PHPStan
-	$(COMPOSE) run --rm php apps/api/vendor/bin/phpstan analyse -c phpstan.dist.neon --no-progress
+	$(COMPOSE) run --rm --no-deps php apps/api/vendor/bin/phpstan analyse -c phpstan.dist.neon --no-progress
 
 .PHONY: php-ecs
 php-ecs: ## Check PHP coding standards with Easy Coding Standard
-	$(COMPOSE) run --rm php apps/api/vendor/bin/ecs check --config ecs.php --no-progress-bar
+	$(COMPOSE) run --rm --no-deps php apps/api/vendor/bin/ecs check --config ecs.php --no-progress-bar
 
 .PHONY: web-tsc
 web-tsc: ## Type-check the frontend with the TypeScript compiler
-	$(COMPOSE) run --rm node npx tsc -b
+	$(COMPOSE) run --rm --no-deps node npx tsc -b
+
+.PHONY: infra-tsc
+infra-tsc: ## Type-check the AWS CDK infrastructure app
+	$(COMPOSE) run --rm --no-deps --workdir /app/infrastructure node npm run typecheck
 
 .PHONY: web-eslint
 web-eslint: ## Lint the frontend with ESLint
-	$(COMPOSE) run --rm node npm run lint
+	$(COMPOSE) run --rm --no-deps node npm run lint
 
 .PHONY: web-knip
 web-knip: ## Check frontend project hygiene with knip
-	$(COMPOSE) run --rm node npx knip
+	$(COMPOSE) run --rm --no-deps node npx knip
 
 .PHONY: web-prettier
 web-prettier: ## Check frontend formatting with Prettier
-	$(COMPOSE) run --rm node npm run format:check
+	$(COMPOSE) run --rm --no-deps node npm run format:check
 
 .PHONY: shell
 shell: ## Open an interactive shell in the PHP container (or another via `make shell service=node`)
@@ -138,7 +146,7 @@ shell: ## Open an interactive shell in the PHP container (or another via `make s
 
 .PHONY: clean
 clean: ## Safely remove recreated local artefacts and dependencies
-	rm -rf apps/api/vendor packages/core/vendor apps/web/node_modules apps/web/dist apps/api/var apps/api/.install.lock apps/web/.install.lock .deptrac.cache
+	rm -rf apps/api/vendor packages/core/vendor apps/web/node_modules apps/web/dist infrastructure/node_modules node_modules apps/api/var apps/api/.install.lock apps/web/.install.lock .deptrac.cache
 
 .PHONY: destroy
 destroy: ## Delete all containers, volumes, and artefacts
@@ -146,18 +154,10 @@ destroy: ## Delete all containers, volumes, and artefacts
 	$(MAKE) clean
 
 .PHONY: setup-claude
-setup-claude: ## create symlinks for Claude Code (.claude/skills and CLAUDE.md)
+setup-claude: ## Create Claude Code links (.claude/skills/*, CLAUDE.md) if missing
 	@mkdir -p .claude/skills
 	@for skill in .agents/skills/*/; do \
-		skill_name=$$(basename "$$skill"); \
-		if [ ! -e ".claude/skills/$$skill_name" ]; then \
-			ln -s "$$(pwd)/.agents/skills/$$skill_name" ".claude/skills/$$skill_name" && echo "Linked skill: $$skill_name"; \
-		else \
-			echo "Skipping (already exists): $$skill_name"; \
-		fi \
+		name=$$(basename "$$skill"); \
+		[ -e ".claude/skills/$$name" ] || { ln -s "../../.agents/skills/$$name" ".claude/skills/$$name" && echo "Linked skill: $$name"; }; \
 	done
-	@if [ ! -e "CLAUDE.md" ]; then \
-		ln -s "$$(pwd)/AGENTS.md" "$$(pwd)/CLAUDE.md" && echo "Linked: CLAUDE.md -> AGENTS.md"; \
-	else \
-		echo "Skipping (already exists): CLAUDE.md"; \
-	fi
+	@[ -e CLAUDE.md ] || { ln -s AGENTS.md CLAUDE.md && echo "Linked: CLAUDE.md -> AGENTS.md"; }

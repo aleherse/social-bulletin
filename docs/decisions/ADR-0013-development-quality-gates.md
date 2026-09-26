@@ -78,6 +78,10 @@ so that local builds keep working unchanged.
 and SHALL be decomposable per service
 so a job prepares just the part of the stack it uses.
 
+`make ci` SHALL run every gate in one command:
+it prepares the environment through `make setup-ci`,
+then runs all linters and the full test suite.
+
 The gating condition SHALL cover the setup job as well as the checks,
 so a pull request that requests no checks runs nothing.
 
@@ -89,6 +93,8 @@ so a pull request that requests no checks runs nothing.
 - Pre-push runs medium-cost checks before sharing work.
 - Commit messages follow Conventional Commits.
 - PR checkboxes control optional CI jobs.
+- `make ci` runs every gate locally,
+  so contributors can get the full verdict without waiting for CI.
 - Checkbox labels must stay stable across the PR template, the gated jobs,
   and the setup job condition that repeats them.
 - Gated jobs restore cached image layers and dependencies

@@ -9,6 +9,8 @@ The ones agents need most:
 
 | Command          | Purpose                                            |
 |------------------|----------------------------------------------------|
+| `make init`      | Prepare or update everything; idempotent           |
+| `make ci`        | The full gate CI runs: the only verdict            |
 | `make db`        | Rebuild the test database and DSLR snapshot        |
 | `make tests`     | Full suite: PHPSpec, Behat, Vitest, Playwright     |
 | `make php-unit`  | PHPSpec for `packages/core`                        |
