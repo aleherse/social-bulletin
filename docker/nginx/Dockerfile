@@ -1,4 +1,4 @@
-FROM nginx:stable
+FROM public.ecr.aws/docker/library/nginx:stable
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl libnss3-tools \

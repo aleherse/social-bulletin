@@ -1,4 +1,4 @@
-FROM php:8.3-fpm
+FROM public.ecr.aws/docker/library/php:8.3-fpm
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -17,7 +17,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+COPY --from=public.ecr.aws/docker/library/composer:2 /usr/bin/composer /usr/local/bin/composer
 
 COPY xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
