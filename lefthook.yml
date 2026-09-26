@@ -24,9 +24,10 @@ commit-msg:
   commands:
     conventional-commit:
       run: |
-        head -n1 {1} | grep -qE '^WIP\b|^([A-Z]+-[0-9]+ )?(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._-]+\))?!?: .+$' || {
-          echo "Commit message must follow Conventional Commits, optionally prefixed with a task ID, or start with WIP:"
-          echo "  [TASK-123 ]<type>[(scope)][!]: <description>"
+        head -n1 {1} | grep -qE '^WIP\b|^Merge |^Revert "|^(\[[A-Z]+-[0-9]+\] |[A-Z]+-[0-9]+ )?(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._-]+\))?!?: .+$' || {
+          echo "Commit message must follow Conventional Commits, optionally prefixed with a task ID"
+          echo "(the Overboards pipeline writes [KEY-123]), or start with WIP:"
+          echo "  [[TASK-123] |TASK-123 ]<type>[(scope)][!]: <description>"
           echo "  types: build chore ci docs feat fix perf refactor revert style test"
           echo "  or: WIP ..."
           exit 1
