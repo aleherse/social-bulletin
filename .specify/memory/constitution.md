@@ -1,19 +1,22 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.2.0 → 2.2.1
-Bump rationale: PATCH — Principle III was retitled so the name covers both of
-the artefacts it already governed: recorded decisions (`docs/decisions/`) and
-coding rules (`docs/rules/`). No obligation was added, removed, or reworded;
-the bullets and rationale are unchanged.
+Version change: 2.2.1 → 2.3.0
+Bump rationale: MINOR — the merge gate became `make ci`, the full gate CI also
+runs (ADR-0013), replacing "`make lint` and `make tests`" plus the PR checkbox
+list. Decision records moved to `specs/decisions/`, carry no dates, and are
+corrected in place (FRAMEWORK.local.md § Decision records), so diverging from
+one means correcting it, and a conflict with one is resolved by correcting the
+wrong document rather than by comparing dates. Principle V's suppression
+example describes the rule instead of citing a file absent from `main`.
 
 Principles modified:
-  III. Decisions Are Recorded Before They Are Coded
-    →  Decisions And Rules Are Written Down, Then Followed
-    The old title named only decisions and only the write-it-down half, while
-    the principle's bullets also require reading `docs/rules/` before coding and
-    distilling new rules after a diff. The new title names both artefacts and
-    both duties.
+  III. Decisions And Rules Are Written Down, Then Followed — ADRs are corrected
+       in place instead of superseded by a new one.
+  V.   Code Explains Itself; Comments Are Exceptional — example reworded.
+Sections modified:
+  Development Workflow & Quality Gates — `make ci` is the merge gate.
+  Governance — conflict resolution no longer depends on ADR dates.
 
 Current principles:
   I.   Tests Are First-Class Citizens (NON-NEGOTIABLE)
@@ -26,8 +29,8 @@ Sections added: none
 Sections removed: none
 
 Templates requiring updates:
-  ✅ .specify/templates/plan-template.md     — Constitution Check gate III
-     relabelled to match the new principle title; its checks are unchanged
+  ✅ .specify/templates/plan-template.md     — gate III: divergence corrects the
+     ADR in place instead of proposing a new one
   ✅ .specify/templates/spec-template.md     — no change; specs cite no principle
      titles
   ✅ .specify/templates/tasks-template.md    — no change; no principle titles cited
@@ -53,6 +56,7 @@ Deferred items:
 2.1.0 (2026-08-09): Principle II expanded with the test pyramid rule.
 2.2.0 (2026-08-19): Principle V added — comment discipline.
 2.2.1 (2026-08-25): Principle III retitled to name rules alongside decisions.
+2.3.0 (2026-09-23): `make ci` becomes the merge gate; ADRs corrected in place.
 -->
 
 # Social Bulletin Constitution
@@ -129,7 +133,7 @@ Test the rule once, low; test the journey end to end.
 ### III. Decisions And Rules Are Written Down, Then Followed
 
 - Structural changes MUST be checked against `docs/decisions/` first; diverging
-  from an accepted ADR requires a new ADR, not a quiet exception.
+  from an accepted ADR means correcting that ADR in the same change, not a quiet exception.
 - Before writing code in an area, the matching `docs/rules/<category>/` file
   MUST be read and followed.
 - A decision worth repeating — a review correction, a convention set by a diff —
@@ -178,10 +182,9 @@ left when they cannot carry the meaning.
   boundary is nowhere in the code.
 - Machine-read annotations are not prose and are exempt: the PHPDoc types static
   analysis needs (`@param array<string, mixed>`, `@var array{…}`), `@throws`, and
-  tool suppressions. Every suppression MUST state its reason, the way
-  `@phpstan-ignore property.uninitializedReadonly` in
-  `packages/core/src/Application/Movement/UpdateMovementCommand.php` names the
-  payload case that leaves the property unassigned.
+  tool suppressions. Every suppression MUST state its reason, naming the case
+  that makes it necessary (for example, which payload leaves a readonly
+  property unassigned beside an `@phpstan-ignore property.uninitializedReadonly`).
 - Commented-out code MUST NOT be committed. Version control already keeps it.
 - Comments MUST be kept true. A comment contradicted by the code it sits above
   MUST be corrected or deleted in the same change, never left to rot.
@@ -227,16 +230,16 @@ Tests are considered at each Spec Kit stage. Each stage carries an obligation:
 
 Before a feature branch merges to `main`:
 
-- `make lint` and `make tests` MUST both pass.
-- The PR checklist (ADR-0013) MUST reflect which suites ran.
+- `make ci`, the full gate CI also runs (ADR-0013), MUST pass.
+- The pull request description MUST name the gate that ran and what it ran over.
 - Every user story in the spec MUST be traceable to at least one test that
   fails if the story regresses.
 
 ## Governance
 
 This constitution supersedes conflicting practice elsewhere in the repository.
-Where it disagrees with an ADR, the more recently dated document wins and the
-older one MUST be updated or superseded rather than left contradictory.
+Where it disagrees with an ADR, whichever document is wrong MUST be corrected
+in the same change, so the two are never left contradictory.
 
 **Amendment procedure**: Amendments are made through `/speckit-constitution`,
 which MUST update this file, propagate the change to
@@ -255,4 +258,4 @@ violates a principle MUST be recorded in the plan's Complexity Tracking table
 with the simpler alternative that was rejected and why — an unjustified
 violation blocks merge.
 
-**Version**: 2.2.1 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-08-25
+**Version**: 2.3.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-09-23
