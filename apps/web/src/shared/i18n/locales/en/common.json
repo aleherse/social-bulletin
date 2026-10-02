@@ -2,8 +2,12 @@
   "appName": "Social Bulletin",
   "home": {
     "loading": "Loading…",
-    "form": {
+    "hero": {
       "title": "Welcome to Social Bulletin",
+      "description": "Your place to stay up to date with the latest social movements events"
+    },
+    "form": {
+      "title": "Register or sign in",
       "description": "Enter your email address to register or sign in.",
       "emailLabel": "Email",
       "emailPlaceholder": "you@example.com",
