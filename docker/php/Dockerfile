@@ -17,6 +17,11 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# The bind-mounted tree can be owned by a UID other than the app user's
+# (e.g. checkouts made by automation), and git then refuses to run in it,
+# which breaks Composer's root version detection.
+RUN git config --system --add safe.directory '*'
+
 COPY --from=public.ecr.aws/docker/library/composer:2 /usr/bin/composer /usr/local/bin/composer
 
 COPY xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini
