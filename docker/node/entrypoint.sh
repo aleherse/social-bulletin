@@ -4,6 +4,19 @@ set -e
 APP_UID="${HOST_UID:-1000}"
 APP_GID="${HOST_GID:-1000}"
 
+# Inner root is the tree's owner under a rootless engine: stay root rather
+# than rename root's own user and group to `app`.
+if [ "$APP_UID" = "0" ]; then
+    if [ -f /certs/rootCA.pem ]; then
+        cp /certs/rootCA.pem /usr/local/share/ca-certificates/mkcert-root-ca.crt
+        update-ca-certificates > /dev/null 2>&1
+        mkdir -p "$HOME/.pki/nssdb"
+        certutil -d "sql:$HOME/.pki/nssdb" -N --empty-password 2>/dev/null || true
+        certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n mkcert-root-ca -i /certs/rootCA.pem
+    fi
+    exec "$@"
+fi
+
 # The Ubuntu-based Playwright image ships a preexisting `ubuntu` user/group
 # at 1000:1000, so a same-GID/UID group/user may already exist under another
 # name; reuse it (renamed to `app`) instead of failing on groupadd/useradd.

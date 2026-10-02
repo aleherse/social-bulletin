@@ -4,6 +4,16 @@ set -e
 APP_UID="${HOST_UID:-1000}"
 APP_GID="${HOST_GID:-1000}"
 
+# Inner root is the tree's owner under a rootless engine: stay root rather
+# than recreate an identity that already exists.
+if [ "$APP_UID" = "0" ]; then
+    if [ "$1" = "php-fpm" ]; then
+        sed -i "s/^user = .*/user = root/; s/^group = .*/group = root/" /usr/local/etc/php-fpm.d/www.conf
+        exec "$@" --allow-to-run-as-root
+    fi
+    exec "$@"
+fi
+
 if ! getent group app >/dev/null 2>&1; then
     groupadd -g "$APP_GID" app
 fi

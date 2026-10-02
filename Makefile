@@ -3,9 +3,11 @@ COMPOSE := docker compose
 MAKE := make --no-print-directory
 
 # Containers that bind-mount the tree write as whoever runs make, never root;
-# under sudo that is the invoking user.
-export HOST_UID := $(or $(SUDO_UID),$(shell id -u))
-export HOST_GID := $(or $(SUDO_GID),$(shell id -g))
+# under sudo that is the invoking user. An identity already exported wins:
+# under a rootless engine (the Overboards worker exports 0:0) inner root is
+# what maps back to the owner of the tree, and the caller's own UID does not.
+export HOST_UID ?= $(or $(SUDO_UID),$(shell id -u))
+export HOST_GID ?= $(or $(SUDO_GID),$(shell id -g))
 
 # Host ports for `make urls`, read from .env with the .env.dist defaults.
 # Only these keys are read: including .env whole would re-export its
