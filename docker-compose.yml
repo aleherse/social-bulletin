@@ -15,6 +15,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # nginx proxies to php-fpm, so it waits for the pool to accept connections
+    # rather than for the container to start.
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
     extra_hosts:
       - host.docker.internal:host-gateway
 
@@ -51,7 +58,8 @@ services:
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
       - ./docker/certs:/certs
     depends_on:
-      - php
+      php:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "test -s /certs/cert.pem && test -s /certs/rootCA.pem && kill -0 $$(cat /run/nginx.pid)"]
       interval: 2s

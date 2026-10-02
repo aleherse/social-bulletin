@@ -1,104 +1,112 @@
 # ADR-0013: Development quality gates
 
-- Status: Accepted
-- Date: 2026-06-12
-
 ## Context
 
-The project needs fast local feedback, consistent commit quality, and optional heavier CI checks that contributors can request from a pull request.
+The project needs fast local feedback while work is in progress,
+consistent commit quality,
+and one verdict that CI and contributors (people and Overboards agents)
+reach the same way.
+A gate that CI runs only when somebody ticks a box is a gate that does not run
+on the change that needed it,
+and a local gate that differs from CI's reports failures that belong to the
+difference rather than to the change.
 
 ## Decision
 
-Use Lefthook as the Git hook runner. Add hook-safe Make targets that call `docker compose run --rm` for containerised commands, so hooks do not require services to already be running.
+### Three kinds of run
 
-Lefthook SHALL be configured with these boundaries:
+- **The full gate**, `make ci`, is the only verdict.
+  It runs every CI check over the whole tree that is about to land.
+- **The focussed check** is what work in progress owes before each commit:
+  the linters narrowed to the changed files (`make lint FILES="..."`, or one
+  check such as `make php-stan FILES="..."`) and the test files covering the
+  touched behaviour (`make php-unit PATHS=...`, `make api-tests PATHS=...`,
+  `make web-unit PATHS=...`, `make web-e2e PATHS=...`).
+  Deptrac, `tsc -b`, knip and the infrastructure typecheck accept no file
+  argument and run whole; their `make help` entries say so.
+- **One named stage**, `make ci-stage STAGE=<stage>`, re-runs a single gate
+  stage in the gate's own Compose project, after the stages it needs.
+  It is a diagnostic and never a verdict.
 
-- `pre-commit` runs fast checks only: format, lint, type and coding-standard checks.
-- `commit-msg` validates Conventional Commit messages that MAY start with a task management tool ID.
-- `pre-push` runs medium-cost checks such as codebase scanners and unit tests. Do not run full API or E2E tests.
+Focussed checks and the gate run the same targets in the same containers with
+the same configuration, so they cannot disagree about a file.
 
-Lefthook SHALL be installed (if not already) as part of `make init`.
+### The gate
 
-Pull request template SHALL be added:
+`make ci` runs under its own Compose project
+(`social-bulletin-gate-<checkout hash>`) with `docker-compose.gate.yml` merged
+in, which publishes no host ports.
+It never touches the development stack's containers or database,
+and two checkouts can gate at once.
+It removes its containers, network and database volume when it finishes,
+pass or fail (`make ci-down`).
 
-```markdown
-Closes {LINK TO GH ISSUE}
+Its stages are declared once, in the Makefile, and `make ci-stages` lists
+them from that declaration.
+They run in tiers, each waiting only on what can change its verdict:
 
-## Description
+1. **prepare**: build the images, install Composer and npm dependencies and the
+   JWT key pair.
+2. **cheap**: Deptrac, PHPStan, ECS, `tsc`, ESLint, knip, Prettier and the
+   infrastructure typecheck, in parallel with `make -k`,
+   so every cheap failure is reported in one pass.
+   Nothing that starts a service, migrates a database, builds or drives a
+   browser runs until this tier is green.
+3. **build**: PHPSpec, Vitest, the production frontend bundle and the database
+   snapshot (`make db`), in parallel.
+4. **suites**: Behat, then Playwright.
+   They run one after the other because both restore the same DSLR snapshot
+   into the same database.
 
-[Provide a brief description of the changes or features implemented in this pull request.]
+There is one path through the gate:
+no target, flag or variable skips the cheap tier.
+Locally the gate applies the deterministic formatters (ECS `--fix`,
+`prettier --write --list-different`) and names the files it changed;
+under `CI=true` both check strictly, as the backstop for a contributor who
+never ran the local gate.
 
-## CI checks
+Every CI check runs locally: `make ci` has no exclusions.
 
-- [x] PHPSpec
-- [x] Behat
-- [x] Vitest
-- [x] Playwright
+### Continuous integration
 
-## Risks and rollout notes
+`.github/workflows/ci.yml` runs `make ci` on every pull request and every push
+to `main`, and on demand.
+It adds only `docker-compose.ci.yml` to the gate's Compose files,
+a CI-only overlay that shares image layers through the Actions cache,
+and caches the installed dependencies keyed on the lock files.
+Runs group by branch and cancel superseded ones;
+draft pull requests do not start the gate, and closing a pull request cancels
+its own leftover runs.
+The runner is chosen by the `ACTIONS_RUNNER_TARGET` repository variable
+(`github-hosted`, the default, or `self-hosted`);
+any other value fails the run.
+Every job starts from `permissions: {}` and adds only what it needs.
 
-[Include any additional information or notes that may be helpful for deployment.]
-```
+### Git hooks
 
-Use a GitHub Actions `pull_request` workflow
-for optional checks controlled by a PR description checkbox.
+Lefthook is the Git hook runner, installed by `make init` when npm is available
+on the host.
+Hook commands call the same Make targets, so no services need to be running:
 
-The workflow SHALL use these event types:
-
-```yaml
-on:
-  pull_request:
-    types: [opened, edited, synchronize, reopened]
-```
-
-Optional jobs SHALL be gated by the checked state in the PR body:
-
-```yaml
-if: contains(github.event.pull_request.body, '- [x] PHPSpec')
-```
-
-Every job runs on its own runner,
-so the containers and dependencies a gated job needs
-cannot be prepared before those jobs start.
-A dedicated setup job SHALL prepare them once per run,
-and the gated jobs SHALL restore that work from the workflow cache
-in parallel rather than repeating it.
-
-Container images and installed dependencies SHALL be cached separately.
-The development stack bind-mounts the repository into its containers,
-so dependency trees live in the workspace rather than inside an image,
-and a prepared image alone would still leave every job installing them.
-
-Build configuration that only CI can satisfy
-SHALL be applied as a CI-only overlay
-rather than added to the development stack definition,
-so that local builds keep working unchanged.
-
-`make setup-ci` SHALL be the only entry point for that preparation,
-and SHALL be decomposable per service
-so a job prepares just the part of the stack it uses.
-
-`make ci` SHALL run every gate in one command:
-it prepares the environment through `make setup-ci`,
-then runs all linters and the full test suite.
-
-The gating condition SHALL cover the setup job as well as the checks,
-so a pull request that requests no checks runs nothing.
+- `pre-commit` runs the fast checks (format, lint, type and coding standard)
+  over the staged files, strictly, without rewriting them.
+- `commit-msg` validates Conventional Commit messages that MAY start with a
+  task management tool ID.
+- `pre-push` runs medium-cost checks: codebase scanners and unit tests.
+  It never runs the API or E2E suites.
 
 ## Consequences
 
-- Lefthook runs checks before commit and push.
-- Hook commands work through containers without requiring running services.
-- Pre-commit stays fast and focused on local feedback.
-- Pre-push runs medium-cost checks before sharing work.
-- Commit messages follow Conventional Commits.
-- PR checkboxes control optional CI jobs.
-- `make ci` runs every gate locally,
-  so contributors can get the full verdict without waiting for CI.
-- Checkbox labels must stay stable across the PR template, the gated jobs,
-  and the setup job condition that repeats them.
-- Gated jobs restore cached image layers and dependencies
-  rather than building them.
-- A run that changes an image definition or a dependency lock file
-  misses the caches and saves nothing.
-- Hook and workflow configuration need ongoing maintenance as checks change.
+- CI and contributors reach the same verdict through the same command.
+- Every pull request pays for the whole gate; its cheap tier fails fast and
+  reports every cheap failure together.
+- The gate needs no free host ports and leaves nothing running behind it.
+- A contributor who wants a quicker answer narrows with `FILES=` or `PATHS=`
+  instead of skipping part of the gate.
+- A new CI check joins a gate tier in the Makefile, never a new workflow job,
+  so branch protection keeps requiring the one `make ci` check by name.
+- Hook and gate configuration need maintenance as checks change.
+
+Revisit the single-job workflow if the gate's wall-clock time on CI exceeds
+fifteen minutes:
+the tiers can then split across jobs without changing the local gate.

@@ -1,0 +1,14 @@
+# Gate-only overlay: `make ci` runs under its own Compose project with this
+# file merged in, so it publishes no host ports and can run beside the
+# development stack, another checkout's gate, or a busy CI runner.
+# Services still reach each other (and the dev host names) on the project's
+# own network.
+services:
+  node:
+    ports: !reset []
+
+  nginx:
+    ports: !reset []
+
+  postgres:
+    ports: !reset []

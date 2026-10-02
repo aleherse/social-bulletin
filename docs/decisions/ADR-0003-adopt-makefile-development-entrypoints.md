@@ -16,20 +16,21 @@ The `Makefile` provides stable targets for common workflows and delegates execut
 The initial command surface should include:
 
 - `make help` to list supported targets and their purpose (SHOULD discover targets at runtime).
-- `make init` to prepare the local development environment, including starting required containers, database services, and other infrastructure, and ensuring default local environment variables are available from versioned templates.
-- `make buid` to install all the package managers dependencies.
-- `make up` to start the development stack without building containers.
+- `make init` to prepare the local development environment from scratch, idempotently: default local environment variables from versioned templates, images, dependencies (`make deps`), the compiled frontend, the running stack and the database.
+- `make up` to start the development stack without building containers, wait until it is healthy, and print its addresses.
+- `make urls` to reprint those addresses without restarting anything.
 - `make down` to stop the development stack.
 - `make ps` to list running containers.
 - `make logs` to inspect all service logs or a specific service.
 - `make shell` or service-specific shell targets for interactive container access.
 - `make tests` to run the full automated test suite through all configured test tools.
+- `make ci` to run the full gate CI runs, and the focussed checks beside it (ADR-0013).
 - `make clean` for safe removal of recreated local artefacts and dependencies.
 - `make destroy` to delete all containers and artefacts.
 
 Targets should stay thin and intention-revealing. If a command becomes complex, the Makefile may delegate to versioned scripts, but the Makefile remains the primary public interface for local developer workflows.
 
-When adding a tool, service, or runtime, add a Make target if developers need to start, stop, test, build, shell into, or inspect it. 
+When adding a tool, service, or runtime, add a Make target if developers need to start, stop, test, build, shell into, or inspect it.
 
 All existing and future entries SHALL be documented with `make help` by reading the existing rules and displaying a short description.
 

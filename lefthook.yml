@@ -2,23 +2,26 @@
 # Make targets (docker compose run --rm), so no services need to be running.
 #
 # Boundaries:
-# - pre-commit: fast checks only (format, lint, type, coding standard).
+# - pre-commit: fast checks only (format, lint, type, coding standard),
+#   narrowed to the staged files.
 # - commit-msg: Conventional Commits, optionally prefixed with a task ID.
 # - pre-push: medium-cost codebase scanners and unit tests; no API/E2E suites.
 
 pre-commit:
   parallel: false
   commands:
+    # CI=true makes the formatters check rather than rewrite, so a commit
+    # never records files that differ from what was checked.
     web-prettier:
-      run: make web-prettier
+      run: make web-prettier CI=true FILES="{staged_files}"
     web-eslint:
-      run: make web-eslint
+      run: make web-eslint FILES="{staged_files}"
     web-tsc:
       run: make web-tsc
     php-ecs:
-      run: make php-ecs
+      run: make php-ecs CI=true FILES="{staged_files}"
     php-stan:
-      run: make php-stan
+      run: make php-stan FILES="{staged_files}"
 
 commit-msg:
   commands:

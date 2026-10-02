@@ -1,0 +1,79 @@
+# ADR-0013: CI runs `make ci`, the same full gate contributors run locally,
+# on every pull request and on every push to `main`. The gate's own tiering
+# (cheap checks first, all failures reported together) lives in the Makefile,
+# so this workflow only prepares the caches and calls it.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # `closed` joins the same concurrency group, cancelling the closed pull
+    # request's own leftover runs without starting the gate on it.
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, closed]
+  workflow_dispatch:
+
+concurrency:
+  group: branch-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  runner:
+    name: Select runner
+    # Null on push and workflow_dispatch, so those events still run.
+    if: ${{ !github.event.pull_request.draft && github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      labels: ${{ steps.select.outputs.labels }}
+    steps:
+      - id: select
+        env:
+          TARGET: ${{ vars.ACTIONS_RUNNER_TARGET }}
+        run: |
+          case "${TARGET:-github-hosted}" in
+            github-hosted) echo 'labels="ubuntu-latest"' >> "$GITHUB_OUTPUT" ;;
+            self-hosted) echo 'labels="self-hosted"' >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Unrecognised ACTIONS_RUNNER_TARGET '$TARGET' (expected github-hosted or self-hosted)"; exit 1 ;;
+          esac
+
+  gate:
+    name: make ci
+    needs: runner
+    runs-on: ${{ fromJSON(needs.runner.outputs.labels) }}
+    permissions:
+      contents: read
+    env:
+      # docker-compose.ci.yml shares image layers through the Actions cache.
+      GATE_COMPOSE_FILE: docker-compose.yml:docker-compose.gate.yml:docker-compose.ci.yml
+      COMPOSE_BAKE: "1"
+    steps:
+      - name: Clean the workspace of a persistent runner
+        run: find . -mindepth 1 -delete 2>/dev/null || true
+
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Exports ACTIONS_RUNTIME_TOKEN and the cache URLs, which a plain
+      # `docker compose build` needs to reach the Actions cache backend.
+      - uses: crazy-max/ghaction-github-runtime@v3
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            apps/api/vendor
+            packages/core/vendor
+          key: php-deps-${{ runner.os }}-${{ hashFiles('apps/api/composer.lock', 'packages/core/composer.lock') }}
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            apps/web/node_modules
+            infrastructure/node_modules
+          key: node-deps-${{ runner.os }}-${{ hashFiles('apps/web/package-lock.json', 'infrastructure/package-lock.json') }}
+
+      - name: Run the full gate
+        run: make ci

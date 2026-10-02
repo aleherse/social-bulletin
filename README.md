@@ -35,17 +35,85 @@ certutil -addstore -f "ROOT" \\wsl.localhost\<distro>\path\to\social-bulletin\do
 
 ## Setup
 
-Builds and starts the containers, generates artifacts, install dependencies and creates the database:
+Builds the images, installs the dependencies, builds the frontend,
+starts the stack and prepares the database:
 
 ```sh
 make init
 ```
 
-After setup:
+`make init` is idempotent: run it again after time away to update everything.
+It installs the Lefthook git hooks only when npm is available on the host,
+and says so when it is not.
+
+After setup (`make urls` reprints these):
 
 - Frontend (compiled build via nginx): <https://dev.app.social.aleherse.com>
 - Frontend (Vite dev server): <https://dev.app.social.aleherse.com:3000>
 - API: <https://dev.api.social.aleherse.com>
+
+The host ports come from `.env` (copied from `.env.dist`),
+so several checkouts can run side by side.
+No example dataset is needed: register from the home page.
+
+## Daily use
+
+| Command                | What it does                                              |
+|------------------------|-----------------------------------------------------------|
+| `make`                 | List every target with a short description                |
+| `make up`              | Start the stack, wait until healthy, print the addresses |
+| `make urls`            | Reprint the addresses                                     |
+| `make down`            | Stop the stack                                            |
+| `make logs service=php`| Follow one service's logs (all without `service`)         |
+| `make console cmd=...` | Run a Symfony console command                             |
+| `make db`              | Recreate the database and its DSLR `fixtures` snapshot    |
+| `make destroy`         | Remove every container, volume and generated artefact     |
+
+## Verifying a change
+
+**Focussed checks** are what work in progress owes before each commit:
+the linters over the changed files, and the test files covering the touched
+behaviour.
+They run in the same containers, with the same configuration, as the gate.
+
+```sh
+make lint FILES="apps/web/src/pages/home/ui/home-page.tsx packages/core/src/UserService.php"
+make php-unit PATHS=packages/core/spec/UserServiceSpec.php
+make api-tests PATHS=apps/api/features/session.feature
+make web-unit PATHS=apps/web/src/pages/home
+make web-e2e PATHS=apps/web/e2e/session.spec.ts
+```
+
+Each linter also runs on its own (`make php-stan FILES=...`, `make web-eslint FILES=...`).
+Deptrac, `tsc -b`, knip and the infrastructure typecheck accept no file
+argument and run whole.
+The API and browser suites need the database snapshot: run `make db` once
+after `make init` and after any migration
+(`make tests` runs all four suites against the development stack).
+
+**The full gate** is the only verdict, and it is what CI runs on every pull
+request and push to `main`:
+
+```sh
+make ci
+```
+
+It needs no preparation and no running stack:
+it builds and installs what it needs in its own Compose project,
+publishes no host ports,
+runs the cheap checks together (reporting every failure) before anything that
+starts a service,
+then the unit suites, frontend build and database snapshot in parallel,
+then Behat and Playwright,
+and removes its containers and volumes when it finishes.
+Locally it applies ECS and Prettier fixes and lists the files it changed;
+CI checks them strictly.
+Every CI check runs locally; nothing is excluded.
+
+`make ci-stages` lists the stages,
+and `make ci-stage STAGE=<stage>` re-runs one in the gate's own project to
+diagnose it — a diagnostic, never a verdict.
+Judge a gate run by `make`'s own exit status, not by a piped output.
 
 ## Worktrunk
 
@@ -58,14 +126,12 @@ curl https://sh.rustup.rs -sSf | sh
 cargo install worktrunk && wt config shell install
 ```
 
-## Quality gates
+## Git hooks
 
-Lefthook installs git hooks via `make init`:
-fast format/lint/type checks on commit,
-Conventional Commit message validation,
-and unit tests plus codebase scanners on push.
-Heavier CI jobs (Behat, Playwright) are requested per pull request
-through the checkboxes in the PR template.
+Lefthook (installed by `make init`) runs fast format, lint and type checks
+over the staged files on commit,
+validates Conventional Commit messages,
+and runs unit tests plus codebase scanners on push (ADR-0013).
 
 ## AI delivery board
 
