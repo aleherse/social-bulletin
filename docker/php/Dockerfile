@@ -2,7 +2,6 @@ FROM public.ecr.aws/docker/library/php:8.3-fpm
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        gosu \
         git \
         unzip \
         libpq-dev \
@@ -22,6 +21,26 @@ COPY --from=public.ecr.aws/docker/library/composer:2 /usr/bin/composer /usr/loca
 COPY xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ARG UID=1000
+ARG GID=1000
+RUN if [ "$UID" = 0 ]; then \
+        sed -i 's/^user = .*/user = root/; s/^group = .*/group = root/' /usr/local/etc/php-fpm.d/www.conf; \
+    else \
+        getent group "$GID" > /dev/null || groupadd -g "$GID" app; \
+        existing_user="$(getent passwd "$UID" | cut -d: -f1)"; \
+        if [ -n "$existing_user" ]; then \
+            usermod -l app -g "$GID" -d /home/app -m "$existing_user"; \
+        else \
+            useradd -u "$UID" -g "$GID" -m app; \
+        fi; \
+    fi \
+    && mkdir -p /var/cache/composer \
+    && chown "$UID:$GID" /var/cache/composer
+
+ENV COMPOSER_CACHE_DIR=/var/cache/composer
+
+USER ${UID}:${GID}
 
 WORKDIR /app
 

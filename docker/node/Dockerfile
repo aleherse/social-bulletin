@@ -1,13 +1,8 @@
 # Pinned to the @playwright/test version in apps/web/package.json.
 FROM mcr.microsoft.com/playwright:v1.61.1-noble
 
-# gosu drops from root (needed to trust the mkcert CA below) to the
-# host-matching app user. ADR-0015: DSLR restores the database snapshot
-# before each E2E scenario; libnss3-tools (certutil) lets the entrypoint
-# trust the mkcert root CA in Chromium's NSS store.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        gosu \
         python3-pip \
         libnss3-tools \
     && pip3 install --break-system-packages --no-cache-dir psycopg2-binary DSLR \
@@ -17,6 +12,24 @@ RUN apt-get update \
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ARG UID=1000
+ARG GID=1000
+RUN if [ "$UID" != 0 ]; then \
+        getent group "$GID" > /dev/null || groupadd -g "$GID" app; \
+        existing_user="$(getent passwd "$UID" | cut -d: -f1)"; \
+        if [ -n "$existing_user" ]; then \
+            usermod -l app -g "$GID" -d /home/app -m "$existing_user"; \
+        else \
+            useradd -u "$UID" -g "$GID" -m app; \
+        fi; \
+    fi \
+    && mkdir -p /var/cache/npm \
+    && chown "$UID:$GID" /var/cache/npm
+
+ENV npm_config_cache=/var/cache/npm
+
+USER ${UID}:${GID}
 
 WORKDIR /app/apps/web
 

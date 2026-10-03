@@ -20,7 +20,8 @@ export default defineConfig({
         // Full Chromium (not the headless shell): only it reads the NSS
         // store where the entrypoint trusts the mkcert root CA.
         channel: 'chromium',
-        // The container runs as root; Chromium's sandbox cannot be used there.
+        // Docker's default seccomp profile blocks the namespaces Chromium's
+        // sandbox needs, and under a rootless engine the container is root.
         launchOptions: { args: ['--no-sandbox'] },
       },
     },

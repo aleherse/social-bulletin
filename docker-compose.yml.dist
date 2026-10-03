@@ -1,0 +1,20 @@
+services:
+  php:
+    environment:
+      # Uncomment when host.docker.internal does not reach your IDE (e.g. WSL2).
+      # XDEBUG_REMOTE_HOST: "172.22.0.1"
+      IDE_KEY: "social"
+      PHP_IDE_CONFIG: "serverName=social"
+
+  node:
+    ports:
+      - "${NODE_PORT:-3000}:3000"
+
+  nginx:
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+
+  postgres:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
