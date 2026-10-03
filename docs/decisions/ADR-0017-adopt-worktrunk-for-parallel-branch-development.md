@@ -1,4 +1,4 @@
-# ADR-0016: Adopt Worktrunk for Parallel Branch Development
+# ADR-0017: Adopt Worktrunk for Parallel Branch Development
 
 - Status: Accepted
 - Date: 2026-08-09

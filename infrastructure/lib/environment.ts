@@ -1,7 +1,7 @@
 export const PROJECT_SLUG = 'social-bulletin';
 
 /**
- * ADR-0014: two isolated deployment environments. `live` serves the ADR-0000
+ * ADR-0016: two isolated deployment environments. `live` serves the ADR-0000
  * production hostnames; `preview` mirrors it under a `preview.` sub-zone.
  */
 export interface DeploymentEnvironment {
@@ -24,7 +24,7 @@ export const environments: readonly DeploymentEnvironment[] = [
 ] as const;
 
 /**
- * ADR-0014: configuration and secrets live in AWS Systems Manager Parameter
+ * ADR-0016: configuration and secrets live in AWS Systems Manager Parameter
  * Store under environment-scoped paths: `/social-bulletin/<env>/<key>`.
  */
 export function parameterPath(environment: DeploymentEnvironment, key: string): string {

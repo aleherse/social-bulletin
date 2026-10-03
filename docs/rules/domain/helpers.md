@@ -22,13 +22,13 @@ what its aggregates share, carrying no aggregate vocabulary of its own.
 runtime/environment dependency (e.g. reading the system clock), or anything `apps/api`-specific
 
 **THEN** declare it in `Domain/Helper/` as an **interface** named for the capability, implement it in `apps/api`,
-and alias the two in `apps/api/config/services.yaml` — that's what keeps `core` framework-free (ADR-0005).
+and alias the two in `apps/api/config/services.yaml` — that's what keeps `core` framework-free.
 
 Exception: a small, dependency-free Symfony component `deptrac.yaml` already permits inside `Domain` on its own
 layer (e.g. `SymfonyUid`) can be called directly
 
 Repositories are a deliberate exception too, not a precedent for this rule: concrete DBAL classes in their
-aggregate's folder, because `core` owns its persistence outright (ADR-0012 — deptrac allows `CoreDomain → DBAL`).
+aggregate's folder, because `core` owns its persistence outright.
 Don't add a `*RepositoryInterface` to `Helper/` to match this pattern.
 
 **Example:**

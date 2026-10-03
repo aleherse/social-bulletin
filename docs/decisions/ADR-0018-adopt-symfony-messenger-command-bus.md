@@ -1,4 +1,4 @@
-# ADR-0017: Adopt Symfony Messenger As The Command Bus
+# ADR-0018: Adopt Symfony Messenger As The Command Bus
 
 - Status: Accepted
 - Date: 2026-08-10

@@ -120,7 +120,7 @@ Create internal representations (do not include raw artifacts in output):
 - **Requirements inventory**: For each Functional Requirement (FR-###) and Success Criterion (SC-###), record a stable key. Use the explicit FR-/SC- identifier as the primary key when present, and optionally also derive an imperative-phrase slug for readability (e.g., "User can upload file" → `user-can-upload-file`). Include only Success Criteria items that require buildable work (e.g., load-testing infrastructure, security audit tooling), and exclude post-launch outcome metrics and business KPIs (e.g., "Reduce support tickets by 50%").
 - **User story/action inventory**: Discrete user actions with acceptance criteria
 - **Task coverage mapping**: Map each task to one or more requirements or stories (inference by keyword / explicit reference patterns like IDs or key phrases)
-- **Test coverage mapping**: For each layer the plan says the feature touches, record the test tasks covering it, keyed by the ADR-0015 layer→tool mapping. Infer a task's layer from its target path — `packages/core/spec/` → PHPSpec, `apps/api/features/` → Behat, `*.test.ts(x)` beside `apps/web/src/` → Vitest, `apps/web/e2e/` → Playwright — and also from an explicitly named tool, since a task may say "with Vitest coverage" without naming a file. A task that names a tool but no path still counts as covering that layer; flag the missing path separately as underspecification (pass C). Also map each user story to the end-to-end journey task(s) that exercise it.
+- **Test coverage mapping**: For each layer the plan says the feature touches, record the test tasks covering it, keyed by the ADR-0013 layer→tool mapping. Infer a task's layer from its target path — `packages/core/spec/` → PHPSpec, `apps/api/features/` → Behat, `*.test.ts(x)` beside `apps/web/src/` → Vitest, `apps/web/e2e/` → Playwright — and also from an explicitly named tool, since a task may say "with Vitest coverage" without naming a file. A task that names a tool but no path still counts as covering that layer; flag the missing path separately as underspecification (pass C). Also map each user story to the end-to-end journey task(s) that exercise it.
 - **Constitution rule set**: Extract principle names and MUST/SHOULD normative statements
 
 ### 4. Detection Passes (Token-Efficient Analysis)
@@ -167,7 +167,7 @@ Principle I makes tests first-class, so an untested layer is a MUST violation,
 not a style note. Check each of these:
 
 - **Untested layer**: a layer the plan marks as touched with no test task in
-  its ADR-0015 tool. This is the pass's primary purpose — a feature whose
+  its ADR-0013 tool. This is the pass's primary purpose — a feature whose
   `apps/web` work has Vitest tasks but no Playwright journey is a gap even
   though every other suite is covered.
 - **Story without a happy-path journey**: a user story in spec.md whose

@@ -1,4 +1,3 @@
-# ADR-0015: PHPSpec owns unit tests for the core package.
 suites:
   core:
     namespace: SocialBulletin\Core

@@ -27,7 +27,7 @@ const DEFAULT_LAYER_VERSIONS: Record<string, string> = {
 };
 
 /**
- * ADR-0014: the API runs as a Bref PHP-FPM Lambda behind CloudFront at the
+ * ADR-0016: the API runs as a Bref PHP-FPM Lambda behind CloudFront at the
  * environment's API hostname, and console commands (post-deploy migrations)
  * run through a separate Bref console Lambda.
  */
@@ -52,7 +52,7 @@ export class ApiStack extends cdk.Stack {
     const functionEnvironment: Record<string, string> = {
       APP_ENV: 'prod',
       // Runtime configuration and secrets are read from Parameter Store
-      // under this environment-scoped prefix (ADR-0014).
+      // under this environment-scoped prefix (ADR-0016).
       SSM_PARAMETER_PREFIX: `/${PROJECT_SLUG}/${environment.name}`,
       DATABASE_URL_PARAMETER: parameterPath(environment, 'database-url'),
     };

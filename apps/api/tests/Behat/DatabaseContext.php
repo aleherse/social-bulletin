@@ -17,7 +17,7 @@ final class DatabaseContext implements Context
     }
 
     /**
-     * ADR-0015: every scenario starts from the DSLR `fixtures` snapshot that
+     * ADR-0013: every scenario starts from the DSLR `fixtures` snapshot that
      * `make db` created. The @fixtures seeding scenarios are excluded because
      * they run before the first snapshot exists.
      */

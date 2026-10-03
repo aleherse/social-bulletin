@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 
 import { test as base } from '@playwright/test';
 
-// ADR-0015: every scenario starts from the DSLR `fixtures` snapshot created
+// ADR-0013: every scenario starts from the DSLR `fixtures` snapshot created
 // by `make db`.
 export const test = base.extend<{ restoreDatabaseSnapshot: void }>({
   restoreDatabaseSnapshot: [

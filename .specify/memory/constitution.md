@@ -3,7 +3,7 @@ SYNC IMPACT REPORT
 ==================
 Version change: 2.2.1 → 2.3.0
 Bump rationale: MINOR — the merge gate became `make ci`, the full gate CI also
-runs (ADR-0013), replacing "`make lint` and `make tests`" plus the PR checkbox
+runs (ADR-0015), replacing "`make lint` and `make tests`" plus the PR checkbox
 list. Decision records moved to `specs/decisions/`, carry no dates, and are
 corrected in place (FRAMEWORK.local.md § Decision records), so diverging from
 one means correcting it, and a conflict with one is resolved by correcting the
@@ -91,7 +91,7 @@ the process, not in anyone's diligence, so the process is where it is fixed.
 
 ### II. Every Layer Is Tested In Its Own Tool
 
-ADR-0015 assigns one tool per layer, and a change MUST be tested in the tool
+ADR-0013 assigns one tool per layer, and a change MUST be tested in the tool
 that owns the layer it changes:
 
 | Layer changed                        | Tool                     | Location                |
@@ -150,7 +150,7 @@ enforcing them forever in review.
 
 - `make` targets are the only supported entrypoints for build, test, and lint;
   every check MUST be runnable through one.
-- Lefthook gates MUST stay honest to their cost budget (ADR-0013): `pre-commit`
+- Lefthook gates MUST stay honest to their cost budget (ADR-0014): `pre-commit`
   fast checks only, `commit-msg` Conventional Commits, `pre-push` medium-cost
   checks. Full API and E2E suites MUST NOT run in hooks.
 - Database state for tests MUST come from the DSLR `fixtures` snapshot. Behat
@@ -230,7 +230,7 @@ Tests are considered at each Spec Kit stage. Each stage carries an obligation:
 
 Before a feature branch merges to `main`:
 
-- `make ci`, the full gate CI also runs (ADR-0013), MUST pass.
+- `make ci`, the full gate CI also runs (ADR-0015), MUST pass.
 - The pull request description MUST name the gate that ran and what it ran over.
 - Every user story in the spec MUST be traceable to at least one test that
   fails if the story regresses.

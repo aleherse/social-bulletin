@@ -1,4 +1,4 @@
-# ADR-0018: Adopt React Router for Frontend Routing
+# ADR-0019: Adopt React Router for Frontend Routing
 
 - Status: Accepted
 - Date: 2026-08-17
@@ -21,7 +21,7 @@ Real paths are already deployable.
 Both the development and production frontends fall back to
 `/index.html`, per
 [ADR-0004](ADR-0004-adopt-nginx-to-serve-php-and-compiled-frontend.md)
-and [ADR-0014](ADR-0014-aws-serverless-deployment.md), so serving history
+and [ADR-0016](ADR-0016-aws-serverless-deployment.md), so serving history
 URLs needs no infrastructure change.
 
 Per [ADR-0008](ADR-0008-adopt-react-i18next-for-frontend-i18n.md), the
@@ -330,7 +330,7 @@ weight it was not meant to.
 - Depends on the SPA fallback established by
   [ADR-0004](ADR-0004-adopt-nginx-to-serve-php-and-compiled-frontend.md)
   and implemented for production in
-  [ADR-0014](ADR-0014-aws-serverless-deployment.md).
+  [ADR-0016](ADR-0016-aws-serverless-deployment.md).
 - Builds the locale segment on
   [ADR-0008](ADR-0008-adopt-react-i18next-for-frontend-i18n.md), and
   reuses its adapter boundary pattern for `shared/routing`.

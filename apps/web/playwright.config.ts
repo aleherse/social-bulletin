@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// ADR-0015: E2E journeys run against the nginx-served compiled frontend and
+// ADR-0013: E2E journeys run against the nginx-served compiled frontend and
 // the real API. `make web-e2e` builds the frontend before running.
 export default defineConfig({
   testDir: './e2e',

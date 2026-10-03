@@ -14,7 +14,7 @@ const DATABASE_NAME = 'bulletin';
 const DATABASE_USER = 'bulletin';
 
 /**
- * ADR-0014: Aurora Serverless v2 PostgreSQL with one writer, no reader, and
+ * ADR-0016: Aurora Serverless v2 PostgreSQL with one writer, no reader, and
  * cost-optimised capacity. Connection details are published to Parameter
  * Store under the environment-scoped path.
  */
@@ -56,7 +56,7 @@ export class DatabaseStack extends cdk.Stack {
       throw new Error('The database cluster is expected to generate a credentials secret.');
     }
 
-    // ADR-0014: the application reads its configuration from Parameter Store.
+    // ADR-0016: the application reads its configuration from Parameter Store.
     // CloudFormation resolves the Secrets Manager reference at deploy time.
     new ssm.StringParameter(this, 'DatabaseUrlParameter', {
       parameterName: parameterPath(environment, 'database-url'),

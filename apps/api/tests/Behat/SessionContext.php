@@ -35,7 +35,7 @@ final class SessionContext implements Context
     #[Given('a user exists with email :email')]
     public function aUserExistsWithEmail(string $email): void
     {
-        // ADR-0015: Given steps create state through application code.
+        // ADR-0013: Given steps create state through application code.
         $this->userService->findOrCreateByEmail($email);
     }
 

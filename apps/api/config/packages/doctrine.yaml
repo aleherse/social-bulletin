@@ -6,5 +6,5 @@ doctrine:
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
 
-# ADR-0015: tests run against the same `bulletin` database that `make db`
+# ADR-0013: tests run against the same `bulletin` database that `make db`
 # prepares and snapshots with DSLR; no per-environment database suffix.

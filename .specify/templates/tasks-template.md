@@ -9,7 +9,7 @@ description: "Task list template for feature implementation"
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: MANDATORY (Constitution Principle I). Every layer the feature touches gets explicit test tasks, ordered before the implementation tasks they cover. Per ADR-0015 the layer-to-tool mapping is: `packages/core` → PHPSpec, `apps/api` → Behat, `apps/web` units/components → Vitest, user journeys → Playwright (`apps/web/e2e/`). Omitting a layer requires an explicit written waiver naming the layer and the reason.
+**Tests**: MANDATORY (Constitution Principle I). Every layer the feature touches gets explicit test tasks, ordered before the implementation tasks they cover. Per ADR-0013 the layer-to-tool mapping is: `packages/core` → PHPSpec, `apps/api` → Behat, `apps/web` units/components → Vitest, user journeys → Playwright (`apps/web/e2e/`). Omitting a layer requires an explicit written waiver naming the layer and the reason.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 

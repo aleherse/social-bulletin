@@ -12,7 +12,7 @@ RUN apt-get update \
     && docker-php-ext-install pdo_pgsql intl \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
-    # ADR-0015: DSLR provides database snapshot/restore for the test suites.
+    # ADR-0013: DSLR provides database snapshot/restore for the test suites.
     && pip3 install --break-system-packages --no-cache-dir psycopg2-binary DSLR \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

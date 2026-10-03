@@ -24,7 +24,7 @@
 
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
-**Testing**: [Required — name every suite this feature needs, per ADR-0015:
+**Testing**: [Required — name every suite this feature needs, per ADR-0013:
 PHPSpec, Behat, Vitest, Playwright. "None" is not a valid answer; a layer left
 out needs a written waiver]
 

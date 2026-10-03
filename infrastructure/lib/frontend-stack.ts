@@ -18,7 +18,7 @@ export interface FrontendStackProps extends cdk.StackProps {
 }
 
 /**
- * ADR-0014: the frontend lives in a private S3 bucket behind CloudFront at
+ * ADR-0016: the frontend lives in a private S3 bucket behind CloudFront at
  * the environment's frontend hostname, with the Route53 alias and ACM
  * certificate managed here.
  */
