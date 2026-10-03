@@ -13,15 +13,15 @@ pre-commit:
     # CI=true makes the formatters check rather than rewrite, so a commit
     # never records files that differ from what was checked.
     web-prettier:
-      run: make web-prettier CI=true FILES="{staged_files}"
+      run: sh -c 'make web-prettier CI=true FILES="$*"' _ {staged_files}
     web-eslint:
-      run: make web-eslint FILES="{staged_files}"
+      run: sh -c 'make web-eslint FILES="$*"' _ {staged_files}
     web-tsc:
       run: make web-tsc
     php-ecs:
-      run: make php-ecs CI=true FILES="{staged_files}"
+      run: sh -c 'make php-ecs CI=true FILES="$*"' _ {staged_files}
     php-stan:
-      run: make php-stan FILES="{staged_files}"
+      run: sh -c 'make php-stan FILES="$*"' _ {staged_files}
 
 commit-msg:
   commands:
