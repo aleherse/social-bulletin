@@ -23,7 +23,7 @@ The frontend location SHALL use `try_files` so client-side routes fall back to t
 
 The nginx container SHALL depend on the PHP-FPM and frontend build output being available before serving traffic.
 
-A `make build` or equivalent target SHALL produce the frontend assets nginx serves.
+`make web-build` SHALL produce the frontend assets nginx serves; `make init` runs it before starting the stack.
 
 During active frontend development, the Vite dev server MAY run separately for hot module replacement; nginx serves the compiled frontend for integrated local testing.
 
