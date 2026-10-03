@@ -1,33 +1,36 @@
-# ADR-0013: Lefthook is the git hook runner. Hook commands call hook-safe
+# ADR-0014: Lefthook is the git hook runner. Hook commands call hook-safe
 # Make targets (docker compose run --rm), so no services need to be running.
 #
 # Boundaries:
-# - pre-commit: fast checks only (format, lint, type, coding standard).
+# - pre-commit: fast checks only (format, lint, type, coding standard),
+#   narrowed to the staged files.
 # - commit-msg: Conventional Commits, optionally prefixed with a task ID.
 # - pre-push: medium-cost codebase scanners and unit tests; no API/E2E suites.
 
 pre-commit:
   parallel: false
   commands:
+    # CI=true makes the formatters check rather than rewrite, so a commit
+    # never records files that differ from what was checked.
     web-prettier:
-      run: make web-prettier
+      run: make web-prettier CI=true FILES="{staged_files}"
     web-eslint:
-      run: make web-eslint
+      run: make web-eslint FILES="{staged_files}"
     web-tsc:
       run: make web-tsc
     php-ecs:
-      run: make php-ecs
+      run: make php-ecs CI=true FILES="{staged_files}"
     php-stan:
-      run: make php-stan
+      run: make php-stan FILES="{staged_files}"
 
 commit-msg:
   commands:
     conventional-commit:
       run: |
-        head -n1 {1} | grep -qE '^WIP\b|^Merge |^Revert "|^(\[[A-Z]+-[0-9]+\] |[A-Z]+-[0-9]+ )?(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._-]+\))?!?: .+$' || {
+        head -n1 {1} | grep -qE '^WIP\b|^Merge |^Revert "|^(\[[^[:space:]]+\] |[^[:space:]]+ \| )?(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._-]+\))?!?: .+$' || {
           echo "Commit message must follow Conventional Commits, optionally prefixed with a task ID"
-          echo "(the Overboards pipeline writes [KEY-123]), or start with WIP:"
-          echo "  [[TASK-123] |TASK-123 ]<type>[(scope)][!]: <description>"
+          echo "without whitespace (the Overboards pipeline writes [KEY-123]), or start with WIP:"
+          echo "  [[TASK-ID] |TASK-ID | ]<type>[(scope)][!]: <description>"
           echo "  types: build chore ci docs feat fix perf refactor revert style test"
           echo "  or: WIP ..."
           exit 1
