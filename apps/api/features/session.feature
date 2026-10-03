@@ -11,6 +11,7 @@ Feature: Email session
     Then the response status code should be 200
     And the JSON at "email" should equal "new.user@example.com"
     And the response should set an httpOnly cookie named "token"
+    And the "token" cookie should be same-site strict and expire in one hour
     And exactly one user should exist with email "new.user@example.com"
 
   Scenario: Signing in with an existing email reuses the user

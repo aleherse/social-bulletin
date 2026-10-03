@@ -83,6 +83,18 @@ final class SessionContext implements Context
         Assert::true($cookie->isSecure(), sprintf('The "%s" cookie is not Secure.', $name));
     }
 
+    #[Then('the :name cookie should be same-site strict and expire in one hour')]
+    public function theCookieShouldBeSameSiteStrictAndExpireInOneHour(string $name): void
+    {
+        $cookie = $this->findResponseCookie($name);
+
+        Assert::notNull($cookie, sprintf('No "%s" cookie was set on the response.', $name));
+        Assert::same($cookie->getSameSite(), \Symfony\Component\HttpFoundation\Cookie::SAMESITE_STRICT);
+        Assert::same($cookie->getPath(), '/');
+        // A minute of slack absorbs the time the request itself took.
+        Assert::range($cookie->getExpiresTime() - time(), 3540, 3600);
+    }
+
     #[Then('the response should not set a cookie named :name')]
     public function theResponseShouldNotSetACookieNamed(string $name): void
     {
