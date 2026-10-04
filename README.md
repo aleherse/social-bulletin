@@ -59,16 +59,16 @@ No example dataset is needed: register from the home page.
 
 ## Daily use
 
-| Command                | What it does                                              |
-|------------------------|-----------------------------------------------------------|
-| `make`                 | List every target with a short description                |
-| `make up`              | Start the stack, wait until healthy, print the addresses |
-| `make urls`            | Reprint the addresses                                     |
-| `make down`            | Stop the stack                                            |
-| `make logs service=php`| Follow one service's logs (all without `service`)         |
-| `make console cmd=...` | Run a Symfony console command                             |
-| `make db`              | Recreate the database and its DSLR `fixtures` snapshot    |
-| `make destroy`         | Remove every container, volume and generated artefact     |
+| Command                 | What it does                                             |
+|-------------------------|----------------------------------------------------------|
+| `make`                  | List every target with a short description               |
+| `make up`               | Start the stack, wait until healthy, print the addresses |
+| `make urls`             | Reprint the addresses                                    |
+| `make down`             | Stop the stack                                           |
+| `make logs service=php` | Follow one service's logs (all without `service`)        |
+| `make console cmd=...`  | Run a Symfony console command                            |
+| `make db`               | Recreate the database and its DSLR `fixtures` snapshot   |
+| `make destroy`          | Remove every container, volume and generated artefact    |
 
 ## Verifying a change
 
@@ -140,12 +140,11 @@ Work on this project is queued and delivered on one Boards board,
 worked by the Overboards pipeline.
 There is one target, so there is nothing to choose between.
 
-|                    | Production                                                                                                                                                            |
-|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Board              | `https://boards.aircury.net/b/social-bulletin`                                                                                                                        |
-| API base           | `https://api.boards.aircury.net`                                                                                                                                      |
-| Token              | The secret `SOCIAL_BOARDS_TOKEN` in the Overboards supervisor's configuration and secrets store, never in this repository, a shell environment or an environment file |
-| Integration branch | `ready`                                                                                                                                                               |
+|                    | Production                                     |
+|--------------------|------------------------------------------------|
+| Board              | `https://boards.aircury.net/b/social-bulletin` |
+| API base           | `https://api.boards.aircury.net`               |
+| Integration branch | `ready`                                        |
 
 The token is board-scoped and issued from the board's **Manage tokens**
 with the **Unattended contributor** shortcut.
