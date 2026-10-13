@@ -32,12 +32,13 @@
 ## Notes
 
 - Passed on the first validation pass.
-- No clarification markers were needed;
-  the defaults below are recorded under Assumptions and Edge Cases
-  and are the best candidates for `/speckit-clarify`:
-  - how `state` / `province` / `region` map onto each country's administrative divisions;
-  - changing the area level after pinning refills the name, replacing hand edits;
-  - point precision for publicly visible movements is deferred to the publication spec.
-- Out-of-range and partial coordinate rejection (FR-009) are validation cases;
-  per Principle II they belong at the lowest layer that can prove them,
-  not in end-to-end journeys.
+- No clarification markers were needed.
+- Revalidated after `/speckit-clarify` (session 2026-10-13); still passing.
+  The clarifications removed coordinate storage,
+  fixed the area levels as ranks,
+  set local official names,
+  and stopped refills on area-level changes.
+- No backend validation case remains:
+  the movement's stored data is unchanged,
+  and whether place-name lookups pass through the API
+  is left to `/speckit-plan`.
