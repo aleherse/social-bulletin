@@ -16,7 +16,7 @@ function detectedLocale() {
 }
 
 /**
- * ADR-0018: the whole URL surface, composed from the fragments each page slice
+ * ADR-0019: the whole URL surface, composed from the fragments each page slice
  * owns. Importable without `RouterProvider` so tests can mount it in memory.
  */
 export const appRoutes: RouteObject[] = [

@@ -7,7 +7,7 @@ import { useLocale } from './use-locale.ts';
 type LinkProps = Omit<ComponentProps<typeof RouterLink>, 'to'> & { to: string };
 type NavLinkProps = Omit<ComponentProps<typeof RouterNavLink>, 'to'> & { to: string };
 
-/** ADR-0018: callers pass locale-free paths; the locale segment is added here. */
+/** ADR-0019: callers pass locale-free paths; the locale segment is added here. */
 export function Link({ to, ...props }: LinkProps) {
   const locale = useLocale();
 

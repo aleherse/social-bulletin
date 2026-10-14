@@ -47,7 +47,7 @@ async function createDraft(page: Page, fields: MovementFields) {
 }
 
 test('a guest is sent to sign in, then back to where they were going', async ({ page }) => {
-  // ADR-0018: the route guard redirects and records the attempted path.
+  // ADR-0019: the route guard redirects and records the attempted path.
   await page.goto('/en/movements');
 
   await expect(page.getByLabel('Email')).toBeVisible();
@@ -121,7 +121,7 @@ test('an author edits a draft before submitting it', async ({ page }) => {
   await page.getByRole('link', { name: 'Edit' }).click();
   await expect(page).toHaveURL(/\/en\/movements\/[^/]+\/edit$/);
 
-  // ADR-0018: a full document load of a deep link must survive the SPA
+  // ADR-0019: a full document load of a deep link must survive the SPA
   // fallback (nginx `try_files`, CloudFront 403/404 -> /index.html).
   await page.reload();
   await expect(page.getByLabel('Title')).toHaveValue('Save the Bees');

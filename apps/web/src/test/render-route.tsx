@@ -6,7 +6,7 @@ import { appRoutes } from '@/app/routes.tsx';
 import { I18nProvider } from '@/shared/i18n';
 
 /**
- * ADR-0018: renders a real path against the real route table, so a path no
+ * ADR-0019: renders a real path against the real route table, so a path no
  * route matches fails the test that uses it.
  *
  * Lives outside the FSD layers because it composes the `app` layer; putting it

@@ -37,7 +37,7 @@ final class MovementContext implements Context
     #[Given(':email has a movement draft titled :title')]
     public function hasAMovementDraftTitled(string $email, string $title): void
     {
-        // ADR-0015: Given steps create state through application code.
+        // ADR-0013: Given steps create state through application code.
         $this->createMovement($email, $title, '');
     }
 

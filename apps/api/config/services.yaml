@@ -49,5 +49,5 @@ when@test:
             autowire: true
             autoconfigure: true
 
-        # Shared HTTP machinery for the Behat contexts (ADR-0015).
+        # Shared HTTP machinery for the Behat contexts (ADR-0013).
         App\Tests\Behat\ApiClient: ~

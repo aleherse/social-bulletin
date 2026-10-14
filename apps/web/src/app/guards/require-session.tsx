@@ -4,7 +4,7 @@ import { useCurrentUser } from '@/entities/session';
 import { useTranslation } from '@/shared/i18n';
 import { localePath, useLocale } from '@/shared/routing';
 
-/** ADR-0018: only a settled `null` session redirects; a pending one waits. */
+/** ADR-0019: only a settled `null` session redirects; a pending one waits. */
 export function RequireSession() {
   const { t } = useTranslation();
   const locale = useLocale();

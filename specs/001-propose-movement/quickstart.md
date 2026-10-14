@@ -7,7 +7,7 @@ How to run and verify this feature locally once implemented.
 - Docker environment up: `make up` (nginx, PHP-FPM, Node, PostgreSQL).
 - Database rebuilt with the new migration and fixtures snapshot:
   `make db` (creates DB, runs migrations, loads `fixtures.feature`,
-  snapshots via DSLR — ADR-0015).
+  snapshots via DSLR — ADR-0013).
 
 ## Try it in the browser
 
@@ -63,4 +63,4 @@ so `make up` must be running.
 
 Behat and Playwright scenarios restore the DSLR `fixtures` snapshot
 between runs;
-never recreate the snapshot from a test run (ADR-0015).
+never recreate the snapshot from a test run (ADR-0013).

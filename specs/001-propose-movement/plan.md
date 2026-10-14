@@ -41,10 +41,10 @@ Doctrine migration
 
 **Testing**: PHPSpec for `packages/core`; Behat + SymfonyExtension with
 JMESPath assertions for `apps/api` (new `movements.feature`);
-Vitest + Testing Library for `apps/web` (ADR-0015)
+Vitest + Testing Library for `apps/web` (ADR-0013)
 
 **Target Platform**: Dockerised Linux dev environment (nginx + PHP-FPM
-+ Node + PostgreSQL), AWS serverless deployment (ADR-0014)
++ Node + PostgreSQL), AWS serverless deployment (ADR-0016)
 
 **Project Type**: Web application (monorepo: `apps/api`, `apps/web`,
 `packages/core`)
@@ -82,7 +82,7 @@ the governing constraints; this plan is checked against them:
 | DBAL only, no ORM entities (ADR-0009)                | PASS   | `DbalMovementRepository` adapter in `apps/api`                     |
 | Cookie-JWT auth, stateless firewall (ADR-0011)       | PASS   | Endpoints reuse the existing `token` cookie authentication         |
 | FSD layering, layers only as needed (ADR-0007)       | PASS   | New `entities/movement` + page slice; no new layers beyond need    |
-| Testing toolchain (ADR-0015)                         | PASS   | PHPSpec unit specs, Behat API feature, Vitest component tests      |
+| Testing toolchain (ADR-0013)                         | PASS   | PHPSpec unit specs, Behat API feature, Vitest component tests      |
 | UUID v7 identifiers (ADR-0005)                       | PASS   | Reuses `IdentityGenerator` port + `UuidV7IdentityGenerator`        |
 
 **Post-design re-check (after Phase 1)**: PASS — the data model,
