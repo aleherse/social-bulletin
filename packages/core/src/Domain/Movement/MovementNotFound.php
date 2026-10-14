@@ -8,4 +8,5 @@ use SocialBulletin\Core\Domain\Helper\DomainError;
 
 final class MovementNotFound extends \DomainException implements DomainError
 {
+    public const int STATUS_CODE = 404;
 }

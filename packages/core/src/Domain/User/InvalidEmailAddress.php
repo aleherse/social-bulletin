@@ -8,4 +8,5 @@ use SocialBulletin\Core\Domain\Helper\DomainError;
 
 final class InvalidEmailAddress extends \DomainException implements DomainError
 {
+    public const int STATUS_CODE = 422;
 }

@@ -9,7 +9,6 @@ use App\Messenger\QueryBus;
 use SocialBulletin\Core\Application\Movement\Command\CreateMovementCommand;
 use SocialBulletin\Core\Application\Movement\Query\ShowMovementQuery;
 use SocialBulletin\Core\Application\User\Model\User;
-use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,17 +29,10 @@ final readonly class CreateMovementController
         $payload = $request->toArray();
         $command = CreateMovementCommand::fromPayload($payload, $currentUser->id);
 
-        try {
-            $this->commandBus->dispatch($command);
-            $movement = $this->queryBus->dispatch(
-                new ShowMovementQuery((string) $command->id, $currentUser->id),
-            );
-        } catch (InvalidMovement $exception) {
-            return new JsonResponse([
-                'message' => $exception->getMessage(),
-                'errors' => $exception->errors,
-            ], Response::HTTP_BAD_REQUEST);
-        }
+        $this->commandBus->dispatch($command);
+        $movement = $this->queryBus->dispatch(
+            new ShowMovementQuery((string) $command->id, $currentUser->id),
+        );
 
         return new JsonResponse(MovementPresenter::toArray($movement), Response::HTTP_CREATED);
     }

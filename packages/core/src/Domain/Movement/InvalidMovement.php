@@ -8,6 +8,8 @@ use SocialBulletin\Core\Domain\Helper\DomainError;
 
 final class InvalidMovement extends \DomainException implements DomainError
 {
+    public const int STATUS_CODE = 400;
+
     /**
      * @param array<string, string> $errors field name => translation key
      */

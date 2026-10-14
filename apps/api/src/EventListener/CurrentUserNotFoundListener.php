@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\EventListener;
 
+use App\Http\JsonApiErrorResponse;
 use App\Security\CurrentUserNotFound;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -20,8 +20,6 @@ final readonly class CurrentUserNotFoundListener
             return;
         }
 
-        $event->setResponse(new JsonResponse([
-            'message' => 'error.unauthorized',
-        ], Response::HTTP_UNAUTHORIZED));
+        $event->setResponse(JsonApiErrorResponse::create(Response::HTTP_UNAUTHORIZED, 'error.unauthorized'));
     }
 }

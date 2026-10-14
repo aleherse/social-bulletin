@@ -9,12 +9,8 @@ use App\Messenger\QueryBus;
 use SocialBulletin\Core\Application\Movement\Command\UpdateMovementCommand;
 use SocialBulletin\Core\Application\Movement\Query\ShowMovementQuery;
 use SocialBulletin\Core\Application\User\Model\User;
-use SocialBulletin\Core\Domain\Movement\InvalidMovement;
-use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
-use SocialBulletin\Core\Domain\Movement\MovementNotFound;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final readonly class UpdateMovementController
@@ -31,23 +27,8 @@ final readonly class UpdateMovementController
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
 
-        try {
-            $this->commandBus->dispatch(UpdateMovementCommand::fromPayload($payload, $currentUser->id, $id));
-            $movement = $this->queryBus->dispatch(new ShowMovementQuery($id, $currentUser->id));
-        } catch (MovementNotFound $exception) {
-            return new JsonResponse([
-                'message' => $exception->getMessage(),
-            ], Response::HTTP_NOT_FOUND);
-        } catch (MovementNotDraft $exception) {
-            return new JsonResponse([
-                'message' => $exception->getMessage(),
-            ], Response::HTTP_CONFLICT);
-        } catch (InvalidMovement $exception) {
-            return new JsonResponse([
-                'message' => $exception->getMessage(),
-                'errors' => $exception->errors,
-            ], Response::HTTP_BAD_REQUEST);
-        }
+        $this->commandBus->dispatch(UpdateMovementCommand::fromPayload($payload, $currentUser->id, $id));
+        $movement = $this->queryBus->dispatch(new ShowMovementQuery($id, $currentUser->id));
 
         return new JsonResponse(MovementPresenter::toArray($movement));
     }

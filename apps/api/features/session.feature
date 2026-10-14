@@ -53,6 +53,6 @@ Feature: Email session
       {"email": "not-an-email"}
       """
     Then the response status code should be 422
-    And the JSON at "message" should not be empty
+    And the JSON at "errors[0].title" should not be empty
     And the response should not set a cookie named "token"
     And no user should exist with email "not-an-email"

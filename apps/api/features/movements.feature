@@ -67,10 +67,10 @@ Feature: Propose a movement
       {}
       """
     Then the response status code should be 400
-    And the JSON at "message" should not be empty
-    And the JSON at "errors.title" should not be empty
-    And the JSON at "errors.category" should not be empty
-    And the JSON at "errors.area" should not be empty
+    And the JSON at "errors[0].title" should not be empty
+    And the JSON at "errors[?source.pointer=='/title'].detail | [0]" should not be empty
+    And the JSON at "errors[?source.pointer=='/category'].detail | [0]" should not be empty
+    And the JSON at "errors[?source.pointer=='/area'].detail | [0]" should not be empty
 
   Scenario: An unknown category is rejected
     When I send a POST request to "/api/session" with body:
@@ -82,7 +82,7 @@ Feature: Propose a movement
       {"title": "Community Gardens for Everyone", "category": "not-a-real-category", "area": "municipality", "location": "Sheffield"}
       """
     Then the response status code should be 400
-    And the JSON at "errors.category" should not be empty
+    And the JSON at "errors[?source.pointer=='/category'].detail | [0]" should not be empty
 
   Scenario: A local area requires a location
     When I send a POST request to "/api/session" with body:
@@ -94,7 +94,7 @@ Feature: Propose a movement
       {"title": "Community Gardens for Everyone", "category": "cooperative", "area": "municipality"}
       """
     Then the response status code should be 400
-    And the JSON at "errors.location" should not be empty
+    And the JSON at "errors[?source.pointer=='/location'].detail | [0]" should not be empty
 
   Scenario: Guests cannot create movements
     When I send a POST request to "/api/movements" with body:
@@ -143,7 +143,7 @@ Feature: Propose a movement
       """
     And I send a GET request to "/api/movements/not-a-uuid"
     Then the response status code should be 404
-    And the JSON at "message" should not be empty
+    And the JSON at "errors[0].title" should not be empty
 
   Scenario: An author can fetch their own movement
     Given "author@example.com" has a movement draft titled "Save the Bees"
@@ -164,7 +164,7 @@ Feature: Propose a movement
       """
     And I send a GET request to the movement titled "Save the Bees"
     Then the response status code should be 404
-    And the JSON at "message" should not be empty
+    And the JSON at "errors[0].title" should not be empty
 
   Scenario: Submitting a described draft proposes it
     Given "author@example.com" has a movement draft titled "Save the Bees" with a description
@@ -184,7 +184,7 @@ Feature: Propose a movement
       """
     And I submit the movement titled "Save the Bees"
     Then the response status code should be 400
-    And the JSON at "errors.description" should not be empty
+    And the JSON at "errors[?source.pointer=='/description'].detail | [0]" should not be empty
     When I send a GET request to the movement titled "Save the Bees"
     Then the JSON at "status" should equal "draft"
 
@@ -196,7 +196,7 @@ Feature: Propose a movement
       """
     And I submit the movement titled "Save the Bees"
     Then the response status code should be 409
-    And the JSON at "message" should not be empty
+    And the JSON at "errors[0].title" should not be empty
 
   Scenario: Another user's draft cannot be submitted
     Given "other@example.com" has a movement draft titled "Save the Bees" with a description
@@ -259,7 +259,7 @@ Feature: Propose a movement
       {"title": ""}
       """
     Then the response status code should be 400
-    And the JSON at "errors.title" should not be empty
+    And the JSON at "errors[?source.pointer=='/title'].detail | [0]" should not be empty
 
   Scenario: A proposed movement cannot be edited
     Given "author@example.com" has a proposed movement titled "Save the Bees"
@@ -272,7 +272,7 @@ Feature: Propose a movement
       {"title": "Save All the Bees"}
       """
     Then the response status code should be 409
-    And the JSON at "message" should not be empty
+    And the JSON at "errors[0].title" should not be empty
 
   Scenario: Another user's movement cannot be edited
     Given "other@example.com" has a movement draft titled "Save the Bees"
