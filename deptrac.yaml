@@ -33,8 +33,8 @@ deptrac:
       collectors:
         - type: implements
           value: 'SocialBulletin\Core\Domain\Helper\DomainError'
-        - type: classLike
-          value: 'SocialBulletin\Core\Domain\Helper\DomainError'
+        - type: classNameRegex
+          value: '/^SocialBulletin\\Core\\Domain\\Helper\\DomainError$/'
 
     - name: Repository
       collectors:

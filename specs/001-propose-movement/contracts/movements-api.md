@@ -2,8 +2,10 @@
 
 All endpoints live under the existing stateless `/api` firewall and
 require the `token` httpOnly cookie (ADR-0011) unless noted.
-Errors follow the existing API conventions: JSON body with a
-translatable `message`; validation errors list per-field problems.
+Errors follow the JSON:API error format (`application/vnd.api+json`):
+an `errors` array whose objects carry `status` and a translatable `title`;
+validation errors add one object per field, with the problem in `detail` and
+`source.pointer` set to the request field (e.g. `/title`).
 
 Movement JSON representation (all responses):
 

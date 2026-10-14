@@ -5,7 +5,7 @@ export interface SessionUser {
 /** API rejected the session request; `message` is already translated by the backend. */
 export class SessionError extends Error {}
 
-import { apiRequest as request } from './http.ts';
+import { apiRequest as request, readApiError } from './http.ts';
 
 export async function fetchCurrentUser(): Promise<SessionUser | null> {
   const response = await request('/api/me');
@@ -29,11 +29,12 @@ export async function createSession(email: string): Promise<SessionUser> {
   });
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { message?: string } | null;
-
-    throw new SessionError(
-      body?.message ?? `Unexpected /api/session response: ${String(response.status)}`,
+    const error = await readApiError(
+      response,
+      `Unexpected /api/session response: ${String(response.status)}`,
     );
+
+    throw new SessionError(error.message);
   }
 
   return (await response.json()) as SessionUser;

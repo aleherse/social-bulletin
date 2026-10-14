@@ -8,4 +8,5 @@ use SocialBulletin\Core\Domain\Helper\DomainError;
 
 final class MovementNotDraft extends \DomainException implements DomainError
 {
+    public const int STATUS_CODE = 409;
 }
