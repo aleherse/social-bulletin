@@ -60,37 +60,25 @@ class MovementRepository
         }
     }
 
-    public function byId(string $id): ?Movement
+    public function authorMovement(string $id, UserId $authorId): Movement
     {
-        // Route parameters are arbitrary text; PostgreSQL rejects
-        // non-UUID values on a UUID column instead of returning no rows.
         if (! Uuid::isValid($id)) {
-            return null;
+            throw new MovementNotFound('movement.not_found');
         }
 
         /** @var array<string, string|null>|false $row */
         $row = $this->getQueryBuilder()
             ->where('id = :id')
+            ->andWhere('author_id = :author_id')
             ->setParameter('id', $id)
+            ->setParameter('author_id', (string) $authorId)
             ->fetchAssociative();
 
-        return false === $row ? null : $this->hydrate($row);
-    }
+        if (false === $row) {
+            throw new MovementNotFound('movement.not_found');
+        }
 
-    /**
-     * @return list<Movement> newest first
-     */
-    public function byAuthor(UserId $authorId): array
-    {
-        /** @var list<array<string, string|null>> $rows */
-        $rows = $this->getQueryBuilder()
-            ->where('author_id = :author_id')
-            ->orderBy('created_at', 'DESC')
-            ->addOrderBy('id', 'DESC')
-            ->setParameter('author_id', (string) $authorId)
-            ->fetchAllAssociative();
-
-        return array_map($this->hydrate(...), $rows);
+        return $this->hydrate($row);
     }
 
     /**

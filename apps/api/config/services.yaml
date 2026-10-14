@@ -19,21 +19,29 @@ services:
     App\:
         resource: '../src/'
 
-    # packages/core services: the framework-free domain logic
-    SocialBulletin\Core\Domain\User\UserService: ~
-    SocialBulletin\Core\Domain\Movement\MovementService: ~
-
-    # makes every packages/core `*Repository` class available as a service
+    # makes every packages/core `*Repository` class available as a service:
     SocialBulletin\Core\Domain\:
         resource: '../../../packages/core/src/Domain/*/*Repository.php'
 
-    # packages/core command handlers: tagged here rather than with #[AsMessageHandler],
-    # so the core package stays framework-free (ADR-0005, ADR-0017)
+    # packages/core read providers: the SQL behind the query side.
     SocialBulletin\Core\Application\:
-        resource: '../../../packages/core/src/Application/*/*Handler.php'
+        resource: '../../../packages/core/src/Application/*/Provider/*Provider.php'
+
+    # packages/core command handlers: tagged here
+    SocialBulletin\Core\Application\CommandHandlers:
+        namespace: SocialBulletin\Core\Application\
+        resource: '../../../packages/core/src/Application/*/Command/*Handler.php'
         tags:
             - name: messenger.message_handler
               bus: command.bus
+
+    # packages/core query handlers: the same arrangement on the query bus
+    SocialBulletin\Core\Application\QueryHandlers:
+        namespace: SocialBulletin\Core\Application\
+        resource: '../../../packages/core/src/Application/*/Query/*Handler.php'
+        tags:
+            - name: messenger.message_handler
+              bus: query.bus
 
 when@test:
     services:
