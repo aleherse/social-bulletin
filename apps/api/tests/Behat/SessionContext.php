@@ -79,7 +79,7 @@ final class SessionContext implements Context
     #[Then('the :name cookie should be same-site strict and expire in one hour')]
     public function theCookieShouldBeSameSiteStrictAndExpireInOneHour(string $name): void
     {
-        $cookie = $this->findResponseCookie($name);
+        $cookie = $this->apiClient->findResponseCookie($name);
 
         Assert::notNull($cookie, sprintf('No "%s" cookie was set on the response.', $name));
         Assert::same($cookie->getSameSite(), \Symfony\Component\HttpFoundation\Cookie::SAMESITE_STRICT);
