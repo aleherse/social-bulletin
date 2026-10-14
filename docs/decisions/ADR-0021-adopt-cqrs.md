@@ -1,4 +1,4 @@
-# ADR-0017: Adopt CQRS
+# ADR-0021: Adopt CQRS
 
 - Status: Accepted
 - Date: 2026-08-10

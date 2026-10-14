@@ -16,7 +16,7 @@ void i18n.init({
   supportedLngs: SUPPORTED_LOCALES,
   fallbackLng: DEFAULT_LOCALE,
   defaultNS: 'common',
-  // ADR-0018: the first path segment is the locale, so it outranks the browser.
+  // ADR-0019: the first path segment is the locale, so it outranks the browser.
   detection: {
     order: ['path', 'navigator'],
     lookupFromPathIndex: 0,

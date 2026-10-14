@@ -2,7 +2,7 @@ import type { RouteObject } from '@/shared/routing';
 
 import { MovementsLayout } from './ui/movements-layout.tsx';
 
-/** ADR-0018: the page slice owns its paths; `app/routes.tsx` composes them. */
+/** ADR-0019: the page slice owns its paths; `app/routes.tsx` composes them. */
 export const movementsRoutes: RouteObject = {
   path: 'movements',
   element: <MovementsLayout />,

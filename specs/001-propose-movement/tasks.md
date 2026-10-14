@@ -5,7 +5,7 @@
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md,
 contracts/movements-api.md, quickstart.md
 
-**Tests**: Included — ADR-0015 mandates PHPSpec (core), Behat (api),
+**Tests**: Included — ADR-0013 mandates PHPSpec (core), Behat (api),
 Vitest (web), and Playwright (browser journeys) coverage;
 write them first within each story.
 The Playwright journeys span all three stories,
@@ -150,7 +150,7 @@ explanation; a second submit returns a conflict.
       description → `proposed`; empty description rejected; non-draft
       rejected) in `packages/core/spec/Movement/MovementSpec.php`
 - [X] T025 [P] [US2] Behat `Given` steps that create movements through
-      application code (ADR-0015) in the Behat context under
+      application code (ADR-0013) in the Behat context under
       `apps/api/features/`, plus US2 scenarios (submit 200,
       empty-description 400, resubmit 409, another user's draft 404)
       in `apps/api/features/movements.feature`
@@ -214,7 +214,7 @@ refused.
 
 - [X] T036 [P] Add reusable baseline movements to
       `apps/api/features/fixtures.feature` (only genuinely shared
-      data, ADR-0015) and refresh the snapshot with `make db`
+      data, ADR-0013) and refresh the snapshot with `make db`
 - [X] T037 [P] Verify the nelmio OpenAPI JSON documents the five new
       endpoints; add attributes in
       `apps/api/src/Controller/` where missing
@@ -298,7 +298,7 @@ Task: "entities/movement slice in apps/web/src/entities/movement/"
 - Auto-commit hooks commit after each speckit phase; still commit
   after each task or logical group during implementation.
 - Behat and Playwright runs restore the DSLR `fixtures` snapshot;
-  never recreate the snapshot from a test run (ADR-0015).
+  never recreate the snapshot from a test run (ADR-0013).
 - `make web-e2e` builds the frontend first, so Playwright always runs
   against the compiled bundle nginx serves, not the dev server.
 - Keep `packages/core` free of Symfony/DBAL imports (deptrac enforces

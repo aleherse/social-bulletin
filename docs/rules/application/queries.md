@@ -8,7 +8,7 @@
 with `Doctrine\DBAL\Connection` directly and returning models (`application-queries-0002`). Only a query handler
 calls it (`application-queries-0003`). A repository keeps `save()` and only the finder that hydrates the aggregate a
 handler is about to mutate. Where both sides need the same lookup they get one method each and neither delegates to
-the other: they share the table, not the code (ADR-0017, `database-persistence-0002`).
+the other: they share the table, not the code (ADR-0021, `database-persistence-0002`).
 
 **Example:**
 

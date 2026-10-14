@@ -1,4 +1,4 @@
-/** ADR-0018: the `:lang` URL segment is authoritative for the rendered language. */
+/** ADR-0019: the `:lang` URL segment is authoritative for the rendered language. */
 
 export const SUPPORTED_LOCALES = ['en'] as const;
 

@@ -45,7 +45,7 @@ export function RegistrationForm() {
     setValidationError(null);
     createSession.mutate(email.trim(), {
       onSuccess: () => {
-        // ADR-0018: a guard sent the visitor here, so return them to where they were going.
+        // ADR-0019: a guard sent the visitor here, so return them to where they were going.
         const next = searchParams.get('next');
 
         if (next !== null) {

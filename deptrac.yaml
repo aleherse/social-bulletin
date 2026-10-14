@@ -1,8 +1,8 @@
 # ADR-0012: Deptrac owns package and layer dependency rules.
 # packages/core stays framework-free but owns its DBAL repositories; apps depend on packages, never the reverse.
-# ADR-0017: inside packages/core, Application may use Domain; Domain never reaches back into Application.
+# ADR-0021: inside packages/core, Application may use Domain; Domain never reaches back into Application.
 # Framework reaches core through Application only, plus the domain errors it maps to status codes (DomainError).
-# Providers read; they never touch a repository (ADR-0017), and nothing in apps/api injects one either.
+# Providers read; they never touch a repository (ADR-0021), and nothing in apps/api injects one either.
 deptrac:
   paths:
     - apps/api/src

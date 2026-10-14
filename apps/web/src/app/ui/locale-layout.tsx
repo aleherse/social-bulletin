@@ -4,7 +4,7 @@ import { Outlet, useParams } from 'react-router';
 import { NotFoundPage } from '@/pages/not-found';
 import { isSupportedLocale, useTranslation } from '@/shared/i18n';
 
-/** ADR-0018: the `:lang` segment is authoritative for the rendered language. */
+/** ADR-0019: the `:lang` segment is authoritative for the rendered language. */
 export function LocaleLayout() {
   const { lang } = useParams();
   const { i18n } = useTranslation();
