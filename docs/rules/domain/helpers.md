@@ -39,3 +39,19 @@ Don't add a `*RepositoryInterface` to `Helper/` to match this pattern.
 | a `Helper/` interface with no adapter aliased                       | aliased in `apps/api/config/services.yaml`                             |
 | `MovementRepositoryInterface` in `Domain/Helper/`                    | concrete `MovementRepository` in `Domain/Movement/`                    |
 | a concrete `Clock` class in `Domain/Helper/`                         | a `Clock` interface there, implemented in `apps/api`                   |
+
+## domain-helpers-0003: A domain failure apps/api maps implements DomainError
+
+**WHEN** adding an exception under `core/src/Domain/` that must become an HTTP response
+
+**THEN** have it `implements Domain\Helper\DomainError` alongside whatever it extends, and override the interface's
+`STATUS_CODE` constant with the status it answers with (`application-framework-0004` reads it). `DomainError` is a
+`\Throwable` marker in `Domain/Helper/` (`domain-helpers-0001`) — the domain's published error surface.
+
+**Example:**
+
+| Wrong                                                      | Right                                                                |
+|------------------------------------------------------------|----------------------------------------------------------------------|
+| `final class MovementNotFound extends \DomainException {}` | `... implements DomainError { public const int STATUS_CODE = 404; }` |
+| a status map in `apps/api` keyed by exception class        | the constant on the exception itself                                 |
+| a `MovementError` marker per aggregate                     | one `Domain\Helper\DomainError` shared by every aggregate            |

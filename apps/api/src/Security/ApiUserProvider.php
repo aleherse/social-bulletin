@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Security;
 
-use SocialBulletin\Core\UserService;
+use App\Messenger\QueryBus;
+use SocialBulletin\Core\Application\User\Query\CurrentUserQuery;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
@@ -15,13 +16,13 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 final class ApiUserProvider implements UserProviderInterface
 {
     public function __construct(
-        private readonly UserService $userService,
+        private readonly QueryBus $queryBus,
     ) {
     }
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        $user = $this->userService->currentUser($identifier);
+        $user = $this->queryBus->dispatch(new CurrentUserQuery($identifier));
 
         if (null === $user) {
             throw new UserNotFoundException(sprintf('No user found for email "%s".', $identifier));

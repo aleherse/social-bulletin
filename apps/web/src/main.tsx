@@ -3,12 +3,12 @@ import { createRoot } from 'react-dom/client';
 
 import './index.css';
 import { AppProviders } from './app/providers/index.tsx';
-import { HomePage } from './pages/home';
+import { AppRouter } from './app/router.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppProviders>
-      <HomePage />
+      <AppRouter />
     </AppProviders>
   </StrictMode>,
 );

@@ -5,7 +5,9 @@
     "license": "proprietary",
     "require": {
         "php": ">=8.3",
+        "doctrine/dbal": "^4.4",
         "symfony/translation-contracts": "^3.7",
+        "symfony/uid": "^7.4",
         "webmozart/assert": "^2.4"
     },
     "autoload": {

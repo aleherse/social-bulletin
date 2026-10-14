@@ -69,3 +69,50 @@ write into a create and an edit command (`application-commands-0005`) is often w
 | absent-field merge (`$payload['title'] ?? $movement->title()`, …) inline in the controller              | resolved in `UpdateMovementHandler`, from the aggregate it loads                              |
 | `$this->title = $payload['title'] ?? ''` in `UpdateMovementCommand` — it would silently blank the field | left unassigned; `UpdateMovementHandler` falls back to the movement's current title           |
 | `SignInCommand::$email` left unassigned, so every reader must ask `hasProperty('email')` first          | `$this->email = $email ?? ''` — absent, `null` and `''` are all `email.blank`                 |
+
+## application-framework-0003: A controller reaches core through Application only
+
+**WHEN** writing a controller under `apps/api/src/Controller`
+
+**THEN** import from `Core\Application` — the command, the query, the model it renders — and nothing from `Domain`.
+Naming a domain class puts a business rule in the controller and duplicates one the use case already runs.
+
+**Example:**
+
+| Wrong                                                               | Right                                                              |
+|-----------------------------------------------------------------------|----------------------------------------------------------------------|
+| `use SocialBulletin\Core\Domain\User\User;` in `SignInController`     | only the `SignInCommand` and `CurrentUserQuery` it dispatches        |
+| `$email = User::normaliseEmail($command->email);`, then querying it   | `new CurrentUserQuery($command->email)`, normalised in the query constructor |
+| injecting `MovementProvider` into a controller                        | dispatching on `QueryBus` (`application-commands-0002`)              |
+
+## application-framework-0004: Domain failures are translated by one exception listener
+
+**WHEN** a command or query can fail with a `DomainError` (`domain-helpers-0003`) that must become an HTTP response
+
+**THEN** let it propagate out of the controller. `App\EventListener\DomainErrorListener` answers every `DomainError`
+with the status code from its `STATUS_CODE` constant — no `try/catch` in a controller, no status map per route. A
+failure outside the domain (e.g. `CurrentUserNotFound`) gets its own `kernel.exception` listener in
+`apps/api/src/EventListener/`.
+
+**Example:**
+
+| Wrong                                                                             | Right                                                      |
+|-----------------------------------------------------------------------------------|------------------------------------------------------------|
+| `catch (MovementNotFound)` returning `HTTP_NOT_FOUND` in `ShowMovementController` | no catch; `MovementNotFound::STATUS_CODE` (404) answers it |
+| the same `MovementNotDraft` → 409 catch repeated in `Update` and `Submit`         | one listener, one `STATUS_CODE` on the exception           |
+
+## application-framework-0005: Error responses are JSON:API documents
+
+**WHEN** apps/api builds an error response for a client
+
+**THEN** build it with `App\Http\JsonApiErrorResponse::create()` — an `errors` array of objects with `status` and
+`title`, served as `application/vnd.api+json`. Report a field problem as one object per field, with the problem in
+`detail` and `source.pointer` set to the request field (`/title`). Never hand-roll `JsonResponse(['message' => …])` —
+the web client (`readApiError()`) and the Behat steps read this shape.
+
+**Example:**
+
+| Wrong                                        | Right                                                                                            |
+|----------------------------------------------|--------------------------------------------------------------------------------------------------|
+| `{"message": "…", "errors": {"title": "…"}}` | `{"errors": [{"status": "400", "title": "…", "detail": "…", "source": {"pointer": "/title"}}]}` |
+| Behat: `the JSON at "errors.title"`          | `the JSON at "errors[?source.pointer=='/title'].detail \| [0]"`                                  |

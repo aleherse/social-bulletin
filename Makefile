@@ -277,6 +277,6 @@ setup-claude: ## Create Claude Code links (.claude/skills/*, CLAUDE.md) if missi
 	@mkdir -p .claude/skills
 	@for skill in .agents/skills/*/; do \
 		name=$$(basename "$$skill"); \
-		[ -e ".claude/skills/$$name" ] || { ln -s "../../.agents/skills/$$name" ".claude/skills/$$name" && echo "Linked skill: $$name"; }; \
+		[ -e ".claude/skills/$$name" ] || { ln -sfn "../../.agents/skills/$$name" ".claude/skills/$$name" && echo "Linked skill: $$name"; }; \
 	done
-	@[ -e CLAUDE.md ] || { ln -s AGENTS.md CLAUDE.md && echo "Linked: CLAUDE.md -> AGENTS.md"; }
+	@[ -e CLAUDE.md ] || { ln -sfn AGENTS.md CLAUDE.md && echo "Linked: CLAUDE.md -> AGENTS.md"; }
