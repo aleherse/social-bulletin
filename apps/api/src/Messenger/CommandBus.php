@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messenger;
 
+use SocialBulletin\Core\Application\Helper\BaseCommand;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\HandleTrait;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -17,7 +18,7 @@ final class CommandBus
         $this->messageBus = $commandBus;
     }
 
-    public function dispatch(object $command): void
+    public function dispatch(BaseCommand $command): void
     {
         try {
             $this->handle($command);

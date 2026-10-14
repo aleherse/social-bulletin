@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Controller\User;
 
 use App\Messenger\CommandBus;
+use App\Messenger\QueryBus;
 use App\Security\ApiUser;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use SocialBulletin\Core\Application\User\SignInCommand;
+use SocialBulletin\Core\Application\User\Command\SignInCommand;
+use SocialBulletin\Core\Application\User\Query\CurrentUserQuery;
 use SocialBulletin\Core\Domain\User\InvalidEmailAddress;
-use SocialBulletin\Core\Domain\User\User;
-use SocialBulletin\Core\Domain\User\UserService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +21,7 @@ final readonly class SignInController
 {
     public function __construct(
         private CommandBus $commandBus,
-        private UserService $userService,
+        private QueryBus $queryBus,
         private JWTTokenManagerInterface $tokenManager,
     ) {
     }
@@ -34,15 +34,14 @@ final readonly class SignInController
         $command = SignInCommand::fromPayload($payload);
 
         try {
-            $email = User::normaliseEmail($command->email);
             $this->commandBus->dispatch($command);
+            $user = $this->queryBus->dispatch(new CurrentUserQuery($command->email));
         } catch (InvalidEmailAddress $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $user = $this->userService->currentUser($email);
         Assert::notNull($user, 'Signing in left no user to read back.');
 
         $jwt = $this->tokenManager->create(new ApiUser($user->email));

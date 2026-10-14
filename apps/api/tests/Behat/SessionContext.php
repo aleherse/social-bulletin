@@ -11,7 +11,7 @@ use Behat\Step\Then;
 use Behat\Step\When;
 use App\Messenger\CommandBus;
 use Doctrine\DBAL\Connection;
-use SocialBulletin\Core\Application\User\SignInCommand;
+use SocialBulletin\Core\Application\User\Command\SignInCommand;
 use Webmozart\Assert\Assert;
 
 use function JmesPath\search;

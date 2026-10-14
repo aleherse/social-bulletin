@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Controller\Movement;
 
 use App\Messenger\CommandBus;
-use SocialBulletin\Core\Application\Movement\UpdateMovementCommand;
+use App\Messenger\QueryBus;
+use SocialBulletin\Core\Application\Movement\Command\UpdateMovementCommand;
+use SocialBulletin\Core\Application\Movement\Query\ShowMovementQuery;
+use SocialBulletin\Core\Application\User\Model\User;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
-use SocialBulletin\Core\Domain\Movement\MovementService;
-use SocialBulletin\Core\Domain\User\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,19 +21,19 @@ final readonly class UpdateMovementController
 {
     public function __construct(
         private CommandBus $commandBus,
-        private MovementService $movementService,
+        private QueryBus $queryBus,
     ) {
     }
 
     #[Route('/api/movements/{id}', name: 'api_movements_update', methods: ['PATCH'])]
-    public function __invoke(Request $request, User $author, string $id): JsonResponse
+    public function __invoke(Request $request, User $currentUser, string $id): JsonResponse
     {
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
 
         try {
-            $this->commandBus->dispatch(UpdateMovementCommand::fromPayload($payload, $author->id, $id));
-            $movement = $this->movementService->authorMovement($id, $author->id);
+            $this->commandBus->dispatch(UpdateMovementCommand::fromPayload($payload, $currentUser->id, $id));
+            $movement = $this->queryBus->dispatch(new ShowMovementQuery($id, $currentUser->id));
         } catch (MovementNotFound $exception) {
             return new JsonResponse([
                 'message' => $exception->getMessage(),
