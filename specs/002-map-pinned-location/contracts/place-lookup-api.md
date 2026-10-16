@@ -29,7 +29,7 @@ and gives up after 10 s (FR-009).
 | Case | Status | Body |
 |------|--------|------|
 | A place at the area's rank | 200 | `{"name": "Huelin"}` |
-| No place at that rank (sea, outside Spain and the UK, rank absent) | 200 | `{"name": null}` |
+| No place at that rank (sea, outside the loaded place data, rank absent) | 200 | `{"name": null}` |
 | `lat` or `lon` missing, not a number, or out of range | 422 | JSON:API error; pointer `/lat` or `/lon`, detail from `place.point.out_of_range` |
 | `area` missing, unknown, or `international` | 422 | JSON:API error; pointer `/area`, detail from `place.area.unsupported` |
 | Not signed in | 401 | existing firewall response |
