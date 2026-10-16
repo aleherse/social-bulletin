@@ -126,7 +126,13 @@ fix the shared E2E helpers, and prepare the shared test data and strings.
       and a `Polygon` geometry whose single closed ring is the box's five corners
       `[west,south] [east,south] [east,north] [west,north] [west,south]`.
       The neighbourhood: `{ "osm_id": 21, "kind": "neighbourhood", "name": "Kelham Island" }`
-      and a `Point` geometry `[-1.4701, 53.3895]` (GeoJSON order is longitude, latitude)
+      and a `Point` geometry `[-1.4701, 53.3895]` (GeoJSON order is longitude, latitude).
+      Also create `apps/api/features/fixtures/places-reimport.geojsonl`
+      for T013(f), in the same shape, with one line only:
+      a `boundary` with `osm_id` 31, `admin_level` 8, name "Sheffield City",
+      and the box `[-1.9701, 52.8811, -0.9701, 53.8811]`;
+      and `apps/api/features/fixtures/places-malformed.geojsonl` for T013(g):
+      that same line, then a second line reading `{not json`
 
 ---
 
@@ -196,8 +202,18 @@ and the E2E map helpers. Both stories need all of them.
       and the new step `the response body should not contain "91.123456"`;
       (c) the same for `lon` 181.654321 and pointer `/lon`;
       (d) `area` `international` and `area` missing → 422 with pointer `/area`;
-      (e) a request without signing in → 401.
-      The fixture places come from the snapshot (T021), not from these scenarios
+      (e) a request without signing in → 401;
+      (f) "Importing places from the console replaces the lookup data":
+      `When I run the console command "app:places:import" with the file "fixtures/places-reimport.geojsonl"`,
+      `Then the console command should succeed`,
+      then, signed in, a `municipality` lookup at central Sheffield (53.3811, -1.4701) returns "Sheffield City"
+      and a `national` lookup at Huelin (36.7033, -4.4366) returns `null`,
+      proving the command replaces both tables rather than appending;
+      (g) the same command with "fixtures/places-malformed.geojsonl"
+      → `Then the console command should fail mentioning "line 2"` (T020),
+      and the `municipality` lookup at central Sheffield still returns "Sheffield"
+      (the failed import rolled back).
+      The fixture places otherwise come from the snapshot (T021), not from these scenarios
 - [ ] T014 [P] Write Vitest cases in `apps/web/src/shared/geo/lib/wrap-longitude.test.ts`
       for `wrapLongitude(lon)` returning a value in [-180, 180):
       `-4.4366` unchanged, `190` → `-170`, `-190` → `170`,
@@ -264,8 +280,15 @@ and the E2E map helpers. Both stories need all of them.
       so T012 passes (depends on T016, T017)
 - [ ] T020 Create `apps/api/src/Place/GeoJsonSeqPlaceFeed.php` implementing `PlaceFeed`
       (opens the source with `fopen` in read mode, which covers a local path and an HTTPS URL;
-      yields `json_decode($line, true, flags: JSON_THROW_ON_ERROR)` keyed by 1-based line number;
-      skips blank lines; closes the handle in `finally`)
+      yields `json_decode($line, true, flags: JSON_THROW_ON_ERROR)` keyed by 1-based line number,
+      rethrowing a `\JsonException` as a `\RuntimeException` whose message names the line
+      (`InvalidPlaceFeed` is in the `Domain` layer, which deptrac does not let `Framework` use);
+      skips blank lines; closes the handle in `finally`).
+      Covered by T013(f, g) through the console command, over a local path.
+      Waiver: the HTTPS branch is not exercised by any suite,
+      because no suite may reach the network;
+      it is the same `fopen` call with a URL,
+      and T043's first `preview` publish exercises it before any `live` run
       and alias `SocialBulletin\Core\Domain\Helper\PlaceFeed` to it in `apps/api/config/services.yaml`;
       create `apps/api/src/Console/ImportPlacesConsoleCommand.php`
       (`#[AsCommand('app:places:import')]`, argument `source`,
@@ -276,7 +299,14 @@ and the E2E map helpers. Both stories need all of them.
       (`test-integration-0001`: arranges through `CommandBus` only)
       with `#[Given('the places in :file are imported')]`
       dispatching `ImportPlacesCommand::fromSource()` with the path resolved against `apps/api/features/`,
-      and `#[Then('the response body should not contain :text')]` reading `ApiClient`'s last response;
+      `#[Then('the response body should not contain :text')]` reading `ApiClient`'s last response,
+      `#[When('I run the console command :name with the file :file')]`
+      running the command through `Symfony\Bundle\FrameworkBundle\Console\Application`
+      on the injected `KernelInterface` with an `ApplicationTester`
+      (the console command is the behaviour under test here, not arrangement, so `test-integration-0001` still holds),
+      `#[Then('the console command should succeed')]`,
+      and `#[Then('the console command should fail mentioning :text')]`
+      asserting a non-zero exit code and the text in the output;
       register it in `apps/api/behat.yml.dist`;
       add `And the places in "fixtures/places.geojsonl" are imported`
       to the scenario in `apps/api/features/fixtures.feature`,
@@ -588,7 +618,10 @@ Required before the feature is usable outside the fixture points.
       `REDIRECT_TO_HTTPS`, `CachePolicy.CACHING_OPTIMIZED`, and `AllowedMethods.ALLOW_GET_HEAD`;
       a `MapDataBucketName` output.
       Leave `DeployAssets` targeting `AssetsBucket` only.
-      Verify with `make infra-tsc` and `npx cdk synth` in `infrastructure` showing the new behaviour
+      Verify with `make infra-tsc`.
+      No make target synthesises the app, and one cannot run without AWS credentials,
+      because `lookupHostedZone()` calls `HostedZone.fromLookup` and no `cdk.context.json` is committed;
+      the behaviour itself is proven on the first `preview` deploy by T043's range request
 - [ ] T043 Create `.github/workflows/map-data.yml`
       (`workflow_dispatch` with a required `environment` choice of `live` or `preview`;
       `concurrency: map-data-${{ inputs.environment }}`;
@@ -603,7 +636,9 @@ Required before the feature is usable outside the fixture points.
       `aws s3 presign` the places object for 3600 s;
       `aws lambda invoke --cli-read-timeout 900` the console function
       with payload `"app:places:import <presigned URL>"`, failing the job on a function error;
-      invalidate `/tiles/*` on the frontend distribution.
+      invalidate `/tiles/*` on the frontend distribution;
+      finally `curl --fail -s -o /dev/null -w '%{http_code}' -H 'Range: bytes=0-15'`
+      the archive on the environment's frontend host and fail the job unless it prints `206`.
       First run against `preview`, then follow quickstart "Checking published data"
       (depends on T040, T042)
 
