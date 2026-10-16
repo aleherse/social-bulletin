@@ -1,0 +1,98 @@
+# ADR-0022: builds the map tiles and places, publishes them to one environment,
+# and imports the places through the console Lambda. Run by hand; OSM changes slowly.
+name: Map data
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to publish to
+        required: true
+        type: choice
+        options:
+          - preview
+          - live
+
+concurrency:
+  group: map-data-${{ inputs.environment }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    name: Publish map data to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the map data
+        run: make env images map-data
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Read the stack outputs
+        run: |
+          output() {
+            aws cloudformation describe-stacks \
+              --stack-name "social-bulletin-$ENVIRONMENT-$1" \
+              --query "Stacks[0].Outputs[?OutputKey=='$2'].OutputValue" \
+              --output text
+          }
+          {
+            echo "MAP_DATA_BUCKET=$(output frontend MapDataBucketName)"
+            echo "DISTRIBUTION_ID=$(output frontend DistributionId)"
+            echo "CONSOLE_FUNCTION=$(output api ConsoleFunctionName)"
+          } >> "$GITHUB_ENV"
+          case "$ENVIRONMENT" in
+            live) echo "FRONT_HOST=app.social.aleherse.com" >> "$GITHUB_ENV" ;;
+            preview) echo "FRONT_HOST=app.preview.social.aleherse.com" >> "$GITHUB_ENV" ;;
+          esac
+
+      - name: Upload the tiles and places
+        run: |
+          aws s3 cp var/map/tiles/spain-uk.pmtiles "s3://$MAP_DATA_BUCKET/tiles/spain-uk.pmtiles" \
+            --content-type application/vnd.pmtiles \
+            --cache-control max-age=86400
+          aws s3 cp var/map/places.geojsonl "s3://$MAP_DATA_BUCKET/places/places.geojsonl"
+
+      # The Bref console layer runs the command through a shell, so the URL is
+      # single-quoted: an unquoted `&` in the presigned query string would
+      # background a truncated import that still exits 0.
+      - name: Import the places
+        run: |
+          PLACES_URL=$(aws s3 presign "s3://$MAP_DATA_BUCKET/places/places.geojsonl" --expires-in 3600)
+          echo "::add-mask::$PLACES_URL"
+          PAYLOAD=$(jq -n --arg cmd "app:places:import '$PLACES_URL'" '$cmd')
+          aws lambda invoke \
+            --function-name "$CONSOLE_FUNCTION" \
+            --cli-read-timeout 900 \
+            --cli-binary-format raw-in-base64-out \
+            --payload "$PAYLOAD" \
+            import-output.json > invoke-result.json
+          cat invoke-result.json import-output.json
+          if jq -e 'has("FunctionError")' invoke-result.json > /dev/null; then
+            echo "::error::The import failed."
+            exit 1
+          fi
+          grep -q 'Places imported in' import-output.json \
+            || { echo "::error::The import did not report finishing."; exit 1; }
+
+      - name: Invalidate the cached tiles
+        run: |
+          aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths '/tiles/*'
+
+      - name: Check the tiles are served
+        run: |
+          status=$(curl --fail -s -o /dev/null -w '%{http_code}' -H 'Range: bytes=0-15' \
+            "https://$FRONT_HOST/tiles/spain-uk.pmtiles")
+          echo "Range request answered $status"
+          test "$status" = 206

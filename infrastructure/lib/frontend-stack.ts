@@ -20,7 +20,9 @@ export interface FrontendStackProps extends cdk.StackProps {
 /**
  * ADR-0016: the frontend lives in a private S3 bucket behind CloudFront at
  * the environment's frontend hostname, with the Route53 alias and ACM
- * certificate managed here.
+ * certificate managed here. ADR-0022: map data lives in its own private
+ * bucket on the same origin under `/tiles/*`, uploaded by the map-data
+ * workflow rather than by the frontend deploy.
  */
 export class FrontendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: FrontendStackProps) {
@@ -43,10 +45,27 @@ export class FrontendStack extends cdk.Stack {
       autoDeleteObjects: environment.name !== 'live',
     });
 
+    const mapDataBucket = new s3.Bucket(this, 'MapDataBucket', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      removalPolicy:
+        environment.name === 'live' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: environment.name !== 'live',
+    });
+
     const distribution = new cloudfront.Distribution(this, 'Distribution', {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(bucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+      additionalBehaviors: {
+        '/tiles/*': {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(mapDataBucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+        },
       },
       defaultRootObject: 'index.html',
       domainNames: [environment.frontDomainName],
@@ -72,6 +91,7 @@ export class FrontendStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'AssetsBucketName', { value: bucket.bucketName });
+    new cdk.CfnOutput(this, 'MapDataBucketName', { value: mapDataBucket.bucketName });
     new cdk.CfnOutput(this, 'DistributionId', { value: distribution.distributionId });
   }
 }

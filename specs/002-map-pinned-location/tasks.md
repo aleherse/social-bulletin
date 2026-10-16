@@ -585,13 +585,13 @@ with permission refused, the explanation appears and a typed location still save
 Not a test layer under ADR-0013; each task names its own check.
 Required before the feature is usable outside the fixture points.
 
-- [ ] T038 [P] Create `infrastructure/map/coverage.geojson`:
+- [X] T038 [P] Create `infrastructure/map/coverage.geojson`:
       one `FeatureCollection` with a `MultiPolygon` covering
       mainland Spain with the Balearic Islands, the Canary Islands, Ceuta and Melilla,
       and Great Britain with Northern Ireland,
       each part a simple box or hand-drawn ring with a small margin;
       check it renders as intended on geojson.io before committing
-- [ ] T039 [P] Create `docker/map/Dockerfile`
+- [X] T039 [P] Create `docker/map/Dockerfile`
       (Debian slim with `osmium-tool`, `jq`, `curl`, `ca-certificates`,
       and the `pmtiles` CLI from a pinned `protomaps/go-pmtiles` GitHub release, checksum verified)
       and `docker/map/build-map-data.sh`
@@ -607,7 +607,7 @@ Required before the feature is usable outside the fixture points.
       prints the line count and both file sizes);
       add a `map` service to `docker-compose.yml` under `profiles: [tools]`
       building `docker/map` and mounting the repository at `/app`
-- [ ] T040 Add to `Makefile`, documented in its help:
+- [X] T040 Add to `Makefile`, documented in its help:
       `map-data` (runs `docker/map/build-map-data.sh` in the `map` service)
       and `map-import` (runs `app:places:import /app/var/map/places.geojsonl` through `make console`);
       run both once, record in ADR-0022 the tiles file size and the import's run time;
@@ -618,12 +618,12 @@ Required before the feature is usable outside the fixture points.
       and check the quickstart's Huelin and Sheffield lookups against the real data
       (research R7, known risk); update `docs/engineering/scaffolding/make.md` if it lists targets
       (depends on T020, T038, T039)
-- [ ] T041 [P] Add to `docker/nginx/conf.d/web.conf`, before `location /`:
+- [X] T041 [P] Add to `docker/nginx/conf.d/web.conf`, before `location /`:
       `location /tiles/ { alias /app/var/map/tiles/; }`
       so a missing archive is a 404 rather than `index.html`;
       verify with `curl -I -H 'Range: bytes=0-15' https://dev.app.social.aleherse.com/tiles/spain-uk.pmtiles`
       returning `206` after T040
-- [ ] T042 [P] Update `infrastructure/lib/frontend-stack.ts`:
+- [X] T042 [P] Update `infrastructure/lib/frontend-stack.ts`:
       a `MapDataBucket` with the same settings as `AssetsBucket`
       (block public access, S3-managed encryption, SSL enforced,
       retained on `live`, destroyed with objects elsewhere);
@@ -672,7 +672,7 @@ Required before the feature is usable outside the fixture points.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T044 FR-005 audit:
+- [X] T044 FR-005 audit:
       grep `packages/core/src/**/Place*`, `apps/api/src/Controller/Place/`, `apps/api/src/Place/`,
       and `apps/api/src/Console/` for logger use and for exception messages built from input,
       and confirm none carries a coordinate;
@@ -680,11 +680,11 @@ Required before the feature is usable outside the fixture points.
       `log_statement`, `log_min_duration_statement`, or `log_parameter_max_length*`;
       confirm `apps/api/config/packages/monolog.yaml` and nginx log no request bodies;
       record the result in the pull request
-- [ ] T045 Coverage audit:
+- [X] T045 Coverage audit:
       for each requirement FR-001–FR-011 and edge case in `specs/002-map-pinned-location/spec.md`,
       name the test that fails without it (see Notes);
       temporarily revert each implementation file and confirm its tests go red
-- [ ] T046 Run `make lint` and fix every finding,
+- [X] T046 Run `make lint` and fix every finding,
       including `php-deptrac` (the `DomainPort` layer from T004)
       and any `web-knip` unused-export report for
       `apps/web/src/shared/geo/index.ts`, `apps/web/src/shared/map/index.ts`,
@@ -696,7 +696,7 @@ Required before the feature is usable outside the fixture points.
       on `preview` after T043, time ten pins in DevTools → Network
       and record whether the place name filled within 3 s for each (SC-001);
       the pull request description names `make ci` as the gate that ran
-- [ ] T048 [P] Use the `extract-rule` skill on the final diff
+- [X] T048 [P] Use the `extract-rule` skill on the final diff
       to record the conventions this feature sets, each in its matching `docs/rules/` file:
       `Domain/Helper` ports are their own deptrac layer that `Framework` may implement;
       large static assets are served from the app's own origin, never a third party;

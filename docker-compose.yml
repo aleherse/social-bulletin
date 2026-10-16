@@ -88,6 +88,14 @@ services:
       timeout: 5s
       retries: 10
 
+  # ADR-0022: builds the map data on demand (`make map-data`); never started by `make up`.
+  map:
+    build: docker/map
+    profiles: [tools]
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - .:/app
+
 volumes:
   social-bulletin-data:
   composer-cache:
