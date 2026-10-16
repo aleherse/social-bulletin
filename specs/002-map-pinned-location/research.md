@@ -7,6 +7,13 @@ Revised 2026-10-16 for the self-hosting clarifications (spec session 2026-10-16,
 The first round chose public OSM Nominatim and OSM raster tiles called from the browser;
 R1, R5, R6, and R7 of that round are superseded by R1, R4, R5, and R6 below.
 
+Revised again 2026-10-16 (spec FR-011 revised, FR-012 added):
+the tiles go back to OpenStreetMap's public tile servers (R4, R5),
+while the lookup stays self-hosted;
+the boundary build fetches Spain and Ceuta from Overpass and fails without them (R7).
+The self-hosted PMTiles decision this replaces was implemented and measured (6.2 GB archive)
+before being dropped; its code is removed (plan, Source Code).
+
 ## R1. Place-name lookup: PostGIS point-in-polygon in the existing database
 
 **Decision**: Import OpenStreetMap administrative boundaries for Spain and the United Kingdom
@@ -97,80 +104,60 @@ the rank rule (clarification Q2) fills `neighborhood` from it where one exists.
 **Alternatives considered**: falling back to the nearest neighbouring rank.
 Rejected by the spec's assumption: a missing rank fails the lookup.
 
-## R4. Map tiles: a self-hosted PMTiles extract
+## R4. Map tiles: OpenStreetMap's public raster tiles
 
-**Decision**: Serve one [Protomaps](https://docs.protomaps.com) basemap extract,
-`spain-uk.pmtiles`, covering Spain (with the Balearic and Canary Islands, Ceuta, and Melilla)
-and the United Kingdom,
-as a static file under `/tiles/` on the frontend's own origin:
-nginx serves it locally from `var/map/tiles/`,
-and in AWS a private map-data S3 bucket sits behind a `/tiles/*` behaviour
-on the existing frontend CloudFront distribution.
-The browser reads it with HTTP range requests.
-
-The extract is cut with the `pmtiles` CLI from a dated Protomaps daily build,
-`pmtiles extract https://build.protomaps.com/<YYYYMMDD>.pmtiles var/map/tiles/spain-uk.pmtiles --region=infrastructure/map/coverage.geojson --maxzoom=15`,
-and `infrastructure/map/coverage.geojson` holds the coverage polygon.
+**Decision**: Draw the basemap from `https://tile.openstreetmap.org/{z}/{x}/{y}.png`,
+requested by the browser through Leaflet's `L.tileLayer`, with `maxZoom: 19`
+and the attribution "© OpenStreetMap contributors" linking to the OSM copyright page.
+No tiles are built, stored, or served by the platform.
 
 **Rationale**:
 
-- A PMTiles archive is a single static file, so it needs no tile server:
-  S3 and CloudFront already serve the frontend this way (ADR-0016),
-  and CloudFront passes range requests to S3 unchanged.
-- The same origin as the app means no CORS, no environment variable,
-  and no third-party request (FR-011):
-  the URL is the relative path `/tiles/spain-uk.pmtiles` everywhere.
-- `--region` fetches only the byte ranges for the coverage area,
-  so cutting the extract never downloads the planet file.
-- `--maxzoom=15` is street level, enough to pin a neighbourhood;
-  the extract's size is measured when it is first cut (tasks) and recorded in ADR-0022.
+- The spec now names this source (FR-011, revised 2026-10-16).
+- It removes the heaviest part of the self-hosted design:
+  a 6.2 GB archive per build, a bucket behaviour, an nginx location,
+  and the `pmtiles` CLI and Protomaps build pin.
+- Tiles cover the whole world, so the map is no longer blank outside Spain and the UK;
+  place names keep their own coverage (R1).
+- OSM's [tile usage policy](https://operations.osmfoundation.org/policies/tiles/)
+  asks for visible attribution, a valid `Referer` (browsers send one;
+  the platform sets no `Referrer-Policy` that would strip it), no bulk or offline download,
+  and moderate traffic. An MVP's authors pinning drafts stays well inside it.
 
-**Known behaviour**: the frontend distribution maps every 403/404 to `/index.html`
-for the SPA, and that applies to `/tiles/*` as well.
-A missing archive therefore returns HTML; the map layer fails to parse it,
-the map shows no basemap, and pinning still works (spec edge case: map unavailable).
+**Known consequence**: after a pin the map flies to the point at zoom 14,
+so the tiles requested from OSM show the area around the pinned point,
+to about a kilometre.
+The point itself is never sent to OSM, and FR-005 still holds for the platform;
+the spec's FR-011 records that OSM receives the map view.
+
+**Known behaviour**: if OSM's servers are unreachable, the tiles fail to load,
+the map shows no basemap, and pinning still works (spec edge case: basemap unavailable).
 
 **Alternatives considered**:
 
-- *Raster tiles from a self-run tile server*: a running renderer,
-  which is a separate service. Rejected.
-- *Pre-rendered raster tiles in S3*: millions of objects for two countries at zoom 15,
-  slow to upload and to invalidate. Rejected.
-- *The public OSM tile servers*: third-party requests, ruled out by FR-011.
+- *The self-hosted PMTiles extract* (the previous R4): implemented, then dropped by the spec revision.
+- *A commercial tile provider* (MapTiler, Stadia): an API key and a billing account for an MVP. Deferred:
+  it is the move if traffic outgrows OSM's policy (spec Assumptions).
 
-## R5. Map rendering: Leaflet with `protomaps-leaflet`
+## R5. Map rendering: Leaflet's own tile layer
 
 **Decision**: Keep Leaflet `1.9.4` and `react-leaflet` `5.0.0` behind `shared/map`
 (`application-frontend-0001`),
-and draw the basemap with `protomaps-leaflet`'s `leafletLayer({ url, flavor: 'light' })`,
-which reads PMTiles directly.
-Its exact version is the latest 5.x at install,
-pinned in `apps/web/package.json` and recorded in ADR-0022.
+and replace `protomaps-leaflet`'s layer with `react-leaflet`'s `<TileLayer url={TILES_URL} attribution={…} maxZoom={19} />`.
+`TILES_URL` becomes the OSM template above.
+`protomaps-leaflet` is uninstalled.
 The marker stays an `L.divIcon` holding a `<span role="img">`
-named by an i18n string.
+named by an i18n string,
+and `INITIAL_VIEW` (`[45, -4]`, zoom 4) is unchanged,
+so the Playwright click maths in `e2e/support/map.ts` still holds.
 
-The initial view is centred on `[45, -4]` at zoom 4 in a 384 px tall map,
-which shows latitudes 31.8 to 55.7,
-keeping both spec points (Huelin and central Sheffield)
-at least 32 px clear of the map's edges and controls,
-and is exported from `shared/map` as a constant
-so the Playwright journey can turn a latitude and longitude into a pixel to click.
+**Rationale**: Raster tiles are `<img>` elements, the simplest thing Leaflet draws;
+no canvas, no WebGL, nothing to configure.
+Everything else in `shared/map` carries over unchanged,
+and Vitest keeps mocking `shared/map` at its public API.
 
-**Rationale**: `protomaps-leaflet` draws vector tiles to a 2D canvas,
-so the map needs no WebGL:
-Playwright's container Chromium renders it without GPU flags,
-which was R4's reason for choosing Leaflet in the first round.
-Everything settled on top of Leaflet carries over unchanged:
-the accessible `divIcon` marker, the `useMapEvents` click, the fly-to,
-and mocking `shared/map` at its public API in Vitest.
-
-**Alternatives considered**:
-
-- *MapLibre GL JS*: Protomaps' primary renderer,
-  but it needs WebGL, which is an E2E risk in containers,
-  is heavier (~200 kB),
-  and replaces the whole Leaflet adapter. Rejected.
-- *OpenLayers*: large, imperative, and no maintained React binding. Rejected.
+**Alternatives considered**: keeping `protomaps-leaflet` against a vector tile host.
+Rejected: OSM's public servers are raster.
 
 ## R6. The point reaches the API in a POST body and is never logged
 
@@ -208,14 +195,15 @@ the lookup is the platform's own query.
 **Decision**:
 
 1. **Extract**: `make map-data` runs in a new `map` tools container
-   (`docker/map/Dockerfile`: `osmium-tool`, `jq`, a pinned `pmtiles` release),
+   (`docker/map/Dockerfile`: `osmium-tool`, `jq`, `curl`),
    downloads the Geofabrik extracts for Spain, the Canary Islands, and the United Kingdom,
-   merges them with `osmium merge`,
+   fetches the complete Spain and Ceuta boundaries from Overpass (below),
+   merges all four with `osmium merge`,
    keeps the boundary relations and `place=*` nodes with `osmium tags-filter`,
    and writes `var/map/places.geojsonl`, one GeoJSON feature per line,
    with `osmium export -f geojsonseq` and a `jq` filter
    that keeps the ranks in R3 and drops unnamed objects.
-   It also cuts the tiles extract (R4).
+   It then runs the guard (below) and exits non-zero if it fails.
 2. **Import**: the console command `app:places:import <path-or-url>`
    dispatches `ImportPlacesCommand`.
    Its handler reads features through a `PlaceFeed` port
@@ -226,8 +214,8 @@ the lookup is the platform's own query.
    so lookups see the old data until the commit.
    `make map-import` runs it against the development database.
 3. **Publish**: a manually dispatched workflow, `.github/workflows/map-data.yml`,
-   runs `make map-data`, uploads the tiles to the map-data bucket's `tiles/` prefix
-   and the places file to its `places/` prefix,
+   runs `make map-data` (so a failed guard stops the publish before anything is uploaded),
+   uploads the places file to the map-data bucket's `places/` prefix,
    presigns the places object with `aws s3 presign`,
    and invokes the console Lambda with `app:places:import '<presigned URL>'`,
    the URL single-quoted because the console layer runs the command through a shell
@@ -242,15 +230,58 @@ Behat and Playwright load their fixture places through the same command
 (`test-integration-0001`), so the import path is exercised by every suite run.
 OSM data changes slowly, so publishing is on demand, not on every deploy.
 
-**Known risk**: Geofabrik clips its extracts,
-so a country relation that extends beyond the extract,
-such as Spain's with its maritime boundary, may come out incomplete
-and fail to assemble into a polygon.
-Before merging, the published data is checked against the spec's own points
-(US1 sc.1, sc.3, sc.4; quickstart);
-if `admin_level` 2 is missing, the fix is to add the country relations
-with `osmium getid` from a wider extract, not to change the lookup.
-The import's run time against the console Lambda's 15-minute limit is measured on the first publish.
+**The clipped boundaries (FR-012)**: Geofabrik clips its extracts,
+and the first real build (ADR-0022, measured 2026-10-16) lost two relations
+whose members reach outside the Spain extract:
+Spain's country boundary (`admin_level` 2, its maritime line)
+and Ceuta's (`admin_level` 4, on the African coast).
+Without them Huelin answered `null` at `national`, and Ceuta had no `state`.
+
+- **Fetch**: `docker/map/overpass-boundaries.ql` asks Overpass for both relations by their codes,
+  with every member way and node, in OSM XML with versions (`out meta`):
+
+  ```text
+  [out:xml][timeout:600];
+  (
+    relation["boundary"="administrative"]["admin_level"="2"]["ISO3166-1"="ES"];
+    relation["boundary"="administrative"]["ISO3166-2"="ES-CE"];
+  );
+  (._; >;);
+  out meta;
+  ```
+
+  The script POSTs it to `https://overpass-api.de/api/interpreter`
+  with `curl --fail --retry 3 --retry-all-errors`
+  and a `User-Agent` naming the project, as Overpass asks,
+  and converts the reply with `osmium cat` to `overpass.osm.pbf`.
+  `osmium merge` keeps one copy of any object with the same id and version,
+  so the complete relations and their members simply fill in what the extracts clipped.
+  Codes rather than relation ids keep the query readable and survive a relation being remapped.
+- **Guard**: after the `jq` filter, the script requires
+  a boundary named "España" at `admin_level` 2
+  and one named "Ceuta" at `admin_level` 4
+  in `places.geojsonl`
+  (`jq -e` over the boundaries, one check each),
+  printing which is missing and exiting `1` otherwise.
+  The `jq` filter already drops boundaries that did not assemble into a polygon,
+  so a present row is a usable one.
+  An Overpass outage ends the build the same way: `curl --fail` exits non-zero under `set -eu`.
+- **Not guarded**: Melilla, the Balearic Islands, and the Canary Islands
+  were complete in the first build, and the guard does not repeat what the by-hand check on `preview`
+  covers (quickstart, US1 sc.10).
+  Offshore points and the *plazas de soberanía* are not guaranteed (spec FR-012).
+
+**Alternatives considered for the clipped boundaries**:
+
+- *`osmium getid` from a wider extract (Europe, Africa)*:
+  tens of gigabytes downloaded to recover two relations. Rejected.
+- *Pinning relation ids*: unreadable, and silently wrong if a relation is replaced. Rejected.
+- *Committing the two boundaries to the repository*: a large file that goes stale
+  and hides the problem instead of failing on it. Rejected.
+- *A sample of probe points (Palma, Las Palmas, Ceuta, Melilla) resolved by the build*:
+  needs PostGIS in the build. Rejected for the MVP; the by-hand check covers it.
+
+The import's run time against the console Lambda's 15-minute limit was measured locally (29 s, ADR-0022).
 
 **Alternatives considered**:
 
@@ -296,7 +327,12 @@ which the project uses to avoid Docker Hub rate limits in CI.
   and the picker and form behaviours with `shared/map` mocked, unchanged from the first round.
 - **Playwright**: one happy-path journey per story,
   against the real API and the fixture places from the DSLR snapshot
-  (no geocoder stub any more); only `/tiles/**` is stubbed, so no archive is needed in CI.
+  (no geocoder stub any more); only `https://tile.openstreetmap.org/**` is aborted,
+  so no suite reaches OSM.
+- **No test layer for FR-012**: it is a property of the real OSM data,
+  which no suite downloads.
+  The build guard (R7) and the by-hand check on `preview` prove it;
+  tasks.md records the waiver.
 
 Fixture places are synthetic squares nested around the spec's two points,
 named with the real place names (`apps/api/features/fixtures/places.geojsonl`),
@@ -313,13 +349,16 @@ because no suite should download it.
 
 ## R10. Architecture decision records
 
-**Decision**: Propose `ADR-0022: Self-host map tiles and place lookup`
-(Leaflet + `protomaps-leaflet`, a PMTiles extract on S3/CloudFront,
-PostGIS boundaries in Aurora, the import workflow, Spain and UK coverage),
-written with the `adr-skill` as the first task.
-In the same change, correct ADR-0009 in place (PostGIS-enabled PostgreSQL container and extension)
-and ADR-0016 in place (map-data bucket and `/tiles/*` behaviour),
-as Constitution III requires.
+**Decision**: Correct `ADR-0022` in place (it is still Proposed)
+and rename it `ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md`,
+updating its links from ADR-0009, ADR-0016, and this feature's documents:
+OSM raster tiles through `L.tileLayer` replace the PMTiles archive and `protomaps-leaflet`;
+the map data pipeline gains the Overpass fetch and the guard;
+the Verification list swaps the tiles range-request check for the guard
+and the FR-012 points;
+the "Patterns to avoid" entry on absolute tile URLs is narrowed to geocoder hosts.
+In the same change, correct ADR-0016 in place (the map-data bucket holds places only, with no `/tiles/*` behaviour);
+ADR-0009 (PostGIS) is unchanged.
 
-**Rationale**: A new UI library, a database extension, a new bucket,
-and a data pipeline are structural decisions, as `react-router` was (ADR-0019).
+**Rationale**: Constitution III corrects an ADR in place rather than superseding it,
+and a Proposed ADR whose title names a dropped decision would mislead its next reader.

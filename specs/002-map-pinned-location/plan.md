@@ -17,16 +17,19 @@ the Location field is filled with the local official name
 at the rank the area level names
 (`national` › `state` › `province` › `region` › `municipality` › `neighborhood`).
 
-Everything is self-hosted, with no separate service (spec session 2026-10-16, FR-011).
-The basemap is a Protomaps PMTiles extract for Spain and the United Kingdom,
-served as a static file from the frontend's own origin
-(nginx locally, S3 behind the existing CloudFront in AWS)
-and drawn by Leaflet with `protomaps-leaflet`.
-The lookup is `POST /api/places/lookup`,
+The basemap is OpenStreetMap's public raster tiles (`tile.openstreetmap.org`),
+drawn by Leaflet's own `L.tileLayer` (FR-011, revised 2026-10-16);
+the self-hosted PMTiles archive, its bucket behaviour, and `protomaps-leaflet` are removed.
+The lookup stays self-hosted, with no separate service.
+It is `POST /api/places/lookup`,
 a `packages/core` query answered by PostGIS point-in-polygon
 over OpenStreetMap boundaries imported into the existing PostgreSQL / Aurora database.
 The point travels in the request body, is never stored, and is never logged (FR-005).
 The movement itself is unchanged: only the name is saved (FR-006).
+
+The map-data build fetches the complete boundaries of Spain and Ceuta from the Overpass API,
+because Geofabrik's clipped extracts lose them,
+and fails unless both come out as polygons (FR-012, research R7).
 
 ## Technical Context
 
@@ -35,10 +38,12 @@ TypeScript 6 + React 19 (`apps/web`);
 TypeScript CDK (`infrastructure`)
 
 **Primary Dependencies**:
-New frontend: `leaflet@1.9.4`, `react-leaflet@5.0.0`, `@types/leaflet` (dev),
-`protomaps-leaflet` (latest 5.x, pinned at install) — behind `shared/map` (`application-frontend-0001`).
+New frontend: `leaflet@1.9.4`, `react-leaflet@5.0.0`, `@types/leaflet` (dev) —
+behind `shared/map` (`application-frontend-0001`); `protomaps-leaflet` is removed.
 New database: the PostGIS extension (`postgresql-17-postgis-3` locally; built into Aurora PostgreSQL 17).
-New tooling, in a `map` container only: `osmium-tool`, `jq`, and a pinned `pmtiles` CLI release.
+New tooling, in a `map` container only: `osmium-tool`, `jq`, and `curl` (the `pmtiles` CLI is removed).
+External at build time only: Geofabrik extracts and the Overpass API (`overpass-api.de`).
+External at runtime: OpenStreetMap's tile servers, from the browser only.
 No new PHP package: DBAL already runs the PostGIS SQL.
 `@tanstack/react-query` is **not** used for lookups
 (one-shot, abortable, user-triggered calls; see data-model transitions).
@@ -60,23 +65,25 @@ API on Bref Lambda, database on Aurora Serverless v2 (ADR-0004, ADR-0016)
 **Performance Goals**: Place name filled within 3 s of a pin for 95% of pins (SC-001),
 from one GiST-indexed query per pin;
 a lookup still unanswered after 10 s is reported as failed (FR-009);
-Leaflet and `protomaps-leaflet` load only in the lazy new/edit movement chunks (ADR-0019)
+Leaflet loads only in the lazy new/edit movement chunks (ADR-0019)
 
 **Constraints**:
-No third-party request at runtime (FR-011);
+No third-party request at runtime except the browser's tile requests to `tile.openstreetmap.org` (FR-011),
+within OSM's tile usage policy (visible attribution, browser `Referer` left on, `maxZoom` 19);
 the point only in a POST body, never in a URL, a log line, an error, or a table (FR-005);
 one lookup per explicit pin, superseded requests aborted, none on typing or area change;
 a map that fails to render is contained by an error boundary,
 leaving the Location field and "use my location" working (spec edge case);
-OSM and Protomaps attribution always visible (ODbL);
+"© OpenStreetMap contributors" always visible (ODbL);
+the map-data build fails unless Spain (`admin_level` 2) and Ceuta (`admin_level` 4) are polygons (FR-012);
 the import fits the console Lambda's 15-minute limit (measured on first publish);
 FSD import rules and `shared/*` adapters; hexagonal boundaries checked by deptrac
 
-**Scale/Scope**: Coverage Spain and the UK.
+**Scale/Scope**: Place names for Spain and the UK; Spanish land named at `national` and `state` (FR-012); tiles worldwide.
 `packages/core`: one new `Place` area (5 domain classes, 2 domain exceptions, 1 port, 1 repository, 1 provider, 1 model, 1 query, 1 command).
 `apps/api`: 1 controller, 1 console command, 1 port adapter, 1 migration, the listener extended to one more error.
 `apps/web`: 2 `shared` slices (`map`, `geo`), 1 `ErrorBoundary`, 1 lookup client in `entities/movement`, the picker in `features/propose-movement`, 8 i18n strings.
-Ops: 2 Dockerfiles, 2 make targets, 1 manual workflow, 1 CDK bucket and behaviour
+Ops: 2 Dockerfiles, 2 make targets, 1 build script with an Overpass fetch and a guard, 1 manual workflow, 1 CDK bucket (places only, no CloudFront behaviour)
 
 ## Constitution Check
 
@@ -135,16 +142,23 @@ and the first publish (quickstart "Checking published data").
   - Playwright: US1 pin-by-click → "Huelin" → saved name listed;
     US2 use-my-location with granted geolocation → "Málaga" → saved.
     Both hit the real API and the snapshot's fixture places;
-    only `/tiles/**` is stubbed.
+    only `https://tile.openstreetmap.org/**` is aborted, so no suite reaches OSM.
+  - FR-012 and US1 sc.10 are about real OSM data, which no suite downloads.
+    They are proven by the build guard (`docker/map/build-map-data.sh` fails without both polygons)
+    and the by-hand check of the published data on `preview` (quickstart);
+    no fixture rows are added, because the lookup SQL they would exercise is already covered.
+    Waived in tasks.md as a data check, not a test layer.
 - **III. Decisions** — Consulted ADR-0000 (`bulletin` schema), ADR-0002 (tools in containers),
-  ADR-0003 (make entrypoints), ADR-0004 (nginx serves the bundle and now `/tiles/`),
+  ADR-0003 (make entrypoints), ADR-0004 (nginx serves the bundle; the `/tiles/` location is removed again),
   ADR-0005 (core/api split), ADR-0007 (FSD), ADR-0008 (i18n), ADR-0009 (PostgreSQL/DBAL),
   ADR-0010 (shadcn `Button`), ADR-0012 (deptrac owns the layer rules), ADR-0013 (tools),
   ADR-0015 (`make ci`), ADR-0016 (AWS),
   ADR-0019 (lazy routes), ADR-0021 (CQRS).
-  New: propose **ADR-0022** (self-hosted tiles and place lookup) as the first task.
-  Corrected in place in the same change: **ADR-0009** (PostGIS-enabled container and extension)
-  and **ADR-0016** (map-data bucket, `/tiles/*` behaviour).
+  **ADR-0022** (Proposed, already written) is corrected in place and renamed
+  to `ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md`:
+  OSM raster tiles instead of the PMTiles archive, the Overpass fetch, and the build guard.
+  Corrected in place in the same change: **ADR-0009** (PostGIS-enabled container and extension, unchanged)
+  and **ADR-0016** (the map-data bucket holds places only; no `/tiles/*` behaviour).
   Rules read: `application-frontend-*`, `application-framework-*`, `application-queries-*`,
   `application-commands-*`, `application-helpers-*`, `application-style-0001`,
   `database-persistence-*`, `database-dbal-*`, `domain-helpers-*`, `domain-common-0001`,
@@ -162,6 +176,9 @@ and the first publish (quickstart "Checking published data").
 The new tables hold only OSM reference data, no author data (data-model.md);
 the contracts name every request field, status, and accessible element the tests use;
 every layer has test tasks planned, and Complexity Tracking stays empty.
+Re-checked after the tile and FR-012 revision: still PASS.
+OSM tiles add no test layer (the journeys abort them);
+FR-012 is real-data behaviour, guarded by the build and checked by hand, with its waiver in tasks.md.
 
 ## Project Structure
 
@@ -186,24 +203,26 @@ specs/002-map-pinned-location/
 ```text
 docs/decisions/
 ├── ADR-0009-adopt-postgresql-and-doctrine-dbal.md   # corrected: PostGIS
-├── ADR-0016-aws-serverless-deployment.md            # corrected: map-data bucket, /tiles/*
-└── ADR-0022-self-host-map-tiles-and-place-lookup.md # new, status Proposed
+├── ADR-0016-aws-serverless-deployment.md            # corrected: map-data bucket for places only
+└── ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md # corrected and renamed, status Proposed
 
 db/schema.dbml                                       # + place_boundaries, place_neighbourhoods
 deptrac.yaml                                         # + DomainPort layer; Framework may implement it
 
 docker/
 ├── postgres/Dockerfile                              # new: postgres:17 + postgresql-17-postgis-3
-├── map/Dockerfile                                   # new: osmium-tool, jq, pmtiles
-└── nginx/conf.d/web.conf                            # + location /tiles/ → /app/var/map/tiles/
+├── map/Dockerfile                                   # osmium-tool, jq, curl (pmtiles removed)
+├── map/build-map-data.sh                            # + Overpass fetch of Spain and Ceuta, guard; tiles cut removed
+├── map/overpass-boundaries.ql                       # new: the Overpass query
+└── nginx/conf.d/web.conf                            # /tiles/ location removed
 docker-compose.yml                                   # postgres builds docker/postgres; map service (tools profile)
-Makefile                                             # + map-data, map-import
+Makefile                                             # + map-data, map-import (help text: places only)
 
 infrastructure/
-├── map/coverage.geojson                             # new: Spain + UK coverage polygon
-└── lib/frontend-stack.ts                            # + MapDataBucket, /tiles/* behaviour, bucket output
+├── map/coverage.geojson                             # removed
+└── lib/frontend-stack.ts                            # MapDataBucket + output kept; /tiles/* behaviour removed
 
-.github/workflows/map-data.yml                       # new: manual build → upload → presign → import
+.github/workflows/map-data.yml                       # build → upload places → presign → import (tiles steps removed)
 
 packages/core/
 ├── src/Domain/Helper/PlaceFeed.php                  # port
@@ -236,7 +255,7 @@ apps/api/
 └── tests/Behat/PlaceContext.php                     # imports through CommandBus
 
 apps/web/
-├── package.json, package-lock.json                  # + leaflet, react-leaflet, protomaps-leaflet, @types/leaflet
+├── package.json, package-lock.json                  # + leaflet, react-leaflet, @types/leaflet; − protomaps-leaflet
 ├── src/
 │   ├── shared/
 │   │   ├── ui/error-boundary.tsx, index.ts          # + ErrorBoundary
@@ -245,10 +264,10 @@ apps/web/
 │   │   │   ├── model/types.ts                       # GeoPoint
 │   │   │   ├── lib/wrap-longitude.ts (+ .test.ts)
 │   │   │   └── api/current-position.ts (+ .test.ts)
-│   │   ├── map/                                     # the only Leaflet / protomaps-leaflet importer
+│   │   ├── map/                                     # the only Leaflet importer
 │   │   │   ├── index.ts
-│   │   │   ├── model/view.ts                        # INITIAL_VIEW, TILES_URL
-│   │   │   └── ui/location-map.tsx
+│   │   │   ├── model/view.ts                        # INITIAL_VIEW, TILES_URL (the OSM template)
+│   │   │   └── ui/location-map.tsx                  # L.tileLayer, OSM attribution
 │   │   └── i18n/locales/en/common.json              # + movements.form.map.*
 │   ├── entities/movement/
 │   │   ├── index.ts                                 # + lookUpPlaceName, PlaceLookupUnavailable
@@ -258,7 +277,7 @@ apps/web/
 │       ├── ui/location-picker.tsx (+ .test.tsx)
 │       └── model/use-place-lookup.ts
 └── e2e/
-    ├── fixtures.ts                                  # + stubMapTiles auto fixture
+    ├── fixtures.ts                                  # stubMapTiles aborts tile.openstreetmap.org
     ├── movements.spec.ts                            # signIn moved; exact Location locator
     ├── movement-location.spec.ts                    # US1 + US2 journeys
     └── support/session.ts, support/map.ts           # signIn; lat/lon → pixel at INITIAL_VIEW
