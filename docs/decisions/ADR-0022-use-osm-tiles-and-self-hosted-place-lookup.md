@@ -283,3 +283,22 @@ and SHALL abort every request to `https://tile.openstreetmap.org/**`, so no suit
   Huelin at `national` answered `null`:
   Spain's country relation did not assemble from the clipped Geofabrik extract,
   and Ceuta's did not either, which led to the Overpass fetch and the guard (FR-012).
+
+### 2026-10-16: build with the Overpass fetch and the guard, measured locally
+
+- `make map-data` took 6 minutes 39 seconds without the tiles;
+  the Overpass fetch of Spain's and Ceuta's boundaries took about 53 seconds
+  and returned 7.0 MB of OSM XML.
+- The guard passed: España at `admin_level` 2,
+  and Ceuta, Melilla, and Illes Balears at `admin_level` 4,
+  so Ceuta's relation is at the level the guard expects.
+- `places.geojsonl` is 491 MB: 32,732 boundaries and 33,067 neighbourhood nodes,
+  three boundaries more than the first build.
+- `make map-import` took 32 seconds,
+  still far inside the 7.5-minute rule.
+- Against the real data, Huelin answers España, Andalucía, Málaga, Málaga-Costa del Sol, Málaga, and Huelin
+  for `national` to `neighborhood`,
+  and central Sheffield answers United Kingdom at `national` and Sheffield at `municipality`.
+  At `national` every FR-012 point answers España;
+  at `state`, Palma answers Illes Balears, Las Palmas de Gran Canaria answers Canarias,
+  Ceuta answers Ceuta, and Melilla answers Melilla.

@@ -1,14 +1,11 @@
 #!/bin/sh
 # ADR-0022: builds var/map/places.geojsonl (the shape of
-# apps/api/features/fixtures/places.geojsonl) and var/map/tiles/spain-uk.pmtiles.
+# apps/api/features/fixtures/places.geojsonl).
 set -eu
-
-# A dated Protomaps daily build; Monday builds are kept longest.
-PROTOMAPS_BUILD=20261012
 
 OUT=/app/var/map
 SRC="$OUT/src"
-mkdir -p "$SRC" "$OUT/tiles"
+mkdir -p "$SRC"
 
 for extract in europe/spain africa/canary-islands europe/united-kingdom; do
     curl --fail --location --silent --show-error \
@@ -16,8 +13,18 @@ for extract in europe/spain africa/canary-islands europe/united-kingdom; do
         "https://download.geofabrik.de/$extract-latest.osm.pbf"
 done
 
+# Geofabrik clips Spain's country boundary and Ceuta's, whose members leave
+# its extract; Overpass returns them whole, and the merge fills in the gaps.
+curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
+    --user-agent 'social-bulletin map-data (https://github.com/aleherse/social-bulletin)' \
+    --data-urlencode data@/app/docker/map/overpass-boundaries.ql \
+    --output "$SRC/overpass.osm" \
+    https://overpass-api.de/api/interpreter
+osmium sort --overwrite --output "$SRC/overpass.osm.pbf" "$SRC/overpass.osm"
+
 osmium merge --overwrite --output "$SRC/merged.osm.pbf" \
-    "$SRC/spain.osm.pbf" "$SRC/canary-islands.osm.pbf" "$SRC/united-kingdom.osm.pbf"
+    "$SRC/spain.osm.pbf" "$SRC/canary-islands.osm.pbf" "$SRC/united-kingdom.osm.pbf" \
+    "$SRC/overpass.osm.pbf"
 
 # Relation members are kept, so the boundary polygons can be assembled.
 osmium tags-filter --overwrite --output "$SRC/places.osm.pbf" "$SRC/merged.osm.pbf" \
@@ -56,8 +63,7 @@ jq --compact-output '
       end
 ' "$SRC/places.geojsonseq" > "$OUT/places.geojsonl"
 
-pmtiles extract "https://build.protomaps.com/$PROTOMAPS_BUILD.pmtiles" "$OUT/tiles/spain-uk.pmtiles" \
-    --region=/app/infrastructure/map/coverage.geojson --maxzoom=15
+/app/docker/map/check-places.sh "$OUT/places.geojsonl"
 
 echo "Places: $(wc -l < "$OUT/places.geojsonl") features"
-du -h "$OUT/places.geojsonl" "$OUT/tiles/spain-uk.pmtiles"
+du -h "$OUT/places.geojsonl"

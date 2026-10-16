@@ -20,9 +20,9 @@ export interface FrontendStackProps extends cdk.StackProps {
 /**
  * ADR-0016: the frontend lives in a private S3 bucket behind CloudFront at
  * the environment's frontend hostname, with the Route53 alias and ACM
- * certificate managed here. ADR-0022: map data lives in its own private
- * bucket on the same origin under `/tiles/*`, uploaded by the map-data
- * workflow rather than by the frontend deploy.
+ * certificate managed here. ADR-0022: the map-data bucket holds the places
+ * file for the console import, uploaded by the map-data workflow rather than
+ * by the frontend deploy; it is not served by the distribution.
  */
 export class FrontendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: FrontendStackProps) {
@@ -58,14 +58,6 @@ export class FrontendStack extends cdk.Stack {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(bucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      },
-      additionalBehaviors: {
-        '/tiles/*': {
-          origin: origins.S3BucketOrigin.withOriginAccessControl(mapDataBucket),
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-        },
       },
       defaultRootObject: 'index.html',
       domainNames: [environment.frontDomainName],

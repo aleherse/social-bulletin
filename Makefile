@@ -155,7 +155,7 @@ web-build: ## Build the production frontend bundle nginx serves
 ## --- Map data (ADR-0022) ---------------------------------------------------
 
 .PHONY: map-data
-map-data: ## Build var/map/places.geojsonl and var/map/tiles/spain-uk.pmtiles from OpenStreetMap and Protomaps (downloads several GB)
+map-data: ## Build var/map/places.geojsonl from OpenStreetMap; fails without Spain's outlying boundaries
 	$(COMPOSE) run --rm map docker/map/build-map-data.sh
 
 .PHONY: map-import
