@@ -40,9 +40,10 @@ because both stories end in the same lookup.
   Cite a rule's identifier when a commit leans on it.
 - PHP classes are `final readonly` unless a spec must double them
   (`application-style-0001`; providers and repositories stay plain `class`, like `CategoryProvider`).
-- Third-party frontend imports (`leaflet`, `react-leaflet`, `protomaps-leaflet`, `react-i18next`, `react-router`)
+- Third-party frontend imports (`leaflet`, `react-leaflet`, `react-i18next`, `react-router`)
   only inside their `shared/*` adapter slice (`application-frontend-0001`);
-  `shared/map` is the only slice that imports `leaflet`, `react-leaflet`, or `protomaps-leaflet`.
+  `shared/map` is the only slice that imports `leaflet` or `react-leaflet`
+  (`protomaps-leaflet` is removed by T050).
 - User-visible strings come from i18n keys in
   `apps/web/src/shared/i18n/locales/en/common.json`;
   names and texts are fixed by [contracts/location-picker-ui.md](contracts/location-picker-ui.md).
@@ -584,6 +585,8 @@ with permission refused, the explanation appears and a typed location still save
 **Purpose**: Produce, serve, and publish the real tiles and places.
 Not a test layer under ADR-0013; each task names its own check.
 Required before the feature is usable outside the fixture points.
+The self-hosted tiles built here (T038, T041, and the tile parts of T039, T040, T042)
+are removed by Phase 6 (spec FR-011, revised 2026-10-16).
 
 - [X] T038 [P] Create `infrastructure/map/coverage.geojson`:
       one `FeatureCollection` with a `MultiPolygon` covering
@@ -636,41 +639,156 @@ Required before the feature is usable outside the fixture points.
       No make target synthesises the app, and one cannot run without AWS credentials,
       because `lookupHostedZone()` calls `HostedZone.fromLookup` and no `cdk.context.json` is committed;
       the behaviour itself is proven on the first `preview` deploy by T043's range request
-- [ ] T043 Create `.github/workflows/map-data.yml`
-      (`workflow_dispatch` with a required `environment` choice of `live` or `preview`;
-      `concurrency: map-data-${{ inputs.environment }}`;
-      `permissions: id-token: write, contents: read`):
-      checkout; configure AWS credentials as `deploy.yml` does;
-      `make env images map-data`;
-      read `MapDataBucketName` from `social-bulletin-${{ inputs.environment }}-frontend`
-      and `ConsoleFunctionName` from `social-bulletin-${{ inputs.environment }}-api`;
-      `aws s3 cp` the archive to `tiles/spain-uk.pmtiles`
-      (`--content-type application/vnd.pmtiles`, `--cache-control max-age=86400`)
-      and the places to `places/places.geojsonl`;
-      `aws s3 presign` the places object for 3600 s;
-      `aws lambda invoke --cli-read-timeout 900 --cli-binary-format raw-in-base64-out` the console function
-      as `deploy.yml` invokes migrations,
-      with the payload built by `jq -n --arg cmd "app:places:import '$PLACES_URL'" '$cmd'`:
-      the URL MUST be single-quoted inside the command,
-      because the Bref console layer runs the command through a shell
-      and an unquoted `&` in the presigned query string would background a truncated import
-      and still exit 0 (confirm against the deployed console layer's bootstrap;
-      the quoting is harmless either way);
-      write the response to `import-output.json`, print it,
-      and fail the job if the invoke's stdout carries a `FunctionError`
-      or the output lacks the import's seconds-taken line (T020);
-      invalidate `/tiles/*` on the frontend distribution;
-      finally `curl --fail -s -o /dev/null -w '%{http_code}' -H 'Range: bytes=0-15'`
-      the archive on the environment's frontend host and fail the job unless it prints `206`.
-      First run against `preview`, then follow quickstart "Checking published data";
+- [ ] T043 Update `.github/workflows/map-data.yml` (created with T040–T042) to publish the places only:
+      remove the tiles upload, the `/tiles/*` invalidation, the range-request check,
+      and the `DISTRIBUTION_ID` and `FRONT_HOST` lookups they alone use;
+      keep `make env images map-data` (so a failed T057 guard stops the job before any upload),
+      the places upload to `places/places.geojsonl`, the 3600 s presign,
+      and the console invoke with the URL single-quoted
+      (the Bref console layer runs the command through a shell,
+      and an unquoted `&` in the presigned query string would background a truncated import that still exits 0),
+      failing on a `FunctionError` or a missing seconds-taken line (T020).
+      First run against `preview`, then follow quickstart "Checking published data",
+      including the FR-012 points (Palma, Las Palmas, Ceuta, Melilla at `national` and `state`);
       record in ADR-0022 the console function's import duration on `preview`
       (from the job log or the function's `REPORT` line),
       and apply T040's 7.5-minute rule to it before any `live` run
-      (depends on T040, T042)
+      (depends on T053, T056, T057)
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 6: Revision — OSM tiles and Spanish coverage (spec session 2026-10-16)
+
+**Purpose**: Apply the revised FR-011 (tiles from `tile.openstreetmap.org`, lookup still self-hosted)
+and the new FR-012 (Spanish land named at `national` and `state`;
+the map-data build fetches Spain and Ceuta from Overpass and fails without them)
+to the code Phases 1–5 already delivered.
+Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
+
+### Decisions
+
+- [ ] T049 Correct `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md` in place
+      and rename it with `git mv` to `docs/decisions/ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md`,
+      title "Use OpenStreetMap tiles and a self-hosted place lookup", status still Proposed (research R10):
+      "Map rendering" names `leaflet` and `react-leaflet` only, with `<TileLayer>`,
+      `maxZoom` 19, and the attribution "© OpenStreetMap contributors";
+      "Map tiles" becomes OSM's public servers per research R4,
+      including the usage-policy points and the known consequence that OSM sees the zoomed-in view after a pin;
+      the context paragraph says only the lookup is self-hosted;
+      "Map data pipeline" drops the tiles, adds the Overpass fetch and the T057 guard;
+      "Testing" aborts `https://tile.openstreetmap.org/**` instead of `/tiles/**`;
+      "Patterns to avoid" narrows the absolute-URL entry to geocoder hosts;
+      "Verification" replaces the `/tiles/` range request with the guard and the FR-012 points;
+      "Consequences" drops the tiles bucket cost and adds the OSM dependency;
+      "Revisit Triggers" replaces the Geofabrik `osmium getid` entry with
+      "the guard fails although Overpass answered: check the relations' tags";
+      keep the 2026-10-16 measurements and add a line that the 6.2 GB archive was dropped.
+      Update the links in `docs/decisions/ADR-0009-adopt-postgresql-and-doctrine-dbal.md`
+      and `docs/decisions/ADR-0016-aws-serverless-deployment.md`,
+      and correct ADR-0016 in place: the map-data bucket holds the places file only,
+      with no `/tiles/*` behaviour, and the line saying the browser makes no cross-origin map request
+      becomes "map tiles come from OpenStreetMap's tile servers (ADR-0022)".
+      Check with `git grep -n "self-host-map-tiles"` finding nothing outside `specs/`
+
+### Tests (write first, must fail) ⚠️
+
+- [ ] T050 [US1] In `apps/web/e2e/fixtures.ts`, change the `stubMapTiles` auto fixture
+      to `page.route('https://tile.openstreetmap.org/**', (route) => route.abort())`
+      and its comment to say no journey reaches OSM;
+      in `apps/web/e2e/movement-location.spec.ts`, in the US1 journey (T026),
+      start `page.waitForRequest(/^https:\/\/tile\.openstreetmap\.org\/\d+\/\d+\/\d+\.png$/)`
+      before opening New movement and await it after the map region is visible,
+      proving the map asks OSM for tiles;
+      also expect `page.getByRole('link', { name: 'OpenStreetMap' })` toBeVisible (attribution, FR-011);
+      update the header comment that mentions `/tiles/**`.
+      Observe the journey failing in `make web-e2e` (the map still requests `/tiles/spain-uk.pmtiles`)
+- [ ] T051 [P] [US1] Add to the first Scenario Outline's Examples in `apps/api/features/places.feature`
+      the six FR-012 rows of the "Expected lookups" table in
+      `specs/002-map-pinned-location/contracts/place-lookup-api.md`:
+      Palma (39.5696, 2.6502) `national` España and `state` Illes Balears,
+      Ceuta (35.8894, -5.3213) `national` España and `state` Ceuta,
+      Melilla (35.2923, -2.9381) `national` España and `state` Melilla (spec US1 sc.10).
+      Observe them failing in `make api-tests` before T054
+      (Palma and Melilla's `state` answer `null`, Ceuta's answers Andalucía)
+
+### Implementation
+
+- [ ] T052 [US1] Switch the basemap to OSM raster tiles (research R4, R5):
+      in `apps/web/src/shared/map/model/view.ts`,
+      `TILES_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'`
+      with its doc comment saying the tiles come from OSM's public servers (FR-011);
+      in `apps/web/src/shared/map/ui/location-map.tsx`,
+      replace the `Basemap` child and the `protomaps-leaflet` import with react-leaflet's
+      `<TileLayer url={TILES_URL} attribution={ATTRIBUTION} maxZoom={19} />`,
+      the attribution becoming
+      `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors`,
+      and the adapter's doc comment naming Leaflet only;
+      run `npm uninstall protomaps-leaflet` inside `make shell service=node`
+      so `apps/web/package.json` and `apps/web/package-lock.json` drop it;
+      if `TILES_URL` is no longer imported outside `shared/map`, drop it from `apps/web/src/shared/map/index.ts`
+      (knip, T060).
+      T050's journey passes (depends on T050)
+- [ ] T053 [P] Remove the self-hosted tiles infrastructure:
+      delete the `location /tiles/` block from `docker/nginx/conf.d/web.conf`;
+      delete `infrastructure/map/coverage.geojson`;
+      in `infrastructure/lib/frontend-stack.ts`, remove `additionalBehaviors['/tiles/*']`
+      and say in the class comment that the map-data bucket holds the places file for the console import,
+      keeping `MapDataBucket` and its `MapDataBucketName` output;
+      in `docker/map/Dockerfile`, remove the `pmtiles` download and its `ARG`s, keeping `curl`, `jq`, `osmium-tool`;
+      in `docker/map/build-map-data.sh`, remove `PROTOMAPS_BUILD`, the `tiles` directory, the `pmtiles extract` call,
+      and the tiles file from the final `du`;
+      update the `map-data` help text in `Makefile`
+      ("Build var/map/places.geojsonl from OpenStreetMap; fails without Spain's outlying boundaries")
+      and its row in `docs/engineering/scaffolding/make.md`.
+      Verify with `make images`, `make infra-tsc`, `make up`,
+      and `curl -s -o /dev/null -w '%{http_code}' https://dev.app.social.aleherse.com/tiles/x` now answering the SPA (200)
+- [ ] T054 [US1] Update `apps/api/features/fixtures/places.geojsonl`
+      per the "Fixture places" table in `specs/002-map-pinned-location/contracts/place-lookup-api.md`:
+      `osm_id` 1 España becomes a `MultiPolygon` of four box rings
+      (mainland `[-9.5, 36.0, 3.4, 43.8]`, Balearic Islands `[1.1, 38.6, 4.4, 40.1]`,
+      Ceuta `[-5.4, 35.85, -5.25, 35.93]`, Melilla `[-3.0, 35.26, -2.9, 35.32]`);
+      `osm_id` 2 Andalucía's south edge moves to 36.0;
+      add level-4 boundaries `osm_id` 7 Illes Balears, 8 Ceuta, and 9 Melilla with the same boxes as their España parts,
+      each a `Polygon` ring in the T007 shape.
+      Run `make db` to re-snapshot,
+      then `make api-tests` (T051 passes, every earlier row still passes)
+      and `make web-e2e` (the Huelin click still lands inside the narrower Andalucía) (depends on T051)
+- [ ] T055 [P] Create `docker/map/overpass-boundaries.ql` with the query in research R7
+      (Spain by `admin_level` 2 and `ISO3166-1=ES`, Ceuta by `ISO3166-2=ES-CE`,
+      recursed to member ways and nodes, `out meta`, `[timeout:600]`)
+- [ ] T056 In `docker/map/build-map-data.sh`, after the Geofabrik downloads,
+      POST `docker/map/overpass-boundaries.ql` to `https://overpass-api.de/api/interpreter`
+      with `curl --fail --location --silent --show-error --retry 3 --retry-all-errors`,
+      `--user-agent 'social-bulletin map-data (https://github.com/aleherse/social-bulletin)'`,
+      and `--data-urlencode data@/app/docker/map/overpass-boundaries.ql`,
+      into `"$SRC/overpass.osm"`;
+      `osmium sort --overwrite --output "$SRC/overpass.osm.pbf" "$SRC/overpass.osm"`;
+      add `"$SRC/overpass.osm.pbf"` to the `osmium merge` inputs.
+      An Overpass failure ends the script under `set -eu` (FR-012) (depends on T053, T055)
+- [ ] T057 Create `docker/map/check-places.sh <places.geojsonl>` (`set -eu`, executable):
+      for each of `2 España`, `4 Ceuta`, `4 Melilla`, `4 Illes Balears`,
+      `jq -n -e --argjson level <level> --arg name <name> 'any(inputs; .properties.kind == "boundary" and .properties.admin_level == $level and .properties.name == $name)'`
+      over the file (`-n` with `inputs` reads every line; `-e` exits non-zero when none matches),
+      collecting every missing one,
+      printing `Missing boundary: <name> (admin_level <level>)` for each to stderr,
+      and exiting 1 if any is missing (research R7);
+      call it on `"$OUT/places.geojsonl"` at the end of `docker/map/build-map-data.sh`, before the summary.
+      Verify inside `docker compose run --rm map`:
+      it exits 0 on `apps/api/features/fixtures/places.geojsonl` after T054
+      and exits 1 naming all four on `apps/api/features/fixtures/places-reimport.geojsonl` (depends on T054, T056)
+- [ ] T058 Run `make map-data` and `make map-import`;
+      confirm the build passes the guard,
+      then post the quickstart's real-data points to `/api/places/lookup` on the development stack:
+      Huelin (all six levels), central Sheffield (`national`, `municipality`),
+      and Palma, Las Palmas de Gran Canaria, Ceuta, and Melilla at `national` and `state`
+      (spec US1 sc.10);
+      record the answers, the Overpass fetch time, the places count, and the import time in ADR-0022
+      under a new dated measurements entry; if Ceuta's relation is not `admin_level` 4,
+      correct the guard, the research R7 entry, and ADR-0022 to the level OSM uses (depends on T057)
+
+---
+
+## Phase 7: Polish & Cross-Cutting Concerns
 
 - [X] T044 FR-005 audit:
       grep `packages/core/src/**/Place*`, `apps/api/src/Controller/Place/`, `apps/api/src/Place/`,
@@ -692,7 +810,7 @@ Required before the feature is usable outside the fixture points.
 - [ ] T047 Run `make ci`, the merge gate
       (lint, `php-unit`, `web-unit`, frontend build, `db`, `api-tests`, and the Playwright journeys
       in an isolated Compose project, now on the PostGIS image),
-      and walk `specs/002-map-pinned-location/quickstart.md` steps 1–9 against `make up`;
+      and walk `specs/002-map-pinned-location/quickstart.md` steps 1–10 against `make up`;
       on `preview` after T043, time ten pins in DevTools → Network
       and record whether the place name filled within 3 s for each (SC-001);
       the pull request description names `make ci` as the gate that ran
@@ -702,6 +820,15 @@ Required before the feature is usable outside the fixture points.
       large static assets are served from the app's own origin, never a third party;
       shared Behat/Playwright reference data is loaded by `fixtures.feature` through the same command production uses;
       a provider reading two tables gives each its own query builder (if review agrees with T019)
+
+- [ ] T059 Coverage audit for Phase 6:
+      FR-011's tile source → T050; FR-012 lookup over a multi-part country → T051;
+      FR-012 real data → T057, T058, T043;
+      revert T052 and T054 in turn and confirm T050 and T051 go red; record the result in the pull request
+- [ ] T060 Run `make lint` and fix every finding,
+      including any `web-knip` report for `apps/web/src/shared/map/index.ts`
+      and a stale `protomaps-leaflet` entry anywhere (`git grep -n -i "protomaps\|pmtiles" -- ':!specs'` finds nothing);
+      then T047 (depends on T049–T059)
 
 ---
 
@@ -721,7 +848,11 @@ Required before the feature is usable outside the fixture points.
 - **US2 (Phase 4)**: depends on Foundational, and on T031 (it extends `location-picker.tsx`)
 - **Map data (Phase 5)**: T038, T039, T041, T042 can start after Setup;
   T040 needs T020; T043 needs T040 and T042
-- **Polish (Phase 6)**: depends on all of the above
+- **Revision (Phase 6)**: depends on Phases 1–5 as delivered;
+  T049 first; tests T050 and T051 before T052 and T054;
+  T053 and T055 in parallel; T056 after both; T057 after T054 and T056; T058 after T057;
+  T043 after T053, T056, and T057
+- **Polish (Phase 7)**: depends on all of the above; T059 and T060 before T047
 
 ### User Story Dependencies
 
@@ -745,6 +876,7 @@ Required before the feature is usable outside the fixture points.
 - US1 tests: T026 and T027 together
 - US2 tests: T033, T034, T035 together
 - Map data: T038, T039, T041, T042 together, any time after Setup
+- Revision: T050 and T051 together; T053 and T055 together, alongside T052 and T054
 - Polish: T048 alongside T044 and T045
 
 ---
@@ -803,7 +935,8 @@ Task: "Playwright use-my-location journey in apps/web/e2e/movement-location.spec
 2. US1 → map adapter, picker, form → validate
 3. Map data → real tiles and places on `preview` → validate → ship (MVP)
 4. US2 → validate → ship
-5. Polish → FR-005 audit, coverage audit, lint, `make ci`, rule extraction
+5. Revision → OSM tiles, Overpass fetch and guard, FR-012 lookups → `make map-data` → T043 on `preview`
+6. Polish → FR-005 audit, coverage audit, lint, `make ci`, rule extraction
 
 ---
 
@@ -829,7 +962,10 @@ Task: "Playwright use-my-location journey in apps/web/e2e/movement-location.spec
   FR-008 → T033, T034(b,c);
   FR-009 → T013(a, null rows), T015(d,e,g), T027(b,c), T028(h);
   FR-010 → T028(e);
-  FR-011 → T025 (`/tiles/**` is the only map host), T013 (lookup served by the API), T040 and T043 (real data)
+  FR-011 → T050 (tiles requested from `tile.openstreetmap.org`, attribution shown), T013 (lookup served by the API), T058 and T043 (real data);
+  FR-012 → T051, T054 (lookup over a multi-part country), T057 (build guard), T058 and T043 (real data).
+  Waiver: whether the real OSM data names Spanish land at both levels is not tested by any suite,
+  because no suite downloads OSM data; the T057 guard and the T058/T043 checks cover it
 - Spec scenario coverage:
   US1 sc.1 → T013(a) Sheffield `municipality`, T027(a), T026;
   sc.2 → T028(b), T026;
@@ -840,6 +976,7 @@ Task: "Playwright use-my-location journey in apps/web/e2e/movement-location.spec
   sc.7 → T027(d,h);
   sc.8 → T028(d);
   sc.9 → T028(e);
+  sc.10 → T051 (Palma, Ceuta, Melilla), T058 and T043 (all four points, real data);
   US2 sc.1 → T034(a), T035;
   sc.2 → T034(b), T028(i);
   sc.3 → T027(b), T028(h);
@@ -850,6 +987,7 @@ Task: "Playwright use-my-location journey in apps/web/e2e/movement-location.spec
   no place at the level, including outside Spain and the UK → T013(a) Madrid and Atlantic rows, T027(b);
   date line → T014, T015(b);
   map unavailable → T027(i), T034(f);
-  basemap unavailable → T026, T035 (every journey runs with `/tiles/**` aborted by `stubMapTiles`, T025);
+  basemap unavailable → T026, T035 (every journey runs with OSM tile requests aborted by `stubMapTiles`, T050);
+  Spanish waters and the *plazas de soberanía* → not guaranteed by FR-012, so no test;
   slow lookup (typing and saving while pending) → T028(c), T015(g);
   typing does not move the marker → T028(c)
