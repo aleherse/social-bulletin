@@ -135,7 +135,9 @@ by changing the environment variable only.
 
 **Decision**: Lookups are made only on an explicit pin
 (click or "use my location"), one request per pin.
-A new pin aborts the in-flight request (`AbortController`).
+A new pin aborts the in-flight request (`AbortController`),
+and a request still unanswered after 10 s is aborted and reported as failed,
+so a stalled service never leaves the author waiting on "Looking up the place…".
 No lookup on area-level change (clarification Q4) or on typing.
 The browser identifies the app through the `Referer` header it sends;
 no custom `User-Agent` can be set from a browser.
@@ -197,9 +199,9 @@ and off OSM's infrastructure.
 
 ## R9. Architecture decision record
 
-**Decision**: Propose `ADR-0021: Adopt Leaflet and OSM Nominatim for maps and place lookup`,
+**Decision**: Propose `ADR-0022: Adopt Leaflet and OSM Nominatim for maps and place lookup`,
 written with the `adr-skill` as the first implementation task.
 
 **Rationale**: Constitution Principle III —
 a new third-party UI library and an external runtime dependency
-are structural decisions, as `react-router` was (ADR-0018).
+are structural decisions, as `react-router` was (ADR-0019).

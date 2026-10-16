@@ -18,7 +18,8 @@ GET {VITE_GEOCODER_URL}/reverse?format=geocodejson&lat={lat}&lon={lon}&zoom=18&a
 | `accept-language` | `xx` | Forces local official names over the browser's `Accept-Language` (R2, clarification Q3) |
 
 `VITE_GEOCODER_URL` defaults to `https://nominatim.openstreetmap.org`.
-Requests are made only on an explicit pin and are abortable (R6).
+Requests are made only on an explicit pin, are abortable,
+and time out after 10 s (R6).
 No credentials, cookies, or custom headers are sent.
 
 ## Response fields read
@@ -38,6 +39,7 @@ features[0].properties.geocoding.admin       { level4?, level6?, level7?, level8
 | 200 with `features[0]` | `PlaceHierarchy` | name from `placeNameFor`, or `not-found` when that returns `null` |
 | 200 with empty `features` (e.g. at sea) | `null` | `not-found` |
 | non-2xx, network error, or body without the shape above | error | `unavailable` |
+| no response within 10 s | request aborted, error | `unavailable` |
 | aborted by a newer pin | ignored | unchanged |
 
 ## Recorded fixture
