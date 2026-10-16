@@ -831,5 +831,6 @@ Task: "Playwright use-my-location journey in apps/web/e2e/movement-location.spec
   no place at the level, including outside Spain and the UK → T013(a) Madrid and Atlantic rows, T027(b);
   date line → T014, T015(b);
   map unavailable → T027(i), T034(f);
+  basemap unavailable → T026, T035 (every journey runs with `/tiles/**` aborted by `stubMapTiles`, T025);
   slow lookup (typing and saving while pending) → T028(c), T015(g);
   typing does not move the marker → T028(c)
