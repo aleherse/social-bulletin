@@ -27,8 +27,8 @@ Playwright queries for the field MUST therefore match it exactly:
 Testing Library matches whole names by default and needs no change.
 
 The map's own controls (zoom buttons, OSM attribution link)
-come from Leaflet and `protomaps-leaflet` and are not part of this contract
-beyond the attribution staying visible: "© OpenStreetMap contributors" (ODbL) and Protomaps.
+come from Leaflet and are not part of this contract
+beyond the attribution staying visible: "© OpenStreetMap contributors" (ODbL, OSM tile usage policy).
 
 ## Messages
 
