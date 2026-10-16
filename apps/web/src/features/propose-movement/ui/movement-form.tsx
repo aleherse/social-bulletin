@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { AREAS, useCategories } from '@/entities/movement';
 import type { Area, Movement, MovementDraftInput } from '@/entities/movement';
 import { useTranslation } from '@/shared/i18n';
 import { Button, Input, Label, Select, Textarea } from '@/shared/ui';
+
+import { LocationPicker } from './location-picker.tsx';
 
 interface MovementFormProps {
   initial?: Movement;
@@ -29,6 +31,8 @@ export function MovementForm({
   const [area, setArea] = useState<Area | ''>(initial?.area ?? '');
   const [location, setLocation] = useState(initial?.location ?? '');
   const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
+  // A found name only fills the field if the author has not typed since the pin.
+  const editedSincePin = useRef(false);
 
   const errors: Record<string, string> = { ...fieldErrors, ...localErrors };
   const international = area === 'international';
@@ -124,9 +128,25 @@ export function MovementForm({
             value={location}
             placeholder={t('movements.form.locationPlaceholder')}
             aria-invalid={errors.location !== undefined}
-            onChange={(event) => setLocation(event.target.value)}
+            onChange={(event) => {
+              editedSincePin.current = true;
+              setLocation(event.target.value);
+            }}
           />
           {fieldError('location')}
+          {area !== '' && (
+            <LocationPicker
+              area={area}
+              onPin={() => {
+                editedSincePin.current = false;
+              }}
+              onPlaceFound={(name) => {
+                if (!editedSincePin.current) {
+                  setLocation(name);
+                }
+              }}
+            />
+          )}
         </div>
       )}
 

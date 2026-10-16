@@ -371,7 +371,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
 
 ### Tests for User Story 1 (write first, must fail) ⚠️
 
-- [ ] T026 [P] [US1] Create `apps/web/e2e/movement-location.spec.ts`
+- [X] T026 [P] [US1] Create `apps/web/e2e/movement-location.spec.ts`
       (import `test`, `expect` from `./fixtures.ts`,
       `signIn` from `./support/session.ts`, `clickMapAt` from `./support/map.ts`)
       with the journey "an author pins a neighbourhood on the map and saves its name":
@@ -384,7 +384,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       expect the list item for "Huelin Community Kitchen"
       toContainText "Neighborhood · Huelin · Cooperative".
       No geocoder stub: the name comes from the API and the snapshot's fixture places
-- [ ] T027 [P] [US1] Create `apps/web/src/features/propose-movement/ui/location-picker.test.tsx`
+- [X] T027 [P] [US1] Create `apps/web/src/features/propose-movement/ui/location-picker.test.tsx`
       rendering `LocationPicker` inside `I18nProvider`,
       with `vi.mock('@/shared/map', …)` replacing `LocationMap` by a stub
       that records its latest `point` and `onPick` props
@@ -412,7 +412,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       (i) when the `LocationMap` stub throws on render,
       the picker renders without the map region
       and no error escapes it to the surrounding tree (spec edge case: map unavailable)
-- [ ] T028 [US1] Extend `apps/web/src/features/propose-movement/ui/movement-form.test.tsx`:
+- [X] T028 [US1] Extend `apps/web/src/features/propose-movement/ui/movement-form.test.tsx`:
       add `vi.mock('@/shared/map', …)` with the same recording stub as T027
       (required for the existing cases, since the form now renders the map)
       and mock `lookUpPlaceName` from `@/entities/movement`.
@@ -450,7 +450,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
 
 ### Implementation for User Story 1
 
-- [ ] T029 [US1] Create `apps/web/src/shared/map/ui/location-map.tsx` and `apps/web/src/shared/map/index.ts`
+- [X] T029 [US1] Create `apps/web/src/shared/map/ui/location-map.tsx` and `apps/web/src/shared/map/index.ts`
       exporting `LocationMap({ label, markerLabel, point, onPick })` and the T025 constants:
       a `<section aria-label={label}>` with no padding or border,
       containing a react-leaflet `MapContainer` that fills it
@@ -474,7 +474,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       Waiver: the fly-to animation and the basemap drawing are not asserted;
       neither has an accessible outcome, and a broken one leaves the pin, the name, and the save intact
       (depends on T002, T023, T025, T026)
-- [ ] T030 [US1] Create `apps/web/src/features/propose-movement/model/use-place-lookup.ts`:
+- [X] T030 [US1] Create `apps/web/src/features/propose-movement/model/use-place-lookup.ts`:
       a hook `usePlaceLookup({ onFound })` returning
       `{ status: 'idle' | 'pending' | 'not-found' | 'unavailable', lookUp(point, area) }`
       that aborts the previous `AbortController` on each call and on unmount,
@@ -482,7 +482,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       and calls `onFound(name)` when a name is found,
       following the transitions in `specs/002-map-pinned-location/data-model.md`
       (depends on T024)
-- [ ] T031 [US1] Create `apps/web/src/shared/ui/error-boundary.tsx`
+- [X] T031 [US1] Create `apps/web/src/shared/ui/error-boundary.tsx`
       (a class component `ErrorBoundary({ fallback, children })`
       rendering `fallback` once a child throws)
       and export it from `apps/web/src/shared/ui/index.ts`;
@@ -496,7 +496,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       per `contracts/location-picker-ui.md`;
       on pick: set `point`, call `onPin()`, then `lookUp(point, area)`
       so T027 passes (depends on T029, T030)
-- [ ] T032 [US1] Update `apps/web/src/features/propose-movement/ui/movement-form.tsx`:
+- [X] T032 [US1] Update `apps/web/src/features/propose-movement/ui/movement-form.tsx`:
       render `LocationPicker` below the Location input
       only when `area` is set and not `international`
       (unmounting it clears the point and aborts the lookup, satisfying FR-007);
