@@ -147,20 +147,20 @@ and the E2E map helpers. Both stories need all of them.
 
 ### Tests (write first, must fail) ⚠️
 
-- [ ] T008 [P] Write `packages/core/spec/Domain/Place/GeoPointSpec.php`
+- [X] T008 [P] Write `packages/core/spec/Domain/Place/GeoPointSpec.php`
       for `GeoPoint::fromDegrees(float $latitude, float $longitude)`:
       `(36.7033, -4.4366)` exposes `latitude` 36.7033 and `longitude` -4.4366;
       the bounds `(-90, -180)` and `(90, 180)` are accepted;
       `(90.0001, 0)` throws `InvalidPlaceLookup` with `errors` `['lat' => 'place.point.out_of_range']`;
       `(0, -180.5)` throws it with `['lon' => 'place.point.out_of_range']`;
       in both, `getMessage()` is `place.lookup.invalid` and contains no digit (FR-005)
-- [ ] T009 [P] Write `packages/core/spec/Domain/Place/PlaceLevelSpec.php`
+- [X] T009 [P] Write `packages/core/spec/Domain/Place/PlaceLevelSpec.php`
       for `PlaceLevel::forArea(Area $area)`:
       `adminLevel()` is 2 / 4 / 6 / 7 / 8 / 10 for
       `National` / `State` / `Province` / `Region` / `Municipality` / `Neighborhood`;
       `usesNeighbourhoodFallback()` is true for `Neighborhood` only;
       `International` throws `InvalidPlaceLookup` with `['area' => 'place.area.unsupported']`
-- [ ] T010 [P] Write `packages/core/spec/Domain/Place/PlaceFeatureSpec.php`
+- [X] T010 [P] Write `packages/core/spec/Domain/Place/PlaceFeatureSpec.php`
       for `PlaceFeature::parse(int $line, array $feature): Boundary|Neighbourhood`:
       a `boundary` feature with `admin_level` 8 and a `Polygon`
       yields a `Boundary` with `osmId`, `adminLevel`, `name`,
@@ -170,7 +170,7 @@ and the E2E map helpers. Both stories need all of them.
       each of these on line 3 throws `InvalidPlaceFeed` whose message contains "line 3":
       `admin_level` 9, a missing or empty `name`, a `boundary` with a `Point`,
       a `neighbourhood` with a `Polygon`, an unknown `kind`, a missing `osm_id`
-- [ ] T011 [P] Write `packages/core/spec/Application/Place/Command/ImportPlacesHandlerSpec.php`
+- [X] T011 [P] Write `packages/core/spec/Application/Place/Command/ImportPlacesHandlerSpec.php`
       with `PlaceFeed` and `PlaceRepository` doubled:
       for `ImportPlacesCommand::fromSource('places.geojsonl')`
       the feed is asked for `features('places.geojsonl')`,
@@ -179,7 +179,7 @@ and the E2E map helpers. Both stories need all of them.
       (assert with `Argument::that` consuming it via `iterator_to_array`);
       a malformed feature on line 2 makes consuming that iterable throw `InvalidPlaceFeed` naming line 2,
       so the repository's transaction rolls back
-- [ ] T012 [P] Write `packages/core/spec/Application/Place/Query/LookUpPlaceQuerySpec.php`
+- [X] T012 [P] Write `packages/core/spec/Application/Place/Query/LookUpPlaceQuerySpec.php`
       and `packages/core/spec/Application/Place/Query/LookUpPlaceHandlerSpec.php`:
       `LookUpPlaceQuery::fromPayload(['lat' => 36.7033, 'lon' => -4.4366, 'area' => 'neighborhood'])`
       exposes the matching `GeoPoint` and `PlaceLevel`, and accepts integer degrees;
@@ -187,7 +187,7 @@ and the E2E map helpers. Both stories need all of them.
       a missing, unknown, or `international` `area` throws it keyed `area`;
       the handler, with `PlaceProvider` doubled,
       returns what `nameAt($point, $level)` returns: `new Place('Huelin')`, or `null`
-- [ ] T013 Write `apps/api/features/places.feature`
+- [X] T013 Write `apps/api/features/places.feature`
       ("Look up a place name", as a signed-in author),
       signing in with the existing `POST /api/session` step in each scenario:
       (a) a Scenario Outline over every row of the "Expected lookups" table in
@@ -214,11 +214,11 @@ and the E2E map helpers. Both stories need all of them.
       and the `municipality` lookup at central Sheffield still returns "Sheffield"
       (the failed import rolled back).
       The fixture places otherwise come from the snapshot (T021), not from these scenarios
-- [ ] T014 [P] Write Vitest cases in `apps/web/src/shared/geo/lib/wrap-longitude.test.ts`
+- [X] T014 [P] Write Vitest cases in `apps/web/src/shared/geo/lib/wrap-longitude.test.ts`
       for `wrapLongitude(lon)` returning a value in [-180, 180):
       `-4.4366` unchanged, `190` → `-170`, `-190` → `170`,
       `180` → `-180`, `535.5634` → `175.5634`
-- [ ] T015 [P] Write Vitest cases in `apps/web/src/entities/movement/api/look-up-place-name.test.ts`
+- [X] T015 [P] Write Vitest cases in `apps/web/src/entities/movement/api/look-up-place-name.test.ts`
       for `lookUpPlaceName(point, area, signal)`, stubbing `globalThis.fetch` with `vi.stubGlobal`:
       (a) one `POST` to a URL ending in `/api/places/lookup`,
       with `credentials: 'include'`, `Content-Type: application/json`,
@@ -234,7 +234,7 @@ and the E2E map helpers. Both stories need all of them.
 
 ### Implementation
 
-- [ ] T016 Create in `packages/core/src/Domain/Place/`:
+- [X] T016 Create in `packages/core/src/Domain/Place/`:
       `GeoPoint.php`, `PlaceLevel.php`, `InvalidPlaceLookup.php`
       (`\DomainException implements DomainError`, `STATUS_CODE = 422`,
       public `errors` like `InvalidMovement`, message `place.lookup.invalid`),
@@ -242,7 +242,7 @@ and the E2E map helpers. Both stories need all of them.
       and `InvalidPlaceFeed.php` (not a `DomainError`: it only reaches the console),
       per `specs/002-map-pinned-location/data-model.md`,
       so T008–T010 pass
-- [ ] T017 Generate a migration with `make console cmd="doctrine:migrations:generate"` (ADR-0009)
+- [X] T017 Generate a migration with `make console cmd="doctrine:migrations:generate"` (ADR-0009)
       and fill it in `apps/api/migrations/`:
       `up()` runs `CREATE EXTENSION IF NOT EXISTS postgis`
       and creates `bulletin.place_boundaries` and `bulletin.place_neighbourhoods`
@@ -252,7 +252,7 @@ and the E2E map helpers. Both stories need all of them.
       Document both tables in `db/schema.dbml` with the `dbml-database-docs` skill,
       noting they hold OSM reference data replaced by each import.
       Verify with `make db`
-- [ ] T018 Create `packages/core/src/Domain/Helper/PlaceFeed.php`
+- [X] T018 Create `packages/core/src/Domain/Helper/PlaceFeed.php`
       (interface, `features(string $source): iterable<int, array<string, mixed>>`, keyed by line number),
       `packages/core/src/Domain/Place/PlaceRepository.php`
       (`replaceAll(iterable<Boundary|Neighbourhood> $places): void`:
@@ -266,7 +266,7 @@ and the E2E map helpers. Both stories need all of them.
       with `ImportPlacesHandler.php`
       (a generator mapping each fed line through `PlaceFeature::parse()` into `replaceAll()`),
       so T011 passes (depends on T004, T016, T017)
-- [ ] T019 Create `packages/core/src/Application/Place/Model/Place.php`,
+- [X] T019 Create `packages/core/src/Application/Place/Model/Place.php`,
       `packages/core/src/Application/Place/Provider/PlaceProvider.php`
       (`nameAt(GeoPoint $point, PlaceLevel $level): ?Place`:
       the covering boundary at the level, smallest `ST_Area` first;
@@ -278,7 +278,7 @@ and the E2E map helpers. Both stories need all of them.
       (`@extends BaseQuery<Place|null>`, `fromPayload` over a private constructor, `application-framework-0002`)
       with `LookUpPlaceHandler.php`,
       so T012 passes (depends on T016, T017)
-- [ ] T020 Create `apps/api/src/Place/GeoJsonSeqPlaceFeed.php` implementing `PlaceFeed`
+- [X] T020 Create `apps/api/src/Place/GeoJsonSeqPlaceFeed.php` implementing `PlaceFeed`
       (opens the source with `fopen` in read mode, which covers a local path and an HTTPS URL;
       yields `json_decode($line, true, flags: JSON_THROW_ON_ERROR)` keyed by 1-based line number,
       rethrowing a `\JsonException` as a `\RuntimeException` whose message names the line
@@ -295,7 +295,7 @@ and the E2E map helpers. Both stories need all of them.
       dispatches `ImportPlacesCommand::fromSource()` on `CommandBus`,
       prints the number of seconds taken and nothing about the places)
       (depends on T018)
-- [ ] T021 Create `apps/api/tests/Behat/PlaceContext.php`
+- [X] T021 Create `apps/api/tests/Behat/PlaceContext.php`
       (`test-integration-0001`: arranges through `CommandBus` only)
       with `#[Given('the places in :file are imported')]`
       dispatching `ImportPlacesCommand::fromSource()` with the path resolved against `apps/api/features/`,
@@ -313,18 +313,18 @@ and the E2E map helpers. Both stories need all of them.
       and correct the comment in `ApiContext::theBaselineDatasetIsLoaded()`,
       which says the baseline holds no shared data;
       run `make db` to re-snapshot (depends on T007, T020)
-- [ ] T022 Create `apps/api/src/Controller/Place/LookUpPlaceController.php`
+- [X] T022 Create `apps/api/src/Controller/Place/LookUpPlaceController.php`
       (`#[Route('/api/places/lookup', name: 'api_places_lookup', methods: ['POST'])]`,
       decodes the JSON body, dispatches `LookUpPlaceQuery::fromPayload()` on `QueryBus`,
       returns `{"name": <string|null>}`; no `try/catch`, `application-framework-0004`)
       and extend `apps/api/src/EventListener/DomainErrorListener.php`
       so `InvalidPlaceLookup` passes its `errors` like `InvalidMovement`,
       so T013 passes (depends on T019, T021)
-- [ ] T023 [P] Create `apps/web/src/shared/geo/model/types.ts` (`GeoPoint { lat: number; lon: number }`),
+- [X] T023 [P] Create `apps/web/src/shared/geo/model/types.ts` (`GeoPoint { lat: number; lon: number }`),
       `apps/web/src/shared/geo/lib/wrap-longitude.ts`,
       and `apps/web/src/shared/geo/index.ts` exporting `GeoPoint` and `wrapLongitude`,
       so T014 passes
-- [ ] T024 Create `apps/web/src/entities/movement/api/look-up-place-name.ts`
+- [X] T024 Create `apps/web/src/entities/movement/api/look-up-place-name.ts`
       exporting `lookUpPlaceName(point: GeoPoint, area: Area, signal: AbortSignal): Promise<string | null>`
       and `PlaceLookupUnavailable`,
       built on `apiRequest` from `@/shared/api`,
@@ -332,7 +332,7 @@ and the E2E map helpers. Both stories need all of them.
       per `specs/002-map-pinned-location/contracts/place-lookup-api.md`;
       export both from `apps/web/src/entities/movement/index.ts`,
       so T015 passes (depends on T023)
-- [ ] T025 Create `apps/web/src/shared/map/model/view.ts`
+- [X] T025 Create `apps/web/src/shared/map/model/view.ts`
       exporting `INITIAL_VIEW = { center: { lat: 45, lon: -4 }, zoom: 4 } as const`
       and `TILES_URL = '/tiles/spain-uk.pmtiles'` (no third-party import).
       With T029's 384 px map, this view spans latitudes 31.8 to 55.7,

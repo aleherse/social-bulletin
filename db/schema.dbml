@@ -44,3 +44,34 @@ Table bulletin.movements {
 
   Note: 'Movement proposals; draft -> proposed requires a non-empty description'
 }
+
+// OpenStreetMap reference data for the place lookup (ADR-0022). It belongs to
+// no author, holds no personal data, and `app:places:import` replaces both
+// tables in one transaction. Geometry types come from the PostGIS extension,
+// installed into `public`.
+
+Table bulletin.place_boundaries {
+  osm_id      bigint                         [pk, note: 'OSM relation id']
+  admin_level smallint                       [not null, note: 'CHECK place_boundaries_admin_level_check: 2 | 4 | 6 | 7 | 8 | 10']
+  name        text                           [not null, note: 'OSM name tag (local official name); CHECK place_boundaries_name_check: <> \'\'']
+  geom        "geometry(MultiPolygon, 4326)" [not null]
+
+  indexes {
+    geom        [type: gist, name: 'place_boundaries_geom_idx']
+    admin_level [name: 'place_boundaries_admin_level_idx']
+  }
+
+  Note: 'boundary=administrative relations for Spain and the UK; replaced wholesale by each import'
+}
+
+Table bulletin.place_neighbourhoods {
+  osm_id bigint                  [pk, note: 'OSM node id']
+  name   text                    [not null, note: 'CHECK place_neighbourhoods_name_check: <> \'\'']
+  geom   "geometry(Point, 4326)" [not null]
+
+  indexes {
+    geom [type: gist, name: 'place_neighbourhoods_geom_idx']
+  }
+
+  Note: 'place=neighbourhood|quarter|suburb nodes, the level-10 fallback within 1000 m; replaced wholesale by each import'
+}

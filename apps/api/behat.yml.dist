@@ -21,3 +21,4 @@ default:
                 - App\Tests\Behat\SessionContext
                 - App\Tests\Behat\MovementContext
                 - App\Tests\Behat\OpenApiContext
+                - App\Tests\Behat\PlaceContext

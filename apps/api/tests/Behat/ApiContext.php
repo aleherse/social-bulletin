@@ -20,9 +20,10 @@ final class ApiContext implements Context
     #[Given('the baseline dataset is loaded')]
     public function theBaselineDatasetIsLoaded(): void
     {
-        // The walking-skeleton slice needs no shared baseline data: session
-        // scenarios seed their own users through application code. The empty
-        // baseline is still snapshotted so restores are exercised end to end.
+        // Users and movements are scenario-specific, so scenarios seed their
+        // own through application code. The only shared data is reference
+        // data: the categories the migrations seed and the fixture places
+        // fixtures.feature imports.
     }
 
     #[Then('the kernel environment should be :environment')]
