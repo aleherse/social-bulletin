@@ -258,7 +258,7 @@ and the E2E map helpers. Both stories need all of them.
       (`replaceAll(iterable<Boundary|Neighbourhood> $places): void`:
       inside `Connection::transactional()`,
       `DELETE FROM` both tables,
-      then one `INSERT` per place —
+      then one `INSERT` per place through one prepared statement per table, reused for every row —
       boundaries with `ST_Multi(ST_SetSRID(ST_GeomFromGeoJSON(:geometry), 4326))`,
       neighbourhoods with `ST_SetSRID(ST_GeomFromGeoJSON(:geometry), 4326)`),
       and `packages/core/src/Application/Place/Command/ImportPlacesCommand.php`
@@ -600,7 +600,11 @@ Required before the feature is usable outside the fixture points.
 - [ ] T040 Add to `Makefile`, documented in its help:
       `map-data` (runs `docker/map/build-map-data.sh` in the `map` service)
       and `map-import` (runs `app:places:import /app/var/map/places.geojsonl` through `make console`);
-      run both once, record in ADR-0022 the tiles file size and the import's run time,
+      run both once, record in ADR-0022 the tiles file size and the import's run time;
+      if the import takes more than 7.5 minutes (half the console Lambda's 15-minute limit),
+      switch `PlaceRepository::replaceAll()` to multi-row inserts
+      capped by both row count and bind parameters (PostgreSQL allows 65,535),
+      and record the change and the new run time in ADR-0022;
       and check the quickstart's Huelin and Sheffield lookups against the real data
       (research R7, known risk); update `docs/engineering/scaffolding/make.md` if it lists targets
       (depends on T020, T038, T039)
@@ -639,7 +643,10 @@ Required before the feature is usable outside the fixture points.
       invalidate `/tiles/*` on the frontend distribution;
       finally `curl --fail -s -o /dev/null -w '%{http_code}' -H 'Range: bytes=0-15'`
       the archive on the environment's frontend host and fail the job unless it prints `206`.
-      First run against `preview`, then follow quickstart "Checking published data"
+      First run against `preview`, then follow quickstart "Checking published data";
+      record in ADR-0022 the console function's import duration on `preview`
+      (from the job log or the function's `REPORT` line),
+      and apply T040's 7.5-minute rule to it before any `live` run
       (depends on T040, T042)
 
 ---
