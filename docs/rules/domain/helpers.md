@@ -23,6 +23,9 @@ runtime/environment dependency (e.g. reading the system clock), or anything `app
 
 **THEN** declare it in `Domain/Helper/` as an **interface** named for the capability, implement it in `apps/api`,
 and alias the two in `apps/api/config/services.yaml` — that's what keeps `core` framework-free.
+deptrac collects `Domain/Helper` interfaces into the `DomainPort` layer, which `Framework`, `Application` and
+`Domain` may depend on, so the adapter passes `make php-deptrac`; never widen `Framework`'s ruleset to `Domain` to
+let one through.
 
 Exception: a small, dependency-free Symfony component `deptrac.yaml` already permits inside `Domain` on its own
 layer (e.g. `SymfonyUid`) can be called directly
@@ -39,6 +42,7 @@ Don't add a `*RepositoryInterface` to `Helper/` to match this pattern.
 | a `Helper/` interface with no adapter aliased                       | aliased in `apps/api/config/services.yaml`                             |
 | `MovementRepositoryInterface` in `Domain/Helper/`                    | concrete `MovementRepository` in `Domain/Movement/`                    |
 | a concrete `Clock` class in `Domain/Helper/`                         | a `Clock` interface there, implemented in `apps/api`                   |
+| `Framework: [Domain, …]` in `deptrac.yaml` for `GeoJsonSeqPlaceFeed`  | `Framework: [DomainPort, …]`; `PlaceFeed` is collected as a port       |
 
 ## domain-helpers-0003: A domain failure apps/api maps implements DomainError
 
