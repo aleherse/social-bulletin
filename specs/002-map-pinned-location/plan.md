@@ -62,7 +62,7 @@ FSD import rules and `shared/*` adapters for third-party libraries
 **Scale/Scope**: One new form section, two new `shared` slices (`map`, `geo`),
 one `ErrorBoundary` in `shared/ui`,
 one pure mapping function in `entities/movement`,
-two new Playwright journeys, seven i18n strings
+two new Playwright journeys, eight i18n strings
 
 ## Constitution Check
 
@@ -163,7 +163,7 @@ apps/web/
 │   │   │   └── api/current-position.ts (+ .test.ts)  # navigator.geolocation → typed errors
 │   │   ├── map/                               # new slice: the only Leaflet importer
 │   │   │   ├── index.ts
-│   │   │   └── ui/location-map.tsx            # region, tiles, CircleMarker, onPick, leaflet.css
+│   │   │   └── ui/location-map.tsx            # region, tiles, labelled divIcon Marker, onPick, leaflet.css
 │   │   └── i18n/locales/en/common.json        # + movements.form.map.*
 │   ├── entities/movement/
 │   │   ├── index.ts                           # + placeNameFor

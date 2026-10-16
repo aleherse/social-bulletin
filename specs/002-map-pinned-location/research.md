@@ -100,14 +100,17 @@ and the author types the name.
 **Decision**: Leaflet `1.9.4` with `react-leaflet` `5.0.0`
 (React 19 peer), plus `@types/leaflet`,
 wrapped in a new `shared/map` slice (`application-frontend-0001`).
-The marker is a `CircleMarker` so no image assets are needed.
+The marker is a `Marker` with an `L.divIcon`
+whose html is a `<span role="img">` named by an i18n string,
+so no image assets are needed and tests can find it by role.
 
 **Rationale**: The feature needs one raster map, a click handler,
 and one marker.
 Leaflet is ~40 kB gzipped, has no WebGL requirement
 (Playwright's container Chromium renders it without GPU flags),
 and `react-leaflet` 5 targets React 19.
-`CircleMarker` sidesteps Leaflet's default-icon URL breakage under Vite.
+A `divIcon` sidesteps Leaflet's default-icon URL breakage under Vite,
+and unlike an SVG `CircleMarker` it can carry an accessible name.
 
 **Alternatives considered**:
 

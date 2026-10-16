@@ -76,6 +76,7 @@ add shared test data and strings, and prepare the E2E helpers.
       in `specs/002-map-pinned-location/contracts/reverse-geocoding.md`
 - [ ] T004 [P] Add the keys
       `movements.form.map.label` ("Location map"),
+      `movements.form.map.marker` ("Pinned location"),
       `movements.form.map.useMyLocation` ("Use my location"),
       `movements.form.map.lookingUp` ("Looking up the place…"),
       `movements.form.map.positionDenied`,
@@ -160,19 +161,24 @@ the Leaflet adapter, and E2E isolation from OSM — both stories need all of the
       (depends on T009 for the `PlaceHierarchy` type, imported from `@/shared/geo`;
       parallel with T010)
 - [ ] T012 Create `apps/web/src/shared/map/ui/location-map.tsx` and `apps/web/src/shared/map/index.ts`
-      exporting `LocationMap({ label, point, onPick })`:
+      exporting `LocationMap({ label, markerLabel, point, onPick })`:
       a `<section aria-label={label}>` containing a react-leaflet `MapContainer`
       (initial centre `[20, 0]`, zoom 2, fixed height e.g. `h-72`, full width),
       a `TileLayer` with URL
       `(import.meta.env.VITE_MAP_TILE_URL as string | undefined) ?? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'`
       and the OSM attribution
       `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors`,
-      a `CircleMarker` at `point` when not null,
+      a `Marker` at `point` when not null,
+      with `interactive: false`, `keyboard: false`,
+      and an `L.divIcon` whose html is a styled
+      `<span role="img" aria-label={markerLabel}>`,
       a `useMapEvents` click handler calling `onPick({ lat, lon: wrapLongitude(lng) })`,
       and a child that flies the map to `point` at zoom 14 when `point` changes;
       import `leaflet/dist/leaflet.css` here.
-      No Vitest for this adapter: Leaflet cannot be driven in jsdom;
-      it is exercised by the Playwright journeys in T014 and T022
+      No Vitest for this adapter: Leaflet cannot be driven in jsdom.
+      The click handler and the marker are asserted by the journeys in T014 and T022.
+      Waiver: the fly-to animation is not asserted;
+      it has no accessible outcome, and a broken fly-to leaves the pin, the name, and the save intact
       (depends on T002, T009)
 - [ ] T013 Extend `apps/web/e2e/fixtures.ts` with a second auto fixture `isolateMapServices`
       that, before each test,
@@ -210,6 +216,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       sign in as `author@example.com`; open New movement;
       fill Title "Huelin Community Kitchen", Category "Cooperative", Area "Neighborhood";
       click the centre of `page.getByRole('region', { name: 'Location map' })`;
+      expect `page.getByRole('img', { name: 'Pinned location' })` toBeVisible;
       expect `page.getByLabel('Location')` toHaveValue "Huelin";
       click "Save draft";
       expect the list item for "Huelin Community Kitchen"
@@ -259,6 +266,9 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       (c) typing "Huelin, Málaga" into Location while a lookup is still pending
       keeps "Huelin, Málaga" after it resolves,
       and the stub's `point` is still the pinned point (FR-004);
+      submitting before the lookup resolves
+      calls `onSubmit` with `location: 'Huelin, Málaga'`
+      and the lookup's `AbortSignal` is aborted once the form unmounts;
       (d) after a fill, changing Area from Municipality to Province
       leaves the Location value unchanged and `reverseGeocode` is not called again;
       (e) rendering with `initial` set to a draft with location "Sheffield"
@@ -271,7 +281,12 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       then switching back to Municipality
       shows the map with the stub's `point` `null`,
       the lookup's `AbortSignal` aborted,
-      and the Location field not filled by the late result (spec edge case: international)
+      and the Location field not filled by the late result (spec edge case: international);
+      (h) with the lookup resolving `null` (not-found alert shown),
+      typing "Sheffield" into Location and submitting
+      calls `onSubmit` with `location: 'Sheffield'`;
+      the same holds after a `GeocoderUnavailable` rejection
+      (spec US2 sc.3, sc.4, FR-009, SC-005)
 
 ### Implementation for User Story 1
 
@@ -290,6 +305,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       create `apps/web/src/features/propose-movement/ui/location-picker.tsx`:
       `LocationPicker({ area, onPin, onPlaceFound })` holding `point` state,
       rendering `LocationMap` with `label={t('movements.form.map.label')}`
+      and `markerLabel={t('movements.form.map.marker')}`
       inside `<ErrorBoundary fallback={null}>`,
       a `role="status"` live region showing `movements.form.map.lookingUp` while pending,
       and `role="alert"` messages for `placeNotFound` / `lookupFailed`
@@ -338,7 +354,9 @@ with permission refused, the explanation appears and a typed location still save
       (b) a `PositionDenied` rejection shows
       "We couldn't use your location. You can still type it.",
       calls neither `reverseGeocode` nor `onPlaceFound`,
-      and leaves the stub's `point` unchanged;
+      and leaves the stub's `point` unchanged,
+      and the alert does not disable or clear anything outside the picker
+      (form-level saving is proven by T016(h), since the path past an alert is the same);
       (c) a `PositionUnavailable` rejection shows
       "Your location isn't available right now. You can still type it.";
       (d) the button is disabled while the position request is pending;
@@ -353,6 +371,7 @@ with permission refused, the explanation appears and a typed location still save
       sign in; New movement;
       Title "Málaga Tenants Union", Category "Cooperative", Area "Municipality";
       click "Use my location";
+      expect `page.getByRole('img', { name: 'Pinned location' })` toBeVisible;
       expect Location toHaveValue "Málaga"; save;
       expect the list item toContainText "Municipality · Málaga · Cooperative"
 
@@ -390,6 +409,8 @@ with permission refused, the explanation appears and a typed location still save
       (lint, `php-unit`, `web-unit`, frontend build, `api-tests`, and the Playwright journeys
       in an isolated Compose project),
       and walk `specs/002-map-pinned-location/quickstart.md` steps 1–8 against `make up`;
+      while walking step 3, time ten pins in DevTools → Network
+      and record in the pull request whether the place name filled within 3 s for each (SC-001);
       the pull request description names `make ci` as the gate that ran
 - [ ] T028 [P] Use the `extract-rule` skill on the final diff
       to record the conventions this feature sets —
@@ -499,13 +520,14 @@ Task: "Playwright use-my-location journey in apps/web/e2e/movement-location.spec
   sc.8 → T016(d);
   sc.9 → T016(e);
   US2 sc.1 → T021(a), T022;
-  sc.2 → T021(b);
-  sc.3 → T015(c,e)
+  sc.2 → T021(b), T016(h);
+  sc.3 → T015(c,d), T016(h);
+  sc.4 → T007(e,g), T015(e), T016(h)
 - Edge case coverage:
   international → T016(a,g);
   area level changed → T016(d);
   no place at the level → T015(c,d);
   date line → T006, T007(b);
   map unavailable → T015(k), T021(f);
-  slow lookup → T016(c), T007(g);
+  slow lookup (typing and saving while pending) → T016(c), T007(g);
   typing does not move the marker → T016(c)
