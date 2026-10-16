@@ -22,7 +22,8 @@ the author is told and can still type the location."
 **Note**: The Clarifications below supersede parts of this input:
 coordinates are never saved, shown, or validated (Q1),
 so the map is only an aid for filling in the location name;
-the map and the lookup are hosted by the platform (session 2026-10-16).
+the place-name lookup is hosted by the platform,
+while the map's tiles come from OpenStreetMap's public tile servers (session 2026-10-16).
 
 ## Clarifications
 
@@ -50,9 +51,11 @@ the map and the lookup are hosted by the platform (session 2026-10-16).
 ### Session 2026-10-16
 
 - Q: Who hosts the map and the place-name lookup?
-  → A: The platform itself, with no separate service and no third-party endpoint:
-  the map is served as static files alongside the frontend,
-  and the place name is looked up by the platform's own API.
+  → A: The place name is looked up by the platform's own API,
+  with no separate service and no third-party geocoder.
+  The map's tiles come from OpenStreetMap's public tile servers (`tile.openstreetmap.org`),
+  not from a self-hosted archive
+  (revised later this session; the first answer self-hosted the tiles too).
 - Q: Which places can be looked up?
   → A: Spain and the United Kingdom are required to start with.
   Other places are allowed but not required:
@@ -61,6 +64,20 @@ the map and the lookup are hosted by the platform (session 2026-10-16).
 - Q: Since the point now reaches the platform, may it be logged?
   → A: No. The point may be used to answer the lookup
   but MUST NOT be stored or written to any log.
+- Q: Which parts of Spain must be named at every level?
+  → A: Every point in Spain —
+  the mainland, the Balearic and Canary Islands, Ceuta and Melilla —
+  MUST be named at `national` ("España") and `state`.
+- Q: The first real import lost the country boundaries of Spain and Ceuta,
+  because parts of both lie outside Geofabrik's Spain extract.
+  How does the import get them?
+  → A: The import fetches both boundaries complete from the Overpass API at build time,
+  and the build fails if either is still missing.
+- Q: Does "every point in Spain" include territorial waters
+  and the *plazas de soberanía*, which belong to no autonomous community?
+  → A: Land only, at both levels:
+  the land of the autonomous communities, Ceuta, and Melilla.
+  Points offshore and on the *plazas de soberanía* are not guaranteed at either level.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -128,6 +145,13 @@ saving, and confirming the saved movement carries that name and no point.
    **Then** the location field shows "Sheffield",
    the map shows no marker,
    and the author can pin a new point to refill the name.
+10. **Given** an author on the form with area `national` or `state`,
+    **When** they pin a point in Palma (39.5696, 2.6502),
+    Las Palmas de Gran Canaria (28.1235, -15.4363),
+    Ceuta (35.8894, -5.3213),
+    or Melilla (35.2923, -2.9381),
+    **Then** the field holds "España" for `national`,
+    and "Illes Balears", "Canarias", "Ceuta", or "Melilla" respectively for `state`.
 
 ---
 
@@ -192,6 +216,10 @@ then denying permission and confirming the author is told and can still type.
   or no neighbourhood containing or near that point):
   treated as a failed lookup — the author is told,
   the marker stays, and the field is left for them to type.
+- **Spanish waters and the *plazas de soberanía***: a point offshore,
+  or on a *plaza* that belongs to no autonomous community,
+  may be named "España" at `national` but is not guaranteed at any level;
+  where nothing is found, it is treated as a point with no place at the chosen level.
 - **Map scrolled across the date line**: clicking a point on a map
   that has been scrolled past longitude ±180
   looks up the same real-world place as the equivalent point within range.
@@ -270,12 +298,25 @@ then denying permission and confirming the author is told and can still type.
   the map MUST start without a marker
   and the location field MUST show the saved name.
   The movement's detail view is unchanged by this feature and shows no map.
-- **FR-011**: The map and the place-name lookup MUST be served by the platform itself,
-  with no request to a third-party map or geocoding service.
+- **FR-011**: The place-name lookup MUST be served by the platform itself,
+  with no request to a third-party geocoding service.
+  The map's tiles MUST come from OpenStreetMap's public tile servers (`tile.openstreetmap.org`),
+  which receive the map view the author is looking at but never the pinned point,
+  and the map MUST credit OpenStreetMap as their usage policy requires.
   Place names MUST be available for points in Spain and the United Kingdom.
   Other countries are not required:
   a point elsewhere is named wherever the loaded place data happens to cover it,
   and otherwise is reported as having no place at the chosen level (FR-009).
+- **FR-012**: Every point on Spanish land —
+  the mainland, the Balearic and Canary Islands, Ceuta, and Melilla —
+  MUST be named at `national` ("España") and at `state`.
+  Points offshore and on the *plazas de soberanía*
+  (Peñón de Vélez de la Gomera, Alhucemas, the Chafarinas)
+  are not guaranteed at either level.
+  Where the regional OpenStreetMap extract the place data is built from
+  clips the country boundary of Spain or the boundary of Ceuta,
+  the build MUST fetch that boundary complete from the Overpass API,
+  and the build MUST fail if either boundary is still missing afterwards.
 
 ### Key Entities
 
@@ -318,12 +359,14 @@ then denying permission and confirming the author is told and can still type.
 - The pinned point leaves the author's device only to be sent
   to the platform's own place-name lookup,
   which answers from it and records it nowhere.
-- The map shows detail for Spain and the United Kingdom;
-  elsewhere it may be blank.
-  Wider coverage is a later change of data, not of behaviour.
+- The map shows the whole world, drawn by OpenStreetMap's public tile servers;
+  place names are guaranteed only for Spain and the United Kingdom.
+  Wider place-name coverage is a later change of data, not of behaviour.
 - Place names come from OpenStreetMap boundary data
   loaded into the platform;
   they are as current as the last import.
+  The platform's own traffic stays within OpenStreetMap's tile usage policy;
+  heavy use would mean moving to another tile provider, a later change.
 - Levels are filled by rank, not by a country's own labels,
   wherever the place data covers a point:
   in Canada, for example, a province is a first-level division
