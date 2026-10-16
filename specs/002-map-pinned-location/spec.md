@@ -19,6 +19,10 @@ Coordinates outside valid latitude/longitude ranges are rejected.
 If geolocation is denied or reverse geocoding fails,
 the author is told and can still type the location."
 
+**Note**: The Clarifications below supersede parts of this input:
+coordinates are never saved, shown, or validated (Q1),
+so the map is only an aid for filling in the location name.
+
 ## Clarifications
 
 ### Session 2026-10-13

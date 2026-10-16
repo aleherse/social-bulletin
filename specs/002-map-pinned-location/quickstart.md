@@ -48,4 +48,6 @@ All four suites, per the constitution:
 | `make web-unit` | Area→place mapping, longitude wrap, geocoder client, picker behaviours and messages |
 | `make web-e2e` | Pin-by-click journey (US1) and use-my-location journey (US2), geocoder and tiles stubbed |
 
-`make tests` runs all four; `make lint` must pass too.
+`make tests` runs all four against the development stack.
+Before merging, `make ci` (ADR-0015) must pass:
+it runs the linters and all four suites in an isolated Compose project.

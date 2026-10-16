@@ -63,14 +63,16 @@ a pure function implementing research R3:
 
 ## Location picker state — `features/propose-movement`
 
-Held by the movement form alongside its existing fields.
+`LocationPicker` holds the marker and both request statuses;
+the movement form holds only what decides whether a found name may fill its field.
+Unmounting the picker (area set to `international`) drops its state.
 
-| State | Type | Meaning |
-|-------|------|---------|
-| `point` | `GeoPoint \| null` | Current marker; `null` on a new form and on every edit form (FR-010) |
-| `lookup` | `'idle' \| 'pending' \| 'not-found' \| 'unavailable'` | Status of the latest place-name lookup |
-| `position` | `'idle' \| 'pending' \| 'denied' \| 'unavailable'` | Status of the latest "use my location" request |
-| `editedSincePin` | boolean | Set when the author types in the location field after the latest pin |
+| State | Held by | Type | Meaning |
+|-------|---------|------|---------|
+| `point` | `LocationPicker` | `GeoPoint \| null` | Current marker; `null` on a new form and on every edit form (FR-010) |
+| `lookup` | `LocationPicker` (via `usePlaceLookup`) | `'idle' \| 'pending' \| 'not-found' \| 'unavailable'` | Status of the latest place-name lookup |
+| `position` | `LocationPicker` | `'idle' \| 'pending' \| 'denied' \| 'unavailable'` | Status of the latest "use my location" request |
+| `editedSincePin` | `MovementForm` (a ref; it never drives rendering) | boolean | Set when the author types in the location field after the latest pin |
 
 ### Transitions
 
@@ -80,10 +82,11 @@ Held by the movement form alongside its existing fields.
 | "Use my location" | `position = 'pending'`; on success behave as a map click at the position, `position = 'idle'`; on permission refusal `position = 'denied'`; on any other failure `position = 'unavailable'`; location field untouched (FR-008) |
 | Lookup resolves with a name | `lookup = 'idle'`; if `editedSincePin` is false, set the location field to the name (spec: slow-lookup edge case) |
 | Lookup resolves with `null` name | `lookup = 'not-found'`; marker kept; field untouched (FR-009) |
-| Lookup fails (network, non-2xx, malformed body) | `lookup = 'unavailable'`; marker kept; field untouched (FR-009) |
+| Lookup fails (network, non-2xx, malformed body, no answer within 10 s) | `lookup = 'unavailable'`; marker kept; field untouched (FR-009) |
 | Author types in location field | `editedSincePin = true`; marker unchanged (FR-004) |
 | Area changes between non-`international` levels | Nothing; no lookup, field untouched (clarification Q4, FR-003) |
-| Area changes to `international` | Abort lookup; `point = null`; `lookup = 'idle'`; map hidden (FR-007) |
+| Area changes to `international` | Picker unmounts: lookup aborted, `point` dropped, map hidden (FR-007); a later return to a non-`international` level starts with no marker |
+| Map fails to render | Error boundary drops the map; Location field and "use my location" keep working (spec edge case) |
 | Save | Submits the existing `MovementDraftInput`; `point` is dropped with the form (FR-005) |
 
 The lookup is made with the area selected **at pin time**;

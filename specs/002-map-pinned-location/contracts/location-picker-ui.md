@@ -29,7 +29,7 @@ beyond the attribution staying visible (OSM licence).
 | Position permission refused | "We couldn't use your location. You can still type it." | `map.positionDenied` | FR-008 |
 | Position unavailable or timed out | "Your location isn't available right now. You can still type it." | `map.positionUnavailable` | FR-008 |
 | No place at the chosen level | "No place name was found at that level. Type it in instead." | `map.placeNotFound` | FR-009 |
-| Lookup service failed | "We couldn't look up that place. Type it in instead." | `map.lookupFailed` | FR-009 |
+| Lookup service failed or timed out | "We couldn't look up that place. Type it in instead." | `map.lookupFailed` | FR-009 |
 
 A message clears on the next pin or "use my location".
 Messages never block saving.
@@ -43,6 +43,7 @@ Messages never block saving.
 | Change area between non-international levels | Field text unchanged; no geocoder request made |
 | Change area to International | Map region, button, and Location field hidden |
 | Open an existing draft for editing | Location field shows the saved name; no geocoder request made |
+| The map fails to render | Map region absent; Location field and "Use my location" button still work |
 
 The Leaflet adapter (`shared/map`) is mocked in Vitest at its public API,
 exposing an `onPick(point)` the test calls directly.

@@ -28,7 +28,7 @@ both verified against the public service (research R1–R3).
 ## Technical Context
 
 **Language/Version**: TypeScript 6 + React 19 in `apps/web`;
-PHP 8.3 code is not changed
+PHP 8.5 code is not changed
 
 **Primary Dependencies**: New: `leaflet@1.9.4`, `react-leaflet@5.0.0`,
 `@types/leaflet` (dev) — behind a `shared/map` adapter (`application-frontend-0001`).
@@ -43,22 +43,26 @@ URLs configurable via `VITE_GEOCODER_URL` and `VITE_MAP_TILE_URL`
 Playwright for one happy-path journey per user story.
 PHPSpec and Behat waived (layers untouched; see Constitution Check)
 
-**Target Platform**: Browsers served by nginx locally and CloudFront in AWS (ADR-0004, ADR-0014)
+**Target Platform**: Browsers served by nginx locally and CloudFront in AWS (ADR-0004, ADR-0016)
 
 **Project Type**: Web application (monorepo; only `apps/web` changes)
 
 **Performance Goals**: Place name filled within 3 s of a pin for 95% of pins (SC-001);
-Leaflet loaded only in the lazy new/edit movement chunks (ADR-0018 code splitting)
+a lookup still unanswered after 10 s is reported as failed (FR-009);
+Leaflet loaded only in the lazy new/edit movement chunks (ADR-0019 code splitting)
 
 **Constraints**: Nominatim fair use — one request per explicit pin,
 superseded requests aborted, none on typing or area change (research R6);
+a map that fails to render is contained by an error boundary,
+leaving the Location field and "use my location" working (spec edge case);
 OSM attribution always visible;
 the point must not be sent to the platform's API (FR-005);
 FSD import rules and `shared/*` adapters for third-party libraries
 
 **Scale/Scope**: One new form section, two new `shared` slices (`map`, `geo`),
+one `ErrorBoundary` in `shared/ui`,
 one pure mapping function in `entities/movement`,
-two new Playwright journeys, six i18n strings
+two new Playwright journeys, seven i18n strings
 
 ## Constitution Check
 
@@ -94,23 +98,24 @@ The two waivers MUST be restated in `tasks.md`, naming the layer and reason
 
 **Gate notes**:
 
-- **II. Pyramid** — Playwright: US1 pin-by-click → field filled → saved name listed;
+- **II. Pyramid** — Playwright: US1 pin-by-click → field filled → saved name listed,
+  plus a check that the pinned coordinates reach no API request (FR-005);
   US2 use-my-location with granted geolocation → field filled → saved.
   Vitest only: area→rank mapping for all seven areas, missing ranks,
   `locality` fallback, longitude wrap, `accept-language=xx` in the request,
-  failure/abort mapping, permission denied, position unavailable,
+  failure/abort/timeout mapping, permission denied, position unavailable,
   not-found and unavailable messages, typing during a pending lookup,
   no refill on area change, map hidden for International,
-  edit form opening without a marker.
+  a map that fails to render, edit form opening without a marker.
 - **III. Decisions** — Consulted ADR-0004 (no proxy needed; nginx untouched),
   ADR-0007 (FSD placement), ADR-0008 (i18n keys), ADR-0010 (shadcn `Button`),
-  ADR-0015 (tools), ADR-0018 (lazy routes keep Leaflet out of other chunks).
-  New structural decision → propose **ADR-0021**
+  ADR-0013 (tools), ADR-0019 (lazy routes keep Leaflet out of other chunks).
+  New structural decision → propose **ADR-0022**
   (Leaflet + Nominatim, browser-direct, configurable endpoints) as the first task.
   Rules read: `docs/rules/application/frontend.md` (0001 drives `shared/map`
-  and `shared/geo` re-exports); `docs/rules/application/style.md` and
-  `helpers.md` before writing code.
-- **IV. Gates** — No new make target; `make web-unit` and `make web-e2e` cover it.
+  and `shared/geo` re-exports).
+- **IV. Gates** — No new make target; `make web-unit` and `make web-e2e` cover it,
+  and `make ci` (ADR-0015) is the merge gate.
   Playwright still restores the DSLR `fixtures` snapshot per scenario;
   geocoder and tile hosts are stubbed with `page.route`, never called.
 
@@ -140,12 +145,16 @@ specs/002-map-pinned-location/
 
 ```text
 docs/decisions/
-└── ADR-0021-adopt-leaflet-and-nominatim.md   # new, status Proposed
+└── ADR-0022-adopt-leaflet-and-nominatim.md   # new, status Proposed
 
 apps/web/
 ├── package.json                               # + leaflet, react-leaflet, @types/leaflet
+├── package-lock.json                          # updated by npm install
 ├── src/
 │   ├── shared/
+│   │   ├── ui/
+│   │   │   ├── index.ts                       # + ErrorBoundary
+│   │   │   └── error-boundary.tsx             # new: contains a map that fails to render
 │   │   ├── geo/                               # new slice: no third-party imports
 │   │   │   ├── index.ts
 │   │   │   ├── model/types.ts                 # GeoPoint, PlaceHierarchy
@@ -165,7 +174,10 @@ apps/web/
 │       ├── ui/location-picker.tsx (+ .test.tsx)   # map, button, status, alerts
 │       └── model/use-place-lookup.ts          # pin → abort → lookup → name | not-found | unavailable
 └── e2e/
+    ├── fixtures.ts                            # + isolateMapServices auto fixture
+    ├── movements.spec.ts                      # imports signIn from support/session.ts
     ├── movement-location.spec.ts              # US1 + US2 journeys
+    ├── support/session.ts                     # new: signIn, moved from movements.spec.ts
     └── fixtures/geocoder-huelin.json          # from contracts/reverse-geocoding.md
 ```
 
