@@ -25,3 +25,5 @@ The ones agents need most:
 | `make console`    | Symfony console (`make console cmd="cache:clear"`)                               |
 | `make docs-build` | Render the OpenAPI document with Scalar to `apps/docs/dist/index.html`           |
 | `make openapi`    | Regenerate `apps/docs/openapi.json`; `make openapi-check` fails when it is stale |
+| `make map-data`   | Build the real places and map tiles (several GB)                                 |
+| `make map-import` | Load the built places into the dev database                                      |

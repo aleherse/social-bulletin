@@ -152,6 +152,16 @@ db: ## Create and migrate the database, load the @fixtures baseline and snapshot
 web-build: ## Build the production frontend bundle nginx serves
 	$(RUN_NODE) npm run build
 
+## --- Map data (ADR-0022) ---------------------------------------------------
+
+.PHONY: map-data
+map-data: ## Build var/map/places.geojsonl and var/map/tiles/spain-uk.pmtiles from OpenStreetMap and Protomaps (downloads several GB)
+	$(COMPOSE) run --rm map docker/map/build-map-data.sh
+
+.PHONY: map-import
+map-import: ## Replace the development database's places with var/map/places.geojsonl (after `make map-data`); without debug, whose query log would hold every geometry
+	+@$(MAKE) console cmd="app:places:import --no-debug /app/var/map/places.geojsonl"
+
 ## --- Focussed checks (FILES=... narrows linters, PATHS=... narrows tests) -----
 
 .PHONY: lint

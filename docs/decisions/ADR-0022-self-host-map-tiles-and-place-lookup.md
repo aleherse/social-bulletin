@@ -251,3 +251,23 @@ and SHALL abort every request to `/tiles/**`, so no suite needs the archive or t
   and [ADR-0016](ADR-0016-aws-serverless-deployment.md) (map-data bucket and `/tiles/*` behaviour).
 - `protomaps-leaflet` `5.1.0` was the latest 5.x release at install (2026-10-16)
   and makes no network request of its own beyond the archive it is given.
+
+### 2026-10-16: first build and import, measured locally
+
+- `make map-data` took 17 minutes on a home connection,
+  most of it downloading about 3.8 GB of Geofabrik extracts and cutting the tiles.
+- `spain-uk.pmtiles` is 6.2 GB at `--maxzoom=15` from the 2026-10-12 Protomaps build.
+- `places.geojsonl` is 490 MB: 32,729 boundaries and 33,067 neighbourhood nodes.
+  `osmium export` names an assembled area `a<2 × relation id + 1>`,
+  which the `jq` filter turns back into the relation id.
+- `make map-import` took 29 seconds, peaking at about 160 MB:
+  far inside the 7.5-minute rule, so `PlaceRepository::replaceAll()` keeps one insert per row.
+  The largest boundary (Highland, 8.4 MB of GeoJSON) decodes to more than PHP's default 128 MB,
+  so `app:places:import` raises its own memory limit to 512 MB;
+  the console Lambda has 1024 MB.
+- Against the real data, Huelin answers Andalucía, Málaga, Málaga-Costa del Sol, Málaga, and Huelin
+  for `state` to `neighborhood`, and central Sheffield answers United Kingdom, England, and Sheffield,
+  as the contract expects.
+  Huelin at `national` answers `null`:
+  Spain's country relation does not assemble from the clipped Geofabrik extract,
+  the known risk recorded under Revisit Triggers.
