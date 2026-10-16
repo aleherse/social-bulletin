@@ -53,5 +53,9 @@ export function usePlaceLookup({ onFound }: { onFound: (name: string) => void })
     }
   }, []);
 
-  return { status, lookUp };
+  const dismiss = useCallback(() => {
+    setStatus((current) => (current === 'pending' ? current : 'idle'));
+  }, []);
+
+  return { status, lookUp, dismiss };
 }

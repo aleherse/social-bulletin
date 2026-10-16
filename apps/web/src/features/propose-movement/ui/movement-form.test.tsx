@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { lookUpPlaceName, PlaceLookupUnavailable } from '@/entities/movement';
 import type { Movement } from '@/entities/movement';
 import { fetchCategories } from '@/entities/movement/api/client.ts';
+import { currentPosition, PositionDenied } from '@/shared/geo';
 import { I18nProvider } from '@/shared/i18n';
 
 import { locationMapStub } from './location-map.stub.ts';
@@ -23,6 +24,10 @@ vi.mock('@/shared/map', () => import('./location-map.stub.ts'));
 vi.mock('@/entities/movement/api/look-up-place-name.ts', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/entities/movement/api/look-up-place-name.ts')>()),
   lookUpPlaceName: vi.fn(),
+}));
+vi.mock('@/shared/geo/api/current-position.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/geo/api/current-position.ts')>()),
+  currentPosition: vi.fn(),
 }));
 
 const HUELIN = { lat: 36.7033, lon: -4.4366 };
@@ -274,6 +279,19 @@ describe('MovementForm', () => {
 
     await fillDraft('municipality');
     await pin(HUELIN);
+    await screen.findByRole('alert');
+    await userEvent.type(screen.getByLabelText('Location'), 'Sheffield');
+    await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ location: 'Sheffield' }));
+  });
+
+  it('still saves a typed location when the position is refused', async () => {
+    vi.mocked(currentPosition).mockRejectedValue(new PositionDenied());
+    const { onSubmit } = renderForm();
+
+    await fillDraft('municipality');
+    await userEvent.click(screen.getByRole('button', { name: 'Use my location' }));
     await screen.findByRole('alert');
     await userEvent.type(screen.getByLabelText('Location'), 'Sheffield');
     await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));

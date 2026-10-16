@@ -522,7 +522,7 @@ with permission refused, the explanation appears and a typed location still save
 
 ### Tests for User Story 2 (write first, must fail) ⚠️
 
-- [ ] T033 [P] [US2] Write Vitest cases in `apps/web/src/shared/geo/api/current-position.test.ts`
+- [X] T033 [P] [US2] Write Vitest cases in `apps/web/src/shared/geo/api/current-position.test.ts`
       for `currentPosition(): Promise<GeoPoint>` with `navigator.geolocation` stubbed:
       success at 36.7033, -4.4366 resolves `{ lat: 36.7033, lon: -4.4366 }`;
       error code 1 rejects with `PositionDenied`;
@@ -530,7 +530,7 @@ with permission refused, the explanation appears and a typed location still save
       a missing `navigator.geolocation` rejects with `PositionUnavailable`;
       `getCurrentPosition` is called with a `timeout` of 10000 ms
       and is never called before `currentPosition()` is (FR-002)
-- [ ] T034 [P] [US2] Extend `apps/web/src/features/propose-movement/ui/location-picker.test.tsx`
+- [X] T034 [P] [US2] Extend `apps/web/src/features/propose-movement/ui/location-picker.test.tsx`
       mocking `currentPosition` from `@/shared/geo`:
       (a) clicking the "Use my location" button pins the resolved position
       (stub receives it, `onPin` called, `lookUpPlaceName` called with it)
@@ -549,7 +549,7 @@ with permission refused, the explanation appears and a typed location still save
       Also add to `movement-form.test.tsx` (T028):
       (i) after a `PositionDenied` rejection,
       typing "Sheffield" and submitting calls `onSubmit` with `location: 'Sheffield'` (US2 sc.2)
-- [ ] T035 [P] [US2] Add the journey "an author pins their current position and saves its name"
+- [X] T035 [P] [US2] Add the journey "an author pins their current position and saves its name"
       to `apps/web/e2e/movement-location.spec.ts`:
       `context.grantPermissions(['geolocation'])`
       and `context.setGeolocation({ latitude: 36.7033, longitude: -4.4366 })`;
@@ -563,11 +563,11 @@ with permission refused, the explanation appears and a typed location still save
 
 ### Implementation for User Story 2
 
-- [ ] T036 [US2] Create `apps/web/src/shared/geo/api/current-position.ts`
+- [X] T036 [US2] Create `apps/web/src/shared/geo/api/current-position.ts`
       exporting `currentPosition()`, `PositionDenied`, and `PositionUnavailable`,
       wrapping `navigator.geolocation.getCurrentPosition` with `{ timeout: 10000 }`,
       and export them from `apps/web/src/shared/geo/index.ts` so T033 passes
-- [ ] T037 [US2] Update `apps/web/src/features/propose-movement/ui/location-picker.tsx`:
+- [X] T037 [US2] Update `apps/web/src/features/propose-movement/ui/location-picker.tsx`:
       add the `Button` (from `@/shared/ui`) labelled `movements.form.map.useMyLocation`
       outside the `ErrorBoundary`,
       a position state `'idle' | 'pending' | 'denied' | 'unavailable'`,

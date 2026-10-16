@@ -1,8 +1,10 @@
 import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { lookUpPlaceName, PlaceLookupUnavailable } from '@/entities/movement';
 import type { Area } from '@/entities/movement';
+import { currentPosition, PositionDenied, PositionUnavailable } from '@/shared/geo';
 import { I18nProvider } from '@/shared/i18n';
 
 import { locationMapStub } from './location-map.stub.ts';
@@ -12,6 +14,10 @@ vi.mock('@/shared/map', () => import('./location-map.stub.ts'));
 vi.mock('@/entities/movement/api/look-up-place-name.ts', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/entities/movement/api/look-up-place-name.ts')>()),
   lookUpPlaceName: vi.fn(),
+}));
+vi.mock('@/shared/geo/api/current-position.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/geo/api/current-position.ts')>()),
+  currentPosition: vi.fn(),
 }));
 
 const HUELIN = { lat: 36.7033, lon: -4.4366 };
@@ -65,6 +71,7 @@ async function settle(action: () => void) {
 beforeEach(() => {
   locationMapStub.reset();
   vi.mocked(lookUpPlaceName).mockReset();
+  vi.mocked(currentPosition).mockReset();
 });
 
 afterEach(() => {
@@ -199,5 +206,96 @@ describe('LocationPicker', () => {
 
     expect(screen.queryByRole('region', { name: 'Location map' })).not.toBeInTheDocument();
     expect(screen.getByText('Rest of the form')).toBeInTheDocument();
+  });
+
+  describe('use my location', () => {
+    const useMyLocation = () => screen.getByRole('button', { name: 'Use my location' });
+
+    it('pins the position and names it as a click would', async () => {
+      vi.mocked(currentPosition).mockResolvedValue(HUELIN);
+      vi.mocked(lookUpPlaceName).mockResolvedValue('Málaga');
+      const { onPin, onPlaceFound } = renderPicker('municipality');
+
+      await userEvent.click(useMyLocation());
+
+      expect(locationMapStub.props?.point).toEqual(HUELIN);
+      expect(onPin).toHaveBeenCalledTimes(1);
+      expect(lookUpPlaceName).toHaveBeenCalledWith(HUELIN, 'municipality', expect.any(AbortSignal));
+      expect(onPlaceFound).toHaveBeenCalledWith('Málaga');
+    });
+
+    it('explains a refused permission and changes nothing else', async () => {
+      vi.mocked(lookUpPlaceName).mockReturnValue(deferred<string | null>().promise);
+      vi.mocked(currentPosition).mockRejectedValue(new PositionDenied());
+      const { onPin, onPlaceFound } = renderPicker();
+      await pin(SHEFFIELD);
+      vi.mocked(lookUpPlaceName).mockClear();
+      onPin.mockClear();
+
+      await userEvent.click(useMyLocation());
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        "We couldn't use your location. You can still type it.",
+      );
+      expect(lookUpPlaceName).not.toHaveBeenCalled();
+      expect(onPin).not.toHaveBeenCalled();
+      expect(onPlaceFound).not.toHaveBeenCalled();
+      expect(locationMapStub.props?.point).toEqual(SHEFFIELD);
+    });
+
+    it('explains an unavailable position', async () => {
+      vi.mocked(currentPosition).mockRejectedValue(new PositionUnavailable());
+      renderPicker();
+
+      await userEvent.click(useMyLocation());
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        "Your location isn't available right now. You can still type it.",
+      );
+    });
+
+    it('is disabled while the position is requested', async () => {
+      const position = deferred<{ lat: number; lon: number }>();
+      vi.mocked(currentPosition).mockReturnValue(position.promise);
+      renderPicker();
+
+      await userEvent.click(useMyLocation());
+      expect(useMyLocation()).toBeDisabled();
+
+      await settle(() => {
+        position.reject(new PositionUnavailable());
+      });
+      expect(useMyLocation()).toBeEnabled();
+    });
+
+    it('never asks for the position until chosen', () => {
+      renderPicker();
+
+      expect(currentPosition).not.toHaveBeenCalled();
+    });
+
+    it("clears a previous lookup's message", async () => {
+      vi.mocked(lookUpPlaceName).mockResolvedValue(null);
+      vi.mocked(currentPosition).mockReturnValue(deferred<{ lat: number; lon: number }>().promise);
+      renderPicker();
+      await pin(HUELIN);
+      expect(await screen.findByRole('alert')).toBeInTheDocument();
+
+      await userEvent.click(useMyLocation());
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('still works when the map fails to render', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      locationMapStub.failsToRender = true;
+      vi.mocked(currentPosition).mockResolvedValue(HUELIN);
+      vi.mocked(lookUpPlaceName).mockResolvedValue('Málaga');
+      const { onPlaceFound } = renderPicker('municipality');
+
+      await userEvent.click(useMyLocation());
+
+      expect(onPlaceFound).toHaveBeenCalledWith('Málaga');
+    });
   });
 });
