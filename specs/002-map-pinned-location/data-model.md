@@ -69,12 +69,25 @@ so `DomainErrorListener` renders JSON:API pointers for it as well.
 
 ### `Domain/Place/Boundary` and `Domain/Place/Neighbourhood`
 
-What one import line becomes.
-`Boundary::fromFeature(array $feature)` and `Neighbourhood::fromFeature(array $feature)`
-read `properties.osm_id`, `properties.name`, `properties.admin_level` (boundaries only),
+What one import line becomes:
+`osmId`, `name`, `adminLevel` (boundaries only),
 and the GeoJSON `geometry`, kept as a JSON string for `ST_GeomFromGeoJSON`.
-A feature with no name, an unsupported rank, or the wrong geometry type
-throws `InvalidPlaceFeed` naming the line number.
+
+### `Domain/Place/PlaceFeature`
+
+`PlaceFeature::parse(int $line, array $feature): Boundary|Neighbourhood`
+picks the type from `properties.kind` (`boundary` or `neighbourhood`)
+and reads `properties.osm_id`, `properties.name`, `properties.admin_level` (boundaries only),
+and `geometry`.
+A boundary takes a `Polygon` or `MultiPolygon`, a neighbourhood a `Point`.
+A feature with an unknown kind, no `osm_id`, no name, an unsupported rank,
+or the wrong geometry type
+throws `InvalidPlaceFeed` naming `$line`.
+
+### `Domain/Place/InvalidPlaceFeed`
+
+Raised while parsing an import line, with the line number in its message.
+Not a `DomainError`: it only reaches the console command, never HTTP.
 
 ### `Domain/Helper/PlaceFeed` (port)
 

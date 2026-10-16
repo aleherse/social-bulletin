@@ -73,7 +73,7 @@ the import fits the console Lambda's 15-minute limit (measured on first publish)
 FSD import rules and `shared/*` adapters; hexagonal boundaries checked by deptrac
 
 **Scale/Scope**: Coverage Spain and the UK.
-`packages/core`: one new `Place` area (5 domain classes, 1 port, 1 repository, 1 provider, 1 model, 1 query, 1 command).
+`packages/core`: one new `Place` area (5 domain classes, 2 domain exceptions, 1 port, 1 repository, 1 provider, 1 model, 1 query, 1 command).
 `apps/api`: 1 controller, 1 console command, 1 port adapter, 1 migration, the listener extended to one more error.
 `apps/web`: 2 `shared` slices (`map`, `geo`), 1 `ErrorBoundary`, 1 lookup client in `entities/movement`, the picker in `features/propose-movement`, 8 i18n strings.
 Ops: 2 Dockerfiles, 2 make targets, 1 manual workflow, 1 CDK bucket and behaviour
@@ -212,6 +212,7 @@ packages/core/
 │   ├── PlaceLevel.php
 │   ├── Boundary.php
 │   ├── Neighbourhood.php
+│   ├── PlaceFeature.php                             # parse(): Boundary|Neighbourhood
 │   ├── InvalidPlaceLookup.php                       # DomainError, 422
 │   ├── InvalidPlaceFeed.php
 │   └── PlaceRepository.php                          # replaceAll()
