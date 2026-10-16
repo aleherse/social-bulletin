@@ -728,7 +728,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       if `TILES_URL` is no longer imported outside `shared/map`, drop it from `apps/web/src/shared/map/index.ts`
       (knip, T060).
       T050's journey passes (depends on T050)
-- [ ] T053 [P] Remove the self-hosted tiles infrastructure:
+- [X] T053 [P] Remove the self-hosted tiles infrastructure:
       delete the `location /tiles/` block from `docker/nginx/conf.d/web.conf`;
       delete `infrastructure/map/coverage.geojson`;
       in `infrastructure/lib/frontend-stack.ts`, remove `additionalBehaviors['/tiles/*']`
@@ -742,7 +742,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       and its row in `docs/engineering/scaffolding/make.md`.
       Verify with `make images`, `make infra-tsc`, `make up`,
       and `curl -s -o /dev/null -w '%{http_code}' https://dev.app.social.aleherse.com/tiles/x` now answering the SPA (200)
-- [ ] T054 [US1] Update `apps/api/features/fixtures/places.geojsonl`
+- [X] T054 [US1] Update `apps/api/features/fixtures/places.geojsonl`
       per the "Fixture places" table in `specs/002-map-pinned-location/contracts/place-lookup-api.md`:
       `osm_id` 1 España becomes a `MultiPolygon` of four box rings
       (mainland `[-9.5, 36.0, 3.4, 43.8]`, Balearic Islands `[1.1, 38.6, 4.4, 40.1]`,
@@ -753,10 +753,10 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       Run `make db` to re-snapshot,
       then `make api-tests` (T051 passes, every earlier row still passes)
       and `make web-e2e` (the Huelin click still lands inside the narrower Andalucía) (depends on T051)
-- [ ] T055 [P] Create `docker/map/overpass-boundaries.ql` with the query in research R7
+- [X] T055 [P] Create `docker/map/overpass-boundaries.ql` with the query in research R7
       (Spain by `admin_level` 2 and `ISO3166-1=ES`, Ceuta by `ISO3166-2=ES-CE`,
       recursed to member ways and nodes, `out meta`, `[timeout:600]`)
-- [ ] T056 In `docker/map/build-map-data.sh`, after the Geofabrik downloads,
+- [X] T056 In `docker/map/build-map-data.sh`, after the Geofabrik downloads,
       POST `docker/map/overpass-boundaries.ql` to `https://overpass-api.de/api/interpreter`
       with `curl --fail --location --silent --show-error --retry 3 --retry-all-errors`,
       `--user-agent 'social-bulletin map-data (https://github.com/aleherse/social-bulletin)'`,
@@ -765,7 +765,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       `osmium sort --overwrite --output "$SRC/overpass.osm.pbf" "$SRC/overpass.osm"`;
       add `"$SRC/overpass.osm.pbf"` to the `osmium merge` inputs.
       An Overpass failure ends the script under `set -eu` (FR-012) (depends on T053, T055)
-- [ ] T057 Create `docker/map/check-places.sh <places.geojsonl>` (`set -eu`, executable):
+- [X] T057 Create `docker/map/check-places.sh <places.geojsonl>` (`set -eu`, executable):
       for each of `2 España`, `4 Ceuta`, `4 Melilla`, `4 Illes Balears`,
       `jq -n -e --argjson level <level> --arg name <name> 'any(inputs; .properties.kind == "boundary" and .properties.admin_level == $level and .properties.name == $name)'`
       over the file (`-n` with `inputs` reads every line; `-e` exits non-zero when none matches),
@@ -776,7 +776,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       Verify inside `docker compose run --rm map`:
       it exits 0 on `apps/api/features/fixtures/places.geojsonl` after T054
       and exits 1 naming all four on `apps/api/features/fixtures/places-reimport.geojsonl` (depends on T054, T056)
-- [ ] T058 Run `make map-data` and `make map-import`;
+- [X] T058 Run `make map-data` and `make map-import`;
       confirm the build passes the guard,
       then post the quickstart's real-data points to `/api/places/lookup` on the development stack:
       Huelin (all six levels), central Sheffield (`national`, `municipality`),
@@ -821,11 +821,11 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       shared Behat/Playwright reference data is loaded by `fixtures.feature` through the same command production uses;
       a provider reading two tables gives each its own query builder (if review agrees with T019)
 
-- [ ] T059 Coverage audit for Phase 6:
+- [X] T059 Coverage audit for Phase 6:
       FR-011's tile source → T050; FR-012 lookup over a multi-part country → T051;
       FR-012 real data → T057, T058, T043;
       revert T052 and T054 in turn and confirm T050 and T051 go red; record the result in the pull request
-- [ ] T060 Run `make lint` and fix every finding,
+- [X] T060 Run `make lint` and fix every finding,
       including any `web-knip` report for `apps/web/src/shared/map/index.ts`
       and a stale `protomaps-leaflet` entry anywhere (`git grep -n -i "protomaps\|pmtiles" -- ':!specs'` finds nothing);
       then T047 (depends on T049–T059)
