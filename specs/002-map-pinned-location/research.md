@@ -259,16 +259,18 @@ Without them Huelin answered `null` at `national`, and Ceuta had no `state`.
   Codes rather than relation ids keep the query readable and survive a relation being remapped.
 - **Guard**: after the `jq` filter, the script requires
   a boundary named "España" at `admin_level` 2
-  and one named "Ceuta" at `admin_level` 4
+  and boundaries named "Ceuta", "Melilla", and "Illes Balears" at `admin_level` 4
   in `places.geojsonl`
   (`jq -e` over the boundaries, one check each),
   printing which is missing and exiting `1` otherwise.
   The `jq` filter already drops boundaries that did not assemble into a polygon,
   so a present row is a usable one.
   An Overpass outage ends the build the same way: `curl --fail` exits non-zero under `set -eu`.
-- **Not guarded**: Melilla, the Balearic Islands, and the Canary Islands
-  were complete in the first build, and the guard does not repeat what the by-hand check on `preview`
-  covers (quickstart, US1 sc.10).
+  Only Spain and Ceuta are fetched from Overpass;
+  Melilla and the Balearic Islands are guarded too, because they were complete in the first build
+  and a future Geofabrik change should fail the build rather than ship without them.
+- **Not guarded**: the Canary Islands, covered by the by-hand check on `preview`
+  (quickstart, US1 sc.10).
   Offshore points and the *plazas de soberanía* are not guaranteed (spec FR-012).
 
 **Alternatives considered for the clipped boundaries**:
@@ -329,10 +331,13 @@ which the project uses to avoid Docker Hub rate limits in CI.
   against the real API and the fixture places from the DSLR snapshot
   (no geocoder stub any more); only `https://tile.openstreetmap.org/**` is aborted,
   so no suite reaches OSM.
-- **No test layer for FR-012**: it is a property of the real OSM data,
-  which no suite downloads.
-  The build guard (R7) and the by-hand check on `preview` prove it;
-  tasks.md records the waiver.
+- **FR-012 in Behat**: the fixture España is a MultiPolygon with mainland, Balearic, Ceuta, and Melilla parts,
+  and Illes Balears, Ceuta, and Melilla are level-4 boxes,
+  so `places.feature` proves `national` and `state` for Palma, Ceuta, and Melilla
+  (contracts/place-lookup-api.md).
+  That proves the lookup over a multi-part country;
+  that the real data contains those boundaries is proven by the build guard (R7)
+  and the by-hand check on `preview`.
 
 Fixture places are synthetic squares nested around the spec's two points,
 named with the real place names (`apps/api/features/fixtures/places.geojsonl`),
