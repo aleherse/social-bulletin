@@ -7,9 +7,14 @@ Feature: Baseline fixtures
 
   Scenario: Load the baseline dataset
     Given the baseline dataset is loaded
+    And the places in "fixtures/places.geojsonl" are imported
 
   # Movements deliberately have no baseline rows: every movement scenario
   # needs state in a specific status for a specific author, which is
   # scenario-specific by nature. The reusable movement reference data
   # (bulletin.categories) is seeded by the Doctrine migration and is
   # therefore already part of the snapshot.
+  #
+  # The fixture places are shared reference data: every place lookup in Behat
+  # and Playwright reads them, so they are loaded here, through the same
+  # import command production uses (ADR-0022).

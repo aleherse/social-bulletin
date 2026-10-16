@@ -42,6 +42,9 @@ services:
     SocialBulletin\Core\Domain\:
         resource: '../../../packages/core/src/Domain/*/*Repository.php'
 
+    # domain-helpers-0002: the adapters behind packages/core Domain\Helper ports.
+    SocialBulletin\Core\Domain\Helper\PlaceFeed: '@App\Place\GeoJsonSeqPlaceFeed'
+
     # packages/core read providers: the SQL behind the query side.
     SocialBulletin\Core\Application\:
         resource: '../../../packages/core/src/Application/*/Provider/*Provider.php'

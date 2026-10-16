@@ -7,6 +7,7 @@ namespace App\EventListener;
 use App\Http\JsonApiErrorResponse;
 use SocialBulletin\Core\Domain\Helper\DomainError;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
+use SocialBulletin\Core\Domain\Place\InvalidPlaceLookup;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -28,7 +29,7 @@ final readonly class DomainErrorListener
         $event->setResponse(JsonApiErrorResponse::create(
             $error::STATUS_CODE,
             $error->getMessage(),
-            $error instanceof InvalidMovement ? $error->errors : [],
+            $error instanceof InvalidMovement || $error instanceof InvalidPlaceLookup ? $error->errors : [],
         ));
     }
 }
