@@ -21,7 +21,8 @@ the author is told and can still type the location."
 
 **Note**: The Clarifications below supersede parts of this input:
 coordinates are never saved, shown, or validated (Q1),
-so the map is only an aid for filling in the location name.
+so the map is only an aid for filling in the location name;
+the map and the lookup are hosted by the platform (session 2026-10-16).
 
 ## Clarifications
 
@@ -45,6 +46,19 @@ so the map is only an aid for filling in the location name.
   while a point is pinned?
   → A: Nothing; the field is never refilled on a level change.
   The author pins again or types the name.
+
+### Session 2026-10-16
+
+- Q: Who hosts the map and the place-name lookup?
+  → A: The platform itself, with no separate service and no third-party endpoint:
+  the map is served as static files alongside the frontend,
+  and the place name is looked up by the platform's own API.
+- Q: Which places can be looked up?
+  → A: Spain and the United Kingdom to start with.
+  A point elsewhere is treated as a point with no place at the chosen level.
+- Q: Since the point now reaches the platform, may it be logged?
+  → A: No. The point may be used to answer the lookup
+  but MUST NOT be stored or written to any log.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -172,7 +186,8 @@ then denying permission and confirming the author is told and can still type.
   keeps the marker and leaves the location field untouched;
   the author pins again to get the name for the new level, or types it.
 - **Point with no place at the chosen level**
-  (for example a point at sea, or no neighbourhood known at that point):
+  (for example a point at sea, a point outside Spain and the United Kingdom,
+  or no neighbourhood known at that point):
   treated as a failed lookup — the author is told,
   the marker stays, and the field is left for them to type.
 - **Map scrolled across the date line**: clicking a point on a map
@@ -217,10 +232,13 @@ then denying permission and confirming the author is told and can still type.
   whatever the author's interface language.
 - **FR-004**: The author MUST be able to type or correct the location name by hand
   at any time; editing the name MUST NOT move or remove the marker.
-- **FR-005**: The system MUST NOT store the pinned point or the author's position.
+- **FR-005**: The system MUST NOT store or log the pinned point or the author's position.
   The point exists only while the form is open,
+  is sent only to the platform's own place-name lookup,
   is used only to look up the place name,
   and is discarded when the form is saved or left.
+  A request carrying the point MUST NOT place it in a URL,
+  where request logs would record it.
 - **FR-006**: The movement's saved location MUST remain the name alone,
   under all the rules of the Propose a Movement feature;
   a typed-only location MUST remain valid.
@@ -241,6 +259,10 @@ then denying permission and confirming the author is told and can still type.
   the map MUST start without a marker
   and the location field MUST show the saved name.
   The movement's detail view is unchanged by this feature and shows no map.
+- **FR-011**: The map and the place-name lookup MUST be served by the platform itself,
+  with no request to a third-party map or geocoding service.
+  Place names MUST be available for points in Spain and the United Kingdom;
+  a point elsewhere is reported as having no place at the chosen level (FR-009).
 
 ### Key Entities
 
@@ -261,14 +283,13 @@ then denying permission and confirming the author is told and can still type.
 
 - **SC-001**: An author can pin a location and see the place name filled in
   within 3 seconds of clicking the map, for 95% of pins.
-  This depends on the geocoder's response time,
-  so it is checked by hand against the configured geocoder before release,
-  not by an automated test;
-  the app's own share of that time is one request per pin, with no added delay.
+  It is checked by hand against the deployed `preview` environment before release,
+  not by an automated test,
+  since only the deployed database and API show real response times.
 - **SC-002**: An author can create a draft with a pinned location,
   from opening the form to confirmation,
   in under 3 minutes — no slower than a typed-only draft today.
-- **SC-003**: No saved movement contains a pinned point
+- **SC-003**: No saved movement, database table, or log contains a pinned point
   or the author's position.
 - **SC-004**: 100% of movements that could be saved with a typed-only location
   before this feature can still be saved the same way.
@@ -278,13 +299,18 @@ then denying permission and confirming the author is told and can still type.
 
 ## Assumptions
 
-- The map, the place-name lookup, and device positioning
-  rely on external services;
-  their availability is not guaranteed,
-  which is why the typed location remains a complete fallback.
+- Device positioning relies on the author's browser and device,
+  and the map and place-name lookup can still fail;
+  the typed location remains a complete fallback.
 - The pinned point leaves the author's device only to be sent
-  to the place-name lookup service;
-  the platform itself never records it.
+  to the platform's own place-name lookup,
+  which answers from it and records it nowhere.
+- The map shows detail for Spain and the United Kingdom;
+  elsewhere it may be blank.
+  Wider coverage is a later change of data, not of behaviour.
+- Place names come from OpenStreetMap boundary data
+  loaded into the platform;
+  they are as current as the last import.
 - Levels are filled by rank, not by a country's own labels:
   in Canada, for example, a province is a first-level division
   and so fills `state`.
