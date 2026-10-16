@@ -62,7 +62,7 @@ because both stories end in the same lookup.
 **Purpose**: Record the decisions, add dependencies and PostGIS,
 fix the shared E2E helpers, and prepare the shared test data and strings.
 
-- [ ] T001 Write `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md`
+- [X] T001 Write `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md`
       with the `adr-skill`, status Proposed, following ADR-0019's section layout,
       from research.md R1–R10:
       Leaflet 1.9.4 + react-leaflet 5.0.0 + `protomaps-leaflet` behind `shared/map`;
@@ -77,20 +77,20 @@ fix the shared E2E helpers, and prepare the shared test data and strings.
       and `docs/decisions/ADR-0016-aws-serverless-deployment.md`
       (a private map-data bucket behind a `/tiles/*` behaviour on the frontend distribution)
       (Constitution III)
-- [ ] T002 Add `leaflet@1.9.4`, `react-leaflet@5.0.0`, and the latest 5.x `protomaps-leaflet`
+- [X] T002 Add `leaflet@1.9.4`, `react-leaflet@5.0.0`, and the latest 5.x `protomaps-leaflet`
       (exact version, no range) to dependencies
       and `@types/leaflet` to devDependencies in `apps/web/package.json`
       by running `npm install` inside `make shell service=node`,
       so `apps/web/package-lock.json` is updated too;
       record the `protomaps-leaflet` version in ADR-0022
-- [ ] T003 Create `docker/postgres/Dockerfile`
+- [X] T003 Create `docker/postgres/Dockerfile`
       (`FROM public.ecr.aws/docker/library/postgres:17`,
       `RUN apt-get update && apt-get install -y --no-install-recommends postgresql-17-postgis-3 && rm -rf /var/lib/apt/lists/*`)
       and change the `postgres` service in `docker-compose.yml` from `image:` to `build: docker/postgres`;
       if `docker-compose.ci.yml` lists built services for its layer cache, add `postgres` there;
       verify with `make images`, `make up`, and
       `make console cmd="dbal:run-sql 'CREATE EXTENSION IF NOT EXISTS postgis'"` succeeding
-- [ ] T004 [P] Add a `DomainPort` layer to `deptrac.yaml`:
+- [X] T004 [P] Add a `DomainPort` layer to `deptrac.yaml`:
       a `bool` collector for classes under `packages/core/src/Domain/Helper/`
       that must be an interface and must not be the `DomainError` layer,
       excluded from the `Domain` layer's collector;
@@ -98,7 +98,7 @@ fix the shared E2E helpers, and prepare the shared test data and strings.
       and let it depend on what `Domain` may;
       add a header comment line naming `domain-helpers-0002` as the reason;
       `make php-deptrac` stays green
-- [ ] T005 [P] Move `signIn` out of `apps/web/e2e/movements.spec.ts`
+- [X] T005 [P] Move `signIn` out of `apps/web/e2e/movements.spec.ts`
       into `apps/web/e2e/support/session.ts` and import it from there;
       in the same file, replace every `page.getByLabel('Location')`
       with `page.getByRole('textbox', { name: 'Location', exact: true })`,
@@ -106,7 +106,7 @@ fix the shared E2E helpers, and prepare the shared test data and strings.
       would otherwise also match Playwright's substring, case-insensitive label lookup
       and fail the journeys with a strict-mode violation;
       a pure refactor, confirmed by the existing journeys passing in `make web-e2e`
-- [ ] T006 [P] Add the keys
+- [X] T006 [P] Add the keys
       `movements.form.map.label` ("Location map"),
       `movements.form.map.marker` ("Pinned location"),
       `movements.form.map.useMyLocation` ("Use my location"),
@@ -118,7 +118,7 @@ fix the shared E2E helpers, and prepare the shared test data and strings.
       with the English texts from the Messages table of
       `specs/002-map-pinned-location/contracts/location-picker-ui.md`
       to `apps/web/src/shared/i18n/locales/en/common.json`
-- [ ] T007 [P] Create `apps/api/features/fixtures/places.geojsonl`:
+- [X] T007 [P] Create `apps/api/features/fixtures/places.geojsonl`:
       one GeoJSON `Feature` per line, no trailing blank line,
       for each row of the "Fixture places" table in
       `specs/002-map-pinned-location/contracts/place-lookup-api.md`.

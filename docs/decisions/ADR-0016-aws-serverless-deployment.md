@@ -11,6 +11,10 @@ The project needs repeatable cloud deployment for the frontend, API, database, c
 
 - Production SHALL use AWS CDK as the deployment source of truth.
 - The frontend SHALL live in a private S3 bucket behind CloudFront at `LIVE_FRONT_URL`.
+- Map data SHALL live in a separate private map-data S3 bucket,
+  served under a `/tiles/*` behaviour on the frontend's CloudFront distribution
+  and uploaded by the manual map-data workflow, not by the frontend deploy
+  ([ADR-0022](ADR-0022-self-host-map-tiles-and-place-lookup.md)).
 - The API SHALL run as a Bref PHP-FPM Lambda behind CloudFront at `LIVE_API_URL`.
 - Console commands SHALL run through a Bref console Lambda so production migrations can be invoked after deploy.
 - CDK SHALL manage the Route53 aliases and ACM certificate for both production hostnames.
@@ -23,6 +27,7 @@ The project needs repeatable cloud deployment for the frontend, API, database, c
 
 - AWS CDK becomes the deployment source of truth.
 - Frontend assets are served from S3 through CloudFront.
+- Map tiles are served from their own bucket on the frontend's origin, so the browser makes no cross-origin map request.
 - The API runs on Bref PHP-FPM Lambda through CloudFront.
 - Production console tasks run through a Bref console Lambda.
 - Aurora Serverless v2 provides managed relational storage.
