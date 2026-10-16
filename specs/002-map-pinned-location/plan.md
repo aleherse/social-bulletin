@@ -123,7 +123,10 @@ and the first publish (quickstart "Checking published data").
     a Scenario Outline over the expected-lookups table in contracts/place-lookup-api.md,
     the neighbourhood fallback inside and beyond 1000 m,
     422 for an out-of-range point and for `international` with no coordinates echoed,
-    401 signed out.
+    401 signed out,
+    and `app:places:import` replacing the data or rolling back on a malformed line.
+    The import's HTTPS source is waived in tasks.md (no suite reaches the network)
+    and exercised by the first `preview` publish.
   - Vitest: lookup client (body, coordinate-free URL, abort, timeout, failure mapping),
     longitude wrap, position errors, not-found and unavailable messages,
     typing during a pending lookup, no refill on area change,
