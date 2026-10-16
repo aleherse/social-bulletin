@@ -153,6 +153,12 @@ then denying permission and confirming the author is told and can still type.
    the marker stays where it was placed,
    the location field is unchanged and still editable,
    and the draft can be saved with a typed location.
+4. **Given** an author who has placed a marker,
+   **When** the place-name service fails or gives no answer within 10 seconds,
+   **Then** they are told the place could not be looked up,
+   the marker stays where it was placed,
+   the location field is unchanged and still editable,
+   and the draft can be saved with a typed location.
 
 ---
 
@@ -224,9 +230,13 @@ then denying permission and confirming the author is told and can still type.
   the system MUST tell the author
   and leave the location field unchanged and editable.
 - **FR-009**: If no place name can be found for a pinned point,
+  or the place-name lookup fails or gives no answer within 10 seconds,
   the system MUST tell the author,
   keep the marker,
   and leave the location field unchanged and editable.
+  A point with no place at the chosen level
+  and a lookup that fails
+  are reported with different messages.
 - **FR-010**: When the author edits a saved draft,
   the map MUST start without a marker
   and the location field MUST show the saved name.
@@ -251,6 +261,10 @@ then denying permission and confirming the author is told and can still type.
 
 - **SC-001**: An author can pin a location and see the place name filled in
   within 3 seconds of clicking the map, for 95% of pins.
+  This depends on the geocoder's response time,
+  so it is checked by hand against the configured geocoder before release,
+  not by an automated test;
+  the app's own share of that time is one request per pin, with no added delay.
 - **SC-002**: An author can create a draft with a pinned location,
   from opening the form to confirmation,
   in under 3 minutes — no slower than a typed-only draft today.

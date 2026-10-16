@@ -14,6 +14,7 @@ Rendered inside the movement form, only while the area is not `international`.
 |---------|--------------|-----------------|----------|
 | Location field | `textbox` via label | "Location" | `locationLabel` (existing) |
 | Map | `region` | "Location map" | `map.label` |
+| Pinned marker | `img` inside the map region | "Pinned location" | `map.marker` |
 | Use-my-location action | `button` | "Use my location" | `map.useMyLocation` |
 | Lookup in progress | `status` (polite live region) | "Looking up the place…" | `map.lookingUp` |
 | Messages below | `alert` | see table | see table |
@@ -38,7 +39,7 @@ Messages never block saving.
 
 | Action | Observable result |
 |--------|-------------------|
-| Click the map | A marker appears (asserted in Playwright via the filled field, not the SVG); field filled per [reverse-geocoding.md](reverse-geocoding.md) |
+| Click the map | A "Pinned location" image appears in the map region; field filled per [reverse-geocoding.md](reverse-geocoding.md) |
 | Type in the field after pinning | Field keeps the typed text even if the lookup resolves later |
 | Change area between non-international levels | Field text unchanged; no geocoder request made |
 | Change area to International | Map region, button, and Location field hidden |
