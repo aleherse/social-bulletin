@@ -135,3 +135,15 @@ Feature: Look up a place name
       {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}
       """
     Then the JSON at "name" should equal "Sheffield"
+
+  Scenario: Where boundaries at one rank overlap, the smallest names the point
+    Given the places in "fixtures/places-overlapping.geojsonl" are imported
+    When I send a POST request to "/api/session" with body:
+      """
+      {"email": "author@example.com"}
+      """
+    And I send a POST request to "/api/places/lookup" with body:
+      """
+      {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}
+      """
+    Then the JSON at "name" should equal "Sheffield"
