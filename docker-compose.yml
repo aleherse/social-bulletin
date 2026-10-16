@@ -75,7 +75,7 @@ services:
           - dev.doc.social.aleherse.com
 
   postgres:
-    image: public.ecr.aws/docker/library/postgres:17
+    build: docker/postgres
     environment:
       POSTGRES_DB: bulletin
       POSTGRES_USER: bulletin

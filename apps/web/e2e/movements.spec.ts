@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from './fixtures.ts';
+import { signIn } from './support/session.ts';
 
 // Constitution Principle II (the pyramid): these journeys cover the happy path
 // of each user story plus the guest boundary, which spans session and routing.
@@ -17,12 +18,9 @@ interface MovementFields {
   description?: string;
 }
 
-async function signIn(page: Page, email: string) {
-  await page.goto('/');
-  await page.getByLabel('Email').fill(email);
-  await page.getByRole('button', { name: 'Continue' }).click();
-  await page.getByRole('link', { name: 'My movements' }).click();
-  await expect(page.getByRole('heading', { name: 'My movements' })).toBeVisible();
+// "Location map" and "Pinned location" would also match a substring lookup.
+function locationField(page: Page) {
+  return page.getByRole('textbox', { name: 'Location', exact: true });
 }
 
 async function fillMovementForm(page: Page, fields: MovementFields) {
@@ -31,7 +29,7 @@ async function fillMovementForm(page: Page, fields: MovementFields) {
   await page.getByLabel('Area').selectOption({ label: fields.area });
 
   if (fields.location !== undefined) {
-    await page.getByLabel('Location').fill(fields.location);
+    await locationField(page).fill(fields.location);
   }
 
   if (fields.description !== undefined) {
@@ -92,14 +90,14 @@ test('an international movement is saved without a location', async ({ page }) =
   await signIn(page, 'author@example.com');
 
   await page.getByRole('link', { name: 'New movement' }).click();
-  await expect(page.getByLabel('Location')).toBeVisible();
+  await expect(locationField(page)).toBeVisible();
 
   await fillMovementForm(page, {
     title: 'Stop Factory Farming Worldwide',
     category: 'Animal rights',
     area: 'International',
   });
-  await expect(page.getByLabel('Location')).toBeHidden();
+  await expect(locationField(page)).toBeHidden();
 
   await page.getByRole('button', { name: 'Save draft' }).click();
 

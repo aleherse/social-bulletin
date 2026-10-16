@@ -1,0 +1,10 @@
+{"type":"Feature","properties":{"osm_id":1,"kind":"boundary","admin_level":2,"name":"España"},"geometry":{"type":"Polygon","coordinates":[[[-9.5,35.0],[4.5,35.0],[4.5,44.0],[-9.5,44.0],[-9.5,35.0]]]}}
+{"type":"Feature","properties":{"osm_id":2,"kind":"boundary","admin_level":4,"name":"Andalucía"},"geometry":{"type":"Polygon","coordinates":[[[-7.5,35.5],[-1.6,35.5],[-1.6,38.7],[-7.5,38.7],[-7.5,35.5]]]}}
+{"type":"Feature","properties":{"osm_id":3,"kind":"boundary","admin_level":6,"name":"Málaga"},"geometry":{"type":"Polygon","coordinates":[[[-5.3366,35.8033],[-3.5366,35.8033],[-3.5366,37.6033],[-5.3366,37.6033],[-5.3366,35.8033]]]}}
+{"type":"Feature","properties":{"osm_id":4,"kind":"boundary","admin_level":7,"name":"Málaga-Costa del Sol"},"geometry":{"type":"Polygon","coordinates":[[[-5.1366,36.0033],[-3.7366,36.0033],[-3.7366,37.4033],[-5.1366,37.4033],[-5.1366,36.0033]]]}}
+{"type":"Feature","properties":{"osm_id":5,"kind":"boundary","admin_level":8,"name":"Málaga"},"geometry":{"type":"Polygon","coordinates":[[[-5.0366,36.1033],[-3.8366,36.1033],[-3.8366,37.3033],[-5.0366,37.3033],[-5.0366,36.1033]]]}}
+{"type":"Feature","properties":{"osm_id":6,"kind":"boundary","admin_level":10,"name":"Huelin"},"geometry":{"type":"Polygon","coordinates":[[[-4.9366,36.2033],[-3.9366,36.2033],[-3.9366,37.2033],[-4.9366,37.2033],[-4.9366,36.2033]]]}}
+{"type":"Feature","properties":{"osm_id":11,"kind":"boundary","admin_level":2,"name":"United Kingdom"},"geometry":{"type":"Polygon","coordinates":[[[-8.7,49.8],[1.8,49.8],[1.8,60.9],[-8.7,60.9],[-8.7,49.8]]]}}
+{"type":"Feature","properties":{"osm_id":12,"kind":"boundary","admin_level":4,"name":"England"},"geometry":{"type":"Polygon","coordinates":[[[-5.8,49.9],[1.8,49.9],[1.8,55.8],[-5.8,55.8],[-5.8,49.9]]]}}
+{"type":"Feature","properties":{"osm_id":13,"kind":"boundary","admin_level":8,"name":"Sheffield"},"geometry":{"type":"Polygon","coordinates":[[[-1.9701,52.8811],[-0.9701,52.8811],[-0.9701,53.8811],[-1.9701,53.8811],[-1.9701,52.8811]]]}}
+{"type":"Feature","properties":{"osm_id":21,"kind":"neighbourhood","name":"Kelham Island"},"geometry":{"type":"Point","coordinates":[-1.4701,53.3895]}}

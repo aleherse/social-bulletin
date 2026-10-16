@@ -26,3 +26,11 @@ services:
         - type=gha,scope=nginx
       cache_to:
         - type=gha,scope=nginx,mode=max
+
+  postgres:
+    build:
+      context: docker/postgres
+      cache_from:
+        - type=gha,scope=postgres
+      cache_to:
+        - type=gha,scope=postgres,mode=max

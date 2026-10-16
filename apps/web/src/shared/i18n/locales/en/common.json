@@ -55,6 +55,16 @@
       "areaPlaceholder": "Choose an area",
       "locationLabel": "Location",
       "locationPlaceholder": "e.g. Sheffield",
+      "map": {
+        "label": "Location map",
+        "marker": "Pinned location",
+        "useMyLocation": "Use my location",
+        "lookingUp": "Looking up the place…",
+        "positionDenied": "We couldn't use your location. You can still type it.",
+        "positionUnavailable": "Your location isn't available right now. You can still type it.",
+        "placeNotFound": "No place name was found at that level. Type it in instead.",
+        "lookupFailed": "We couldn't look up that place. Type it in instead."
+      },
       "descriptionLabel": "Description (markdown, optional while drafting)",
       "save": "Save draft",
       "required": "This field is required.",
