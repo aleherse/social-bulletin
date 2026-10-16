@@ -54,8 +54,10 @@ the map and the lookup are hosted by the platform (session 2026-10-16).
   the map is served as static files alongside the frontend,
   and the place name is looked up by the platform's own API.
 - Q: Which places can be looked up?
-  → A: Spain and the United Kingdom to start with.
-  A point elsewhere is treated as a point with no place at the chosen level.
+  → A: Spain and the United Kingdom are required to start with.
+  Other places are allowed but not required:
+  a point elsewhere is named wherever the loaded place data happens to cover it,
+  and otherwise is treated as a point with no place at the chosen level.
 - Q: Since the point now reaches the platform, may it be logged?
   → A: No. The point may be used to answer the lookup
   but MUST NOT be stored or written to any log.
@@ -186,8 +188,8 @@ then denying permission and confirming the author is told and can still type.
   keeps the marker and leaves the location field untouched;
   the author pins again to get the name for the new level, or types it.
 - **Point with no place at the chosen level**
-  (for example a point at sea, a point outside Spain and the United Kingdom,
-  or no neighbourhood known at that point):
+  (for example a point at sea, a point outside the loaded place data,
+  or no neighbourhood containing or near that point):
   treated as a failed lookup — the author is told,
   the marker stays, and the field is left for them to type.
 - **Map scrolled across the date line**: clicking a point on a map
@@ -228,6 +230,10 @@ then denying permission and confirming the author is told and can still type.
   the grouping of municipalities within a province (e.g. a Spanish comarca) for `region`;
   the city, town, or municipality for `municipality`;
   the neighbourhood for `neighborhood`.
+  For `neighborhood` only,
+  when no neighbourhood area contains the point,
+  the nearest named neighbourhood within 1000 metres of the point is used instead,
+  because many cities mark neighbourhoods as points rather than areas.
   The name MUST be the place's local official name,
   whatever the author's interface language.
 - **FR-004**: The author MUST be able to type or correct the location name by hand
@@ -261,8 +267,10 @@ then denying permission and confirming the author is told and can still type.
   The movement's detail view is unchanged by this feature and shows no map.
 - **FR-011**: The map and the place-name lookup MUST be served by the platform itself,
   with no request to a third-party map or geocoding service.
-  Place names MUST be available for points in Spain and the United Kingdom;
-  a point elsewhere is reported as having no place at the chosen level (FR-009).
+  Place names MUST be available for points in Spain and the United Kingdom.
+  Other countries are not required:
+  a point elsewhere is named wherever the loaded place data happens to cover it,
+  and otherwise is reported as having no place at the chosen level (FR-009).
 
 ### Key Entities
 
@@ -311,14 +319,15 @@ then denying permission and confirming the author is told and can still type.
 - Place names come from OpenStreetMap boundary data
   loaded into the platform;
   they are as current as the last import.
-- Levels are filled by rank, not by a country's own labels:
+- Levels are filled by rank, not by a country's own labels,
+  wherever the place data covers a point:
   in Canada, for example, a province is a first-level division
-  and so fills `state`.
+  and so would fill `state`.
   Where a country has no division at a rank
   (for example no comarca-like grouping for `region`),
   this is a failed lookup and the author types the name by hand.
 - Local official names are kept in their own script,
-  so a point in Tokyo fills 東京都;
+  so a point in Tokyo, if its place data were loaded, would fill 東京都;
   an author who prefers another form types it by hand.
 - Each form has at most one pinned point;
   drawing areas or boundaries is out of scope.
