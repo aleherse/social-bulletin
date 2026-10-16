@@ -16,57 +16,67 @@ places a single marker and looks up the place at that point;
 the Location field is filled with the local official name
 at the rank the area level names
 (`national` › `state` › `province` › `region` › `municipality` › `neighborhood`).
-The point is never stored: it lives in form state only,
-and the lookup goes straight from the browser to an OSM Nominatim-compatible geocoder,
-so it never reaches the platform's servers or logs.
-The change is frontend-only,
-plus the live build's endpoint variables in `.github/workflows/deploy.yml`:
-`packages/core`, `apps/api`, the database, and the API contract are untouched.
-Rank-based names come from Nominatim's `geocodejson` `admin.levelN` fields
-and local names from `accept-language=xx`,
-both verified against the public service (research R1–R3).
+
+Everything is self-hosted, with no separate service (spec session 2026-10-16, FR-011).
+The basemap is a Protomaps PMTiles extract for Spain and the United Kingdom,
+served as a static file from the frontend's own origin
+(nginx locally, S3 behind the existing CloudFront in AWS)
+and drawn by Leaflet with `protomaps-leaflet`.
+The lookup is `POST /api/places/lookup`,
+a `packages/core` query answered by PostGIS point-in-polygon
+over OpenStreetMap boundaries imported into the existing PostgreSQL / Aurora database.
+The point travels in the request body, is never stored, and is never logged (FR-005).
+The movement itself is unchanged: only the name is saved (FR-006).
 
 ## Technical Context
 
-**Language/Version**: TypeScript 6 + React 19 in `apps/web`;
-PHP 8.5 code is not changed
+**Language/Version**: PHP 8.5 (`packages/core`, `apps/api`);
+TypeScript 6 + React 19 (`apps/web`);
+TypeScript CDK (`infrastructure`)
 
-**Primary Dependencies**: New: `leaflet@1.9.4`, `react-leaflet@5.0.0`,
-`@types/leaflet` (dev) — behind a `shared/map` adapter (`application-frontend-0001`).
-Existing: `@tanstack/react-query` is **not** used for lookups
+**Primary Dependencies**:
+New frontend: `leaflet@1.9.4`, `react-leaflet@5.0.0`, `@types/leaflet` (dev),
+`protomaps-leaflet` (latest 5.x, pinned at install) — behind `shared/map` (`application-frontend-0001`).
+New database: the PostGIS extension (`postgresql-17-postgis-3` locally; built into Aurora PostgreSQL 17).
+New tooling, in a `map` container only: `osmium-tool`, `jq`, and a pinned `pmtiles` CLI release.
+No new PHP package: DBAL already runs the PostGIS SQL.
+`@tanstack/react-query` is **not** used for lookups
 (one-shot, abortable, user-triggered calls; see data-model transitions).
-External services: OSM Nominatim reverse geocoding and OSM raster tiles,
-URLs configurable via `VITE_GEOCODER_URL` and `VITE_MAP_TILE_URL`;
-the public services are the development default only,
-and live builds MUST set both from repository variables (research R6)
 
-**Storage**: N/A — no persisted change (data-model.md)
+**Storage**: Two new reference tables,
+`bulletin.place_boundaries` and `bulletin.place_neighbourhoods` (data-model.md),
+replaced wholesale by each import; `bulletin.movements` unchanged
 
-**Testing**: Vitest + Testing Library for `apps/web` units and components;
-Playwright for one happy-path journey per user story.
-PHPSpec and Behat waived (layers untouched; see Constitution Check)
+**Testing**: PHPSpec for the place domain and handlers;
+Behat for the lookup endpoint over fixture places;
+Vitest + Testing Library for `apps/web`;
+Playwright for one happy-path journey per user story against the real API
 
-**Target Platform**: Browsers served by nginx locally and CloudFront in AWS (ADR-0004, ADR-0016)
+**Target Platform**: Browsers served by nginx locally and CloudFront in AWS;
+API on Bref Lambda, database on Aurora Serverless v2 (ADR-0004, ADR-0016)
 
-**Project Type**: Web application (monorepo; only `apps/web` changes)
+**Project Type**: Web application (monorepo: `packages/core`, `apps/api`, `apps/web`, `infrastructure`, `docker`)
 
-**Performance Goals**: Place name filled within 3 s of a pin for 95% of pins (SC-001);
+**Performance Goals**: Place name filled within 3 s of a pin for 95% of pins (SC-001),
+from one GiST-indexed query per pin;
 a lookup still unanswered after 10 s is reported as failed (FR-009);
-Leaflet loaded only in the lazy new/edit movement chunks (ADR-0019 code splitting)
+Leaflet and `protomaps-leaflet` load only in the lazy new/edit movement chunks (ADR-0019)
 
-**Constraints**: Nominatim fair use — one request per explicit pin,
-superseded requests aborted, none on typing or area change (research R6);
+**Constraints**:
+No third-party request at runtime (FR-011);
+the point only in a POST body, never in a URL, a log line, an error, or a table (FR-005);
+one lookup per explicit pin, superseded requests aborted, none on typing or area change;
 a map that fails to render is contained by an error boundary,
 leaving the Location field and "use my location" working (spec edge case);
-OSM attribution always visible;
-the deploy fails when `GEOCODER_URL` or `MAP_TILE_URL` is unset;
-the point must not be sent to the platform's API (FR-005);
-FSD import rules and `shared/*` adapters for third-party libraries
+OSM and Protomaps attribution always visible (ODbL);
+the import fits the console Lambda's 15-minute limit (measured on first publish);
+FSD import rules and `shared/*` adapters; hexagonal boundaries checked by deptrac
 
-**Scale/Scope**: One new form section, two new `shared` slices (`map`, `geo`),
-one `ErrorBoundary` in `shared/ui`,
-one pure mapping function in `entities/movement`,
-two new Playwright journeys, eight i18n strings
+**Scale/Scope**: Coverage Spain and the UK.
+`packages/core`: one new `Place` area (5 domain classes, 1 port, 1 repository, 1 provider, 1 model, 1 query, 1 command).
+`apps/api`: 1 controller, 1 console command, 1 port adapter, 1 migration, the listener extended to one more error.
+`apps/web`: 2 `shared` slices (`map`, `geo`), 1 `ErrorBoundary`, 1 lookup client in `entities/movement`, the picker in `features/propose-movement`, 8 i18n strings.
+Ops: 2 Dockerfiles, 2 make targets, 1 manual workflow, 1 CDK bucket and behaviour
 
 ## Constitution Check
 
@@ -80,7 +90,7 @@ two new Playwright journeys, eight i18n strings
       path**; error, edge, and validation cases are planned at the lowest layer
       that can prove them and are not repeated higher up
 - [x] **III. Decisions and rules written down**: relevant ADRs consulted;
-      divergence proposes a new ADR; applicable `docs/rules/` files read
+      diverging from one corrects it in the same change; applicable `docs/rules/` files read
 - [x] **IV. Automated gates**: work is runnable through `make` targets; test data
       comes from the DSLR `fixtures` snapshot and no test run recreates it
 
@@ -92,40 +102,63 @@ constitutional gate; they are governed by ADR-0005/ADR-0007 and enforced by
 
 | Layer | Touched? | Test tool | Where |
 |-------|----------|-----------|-------|
-| `packages/core` | no | PHPSpec | waived — no domain change; `location` stays a string (FR-006) |
-| `apps/api` | no | Behat | waived — no endpoint or payload change; lookups bypass the API (research R7) |
-| `apps/web` | yes | Vitest | next to the source in `shared/geo`, `shared/map`, `entities/movement`, `features/propose-movement` |
+| `packages/core` | yes | PHPSpec | `packages/core/spec/Domain/Place/`, `packages/core/spec/Application/Place/` |
+| `apps/api` | yes | Behat | `apps/api/features/places.feature` |
+| `apps/web` | yes | Vitest | next to the source in `shared/geo`, `entities/movement`, `features/propose-movement` |
 | User journeys | yes | Playwright | `apps/web/e2e/movement-location.spec.ts` |
 
-The two waivers MUST be restated in `tasks.md`, naming the layer and reason
-(Principle I).
+No layer is waived.
+`infrastructure`, `docker`, and the workflow are not test layers under ADR-0013;
+they are checked by `make infra-tsc`, `make images`, `make ci` building the PostGIS image,
+and the first publish (quickstart "Checking published data").
 
 **Gate notes**:
 
-- **II. Pyramid** — Playwright: US1 pin-by-click → field filled → saved name listed,
-  plus a check that the pinned coordinates reach no API request (FR-005);
-  US2 use-my-location with granted geolocation → field filled → saved.
-  Vitest only: area→rank mapping for all seven areas, missing ranks,
-  `locality` fallback, longitude wrap, `accept-language=xx` in the request,
-  failure/abort/timeout mapping, permission denied, position unavailable,
-  not-found and unavailable messages, typing during a pending lookup,
-  no refill on area change, map hidden for International,
-  a map that fails to render, edit form opening without a marker.
-- **III. Decisions** — Consulted ADR-0004 (no proxy needed; nginx untouched),
-  ADR-0007 (FSD placement), ADR-0008 (i18n keys), ADR-0010 (shadcn `Button`),
-  ADR-0013 (tools), ADR-0019 (lazy routes keep Leaflet out of other chunks).
-  New structural decision → propose **ADR-0022**
-  (Leaflet + Nominatim, browser-direct, configurable endpoints) as the first task.
-  Rules read: `docs/rules/application/frontend.md` (0001 drives `shared/map`
-  and `shared/geo` re-exports).
-- **IV. Gates** — No new make target; `make web-unit` and `make web-e2e` cover it,
-  and `make ci` (ADR-0015) is the merge gate.
-  Playwright still restores the DSLR `fixtures` snapshot per scenario;
-  geocoder and tile hosts are stubbed with `page.route`, never called.
+- **II. Pyramid**
+  - PHPSpec: `GeoPoint` ranges and coordinate-free messages,
+    `PlaceLevel::forArea` for all seven areas,
+    feature parsing (ranks, unnamed, wrong geometry, line numbers),
+    handlers with ports and providers doubled.
+  - Behat: the SQL and the HTTP mapping —
+    a Scenario Outline over the expected-lookups table in contracts/place-lookup-api.md,
+    the neighbourhood fallback inside and beyond 1000 m,
+    422 for an out-of-range point and for `international` with no coordinates echoed,
+    401 signed out.
+  - Vitest: lookup client (body, coordinate-free URL, abort, timeout, failure mapping),
+    longitude wrap, position errors, not-found and unavailable messages,
+    typing during a pending lookup, no refill on area change,
+    map hidden for International, a map that fails to render,
+    edit form opening without a marker.
+  - Playwright: US1 pin-by-click → "Huelin" → saved name listed;
+    US2 use-my-location with granted geolocation → "Málaga" → saved.
+    Both hit the real API and the snapshot's fixture places;
+    only `/tiles/**` is stubbed.
+- **III. Decisions** — Consulted ADR-0000 (`bulletin` schema), ADR-0002 (tools in containers),
+  ADR-0003 (make entrypoints), ADR-0004 (nginx serves the bundle and now `/tiles/`),
+  ADR-0005 (core/api split), ADR-0007 (FSD), ADR-0008 (i18n), ADR-0009 (PostgreSQL/DBAL),
+  ADR-0010 (shadcn `Button`), ADR-0012 (deptrac owns the layer rules), ADR-0013 (tools),
+  ADR-0015 (`make ci`), ADR-0016 (AWS),
+  ADR-0019 (lazy routes), ADR-0021 (CQRS).
+  New: propose **ADR-0022** (self-hosted tiles and place lookup) as the first task.
+  Corrected in place in the same change: **ADR-0009** (PostGIS-enabled container and extension)
+  and **ADR-0016** (map-data bucket, `/tiles/*` behaviour).
+  Rules read: `application-frontend-*`, `application-framework-*`, `application-queries-*`,
+  `application-commands-*`, `application-helpers-*`, `application-style-0001`,
+  `database-persistence-*`, `database-dbal-*`, `domain-helpers-*`, `domain-common-0001`,
+  `test-integration-0001`, `test-unit-0001`, `scaffolding-folders-0001`.
+  Notable applications: the import port lives in `Domain/Helper/` (`domain-helpers-0002`);
+  `LookUpPlaceQuery::fromPayload` follows `application-framework-0002`'s shape for a query;
+  Behat loads places through `CommandBus` (`test-integration-0001`).
+- **IV. Gates** — New make targets `map-data` and `map-import` (ADR-0003);
+  `make images` builds the PostGIS and `map` images;
+  `make db` loads the fixture places through `fixtures.feature`,
+  so the DSLR snapshot carries them and no suite recreates them;
+  `make ci` (ADR-0015) is the merge gate.
 
 **Post-design re-check (after Phase 1)**: PASS.
-The data model adds no persisted fields, the contracts name every
-accessible element the tests use, and Complexity Tracking stays empty.
+The new tables hold only OSM reference data, no author data (data-model.md);
+the contracts name every request field, status, and accessible element the tests use;
+every layer has test tasks planned, and Complexity Tracking stays empty.
 
 ## Project Structure
 
@@ -134,11 +167,11 @@ accessible element the tests use, and Complexity Tracking stays empty.
 ```text
 specs/002-map-pinned-location/
 ├── plan.md              # This file
-├── research.md          # Phase 0: geocoder, names, mapping, map library, testing
-├── data-model.md        # Phase 1: client-side values and picker state
-├── quickstart.md        # Phase 1: try it, run the suites
+├── research.md          # Phase 0: lookup, names, ranks, tiles, renderer, logging, import, PostGIS, testing
+├── data-model.md        # Phase 1: place tables, core values, client values, picker state
+├── quickstart.md        # Phase 1: map data, try it, check published data, run the suites
 ├── contracts/
-│   ├── reverse-geocoding.md   # Consumed Nominatim request/response + Huelin fixture
+│   ├── place-lookup-api.md    # POST /api/places/lookup + fixture places
 │   └── location-picker-ui.md  # Accessible names and messages tests assert on
 ├── checklists/
 │   └── requirements.md
@@ -148,57 +181,109 @@ specs/002-map-pinned-location/
 ### Source Code (repository root)
 
 ```text
-.github/workflows/
-└── deploy.yml                                 # + VITE_GEOCODER_URL, VITE_MAP_TILE_URL, unset-variable guard
-
 docs/decisions/
-└── ADR-0022-adopt-leaflet-and-nominatim.md   # new, status Proposed
+├── ADR-0009-adopt-postgresql-and-doctrine-dbal.md   # corrected: PostGIS
+├── ADR-0016-aws-serverless-deployment.md            # corrected: map-data bucket, /tiles/*
+└── ADR-0022-self-host-map-tiles-and-place-lookup.md # new, status Proposed
+
+db/schema.dbml                                       # + place_boundaries, place_neighbourhoods
+deptrac.yaml                                         # + DomainPort layer; Framework may implement it
+
+docker/
+├── postgres/Dockerfile                              # new: postgres:17 + postgresql-17-postgis-3
+├── map/Dockerfile                                   # new: osmium-tool, jq, pmtiles
+└── nginx/conf.d/web.conf                            # + location /tiles/ → /app/var/map/tiles/
+docker-compose.yml                                   # postgres builds docker/postgres; map service (tools profile)
+Makefile                                             # + map-data, map-import
+
+infrastructure/
+├── map/coverage.geojson                             # new: Spain + UK coverage polygon
+└── lib/frontend-stack.ts                            # + MapDataBucket, /tiles/* behaviour, bucket output
+
+.github/workflows/map-data.yml                       # new: manual build → upload → presign → import
+
+packages/core/
+├── src/Domain/Helper/PlaceFeed.php                  # port
+├── src/Domain/Place/
+│   ├── GeoPoint.php
+│   ├── PlaceLevel.php
+│   ├── Boundary.php
+│   ├── Neighbourhood.php
+│   ├── InvalidPlaceLookup.php                       # DomainError, 422
+│   ├── InvalidPlaceFeed.php
+│   └── PlaceRepository.php                          # replaceAll()
+├── src/Application/Place/
+│   ├── Model/Place.php
+│   ├── Provider/PlaceProvider.php                   # nameAt()
+│   ├── Query/LookUpPlaceQuery.php, LookUpPlaceHandler.php
+│   └── Command/ImportPlacesCommand.php, ImportPlacesHandler.php
+└── spec/                                            # mirrors src (test-unit-0001)
+
+apps/api/
+├── migrations/Version<timestamp>.php                # postgis extension + both tables
+├── config/services.yaml                             # alias PlaceFeed → GeoJsonSeqPlaceFeed
+├── src/Controller/Place/LookUpPlaceController.php   # POST /api/places/lookup
+├── src/Console/ImportPlacesConsoleCommand.php       # app:places:import <path-or-url>
+├── src/Place/GeoJsonSeqPlaceFeed.php                # PlaceFeed adapter
+├── src/EventListener/DomainErrorListener.php        # + InvalidPlaceLookup errors
+├── features/places.feature                          # new
+├── features/fixtures.feature                        # + import the fixture places
+├── features/fixtures/places.geojsonl                # contracts/place-lookup-api.md
+└── tests/Behat/PlaceContext.php                     # imports through CommandBus
 
 apps/web/
-├── package.json                               # + leaflet, react-leaflet, @types/leaflet
-├── package-lock.json                          # updated by npm install
+├── package.json, package-lock.json                  # + leaflet, react-leaflet, protomaps-leaflet, @types/leaflet
 ├── src/
 │   ├── shared/
-│   │   ├── ui/
-│   │   │   ├── index.ts                       # + ErrorBoundary
-│   │   │   └── error-boundary.tsx             # new: contains a map that fails to render
-│   │   ├── geo/                               # new slice: no third-party imports
+│   │   ├── ui/error-boundary.tsx, index.ts          # + ErrorBoundary
+│   │   ├── geo/                                     # no third-party imports
 │   │   │   ├── index.ts
-│   │   │   ├── model/types.ts                 # GeoPoint, PlaceHierarchy
+│   │   │   ├── model/types.ts                       # GeoPoint
 │   │   │   ├── lib/wrap-longitude.ts (+ .test.ts)
-│   │   │   ├── api/reverse-geocode.ts (+ .test.ts)   # fetch, abort, shape check
-│   │   │   └── api/current-position.ts (+ .test.ts)  # navigator.geolocation → typed errors
-│   │   ├── map/                               # new slice: the only Leaflet importer
+│   │   │   └── api/current-position.ts (+ .test.ts)
+│   │   ├── map/                                     # the only Leaflet / protomaps-leaflet importer
 │   │   │   ├── index.ts
-│   │   │   └── ui/location-map.tsx            # region, tiles, labelled divIcon Marker, onPick, leaflet.css
-│   │   └── i18n/locales/en/common.json        # + movements.form.map.*
+│   │   │   ├── model/view.ts                        # INITIAL_VIEW, TILES_URL
+│   │   │   └── ui/location-map.tsx
+│   │   └── i18n/locales/en/common.json              # + movements.form.map.*
 │   ├── entities/movement/
-│   │   ├── index.ts                           # + placeNameFor
-│   │   └── model/place-name.ts (+ .test.ts)   # research R3 mapping
+│   │   ├── index.ts                                 # + lookUpPlaceName, PlaceLookupUnavailable
+│   │   └── api/look-up-place-name.ts (+ .test.ts)
 │   └── features/propose-movement/
-│       ├── ui/movement-form.tsx               # renders LocationPicker, tracks editedSincePin
-│       ├── ui/movement-form.test.tsx          # + picker integration cases
-│       ├── ui/location-picker.tsx (+ .test.tsx)   # map, button, status, alerts
-│       └── model/use-place-lookup.ts          # pin → abort → lookup → name | not-found | unavailable
+│       ├── ui/movement-form.tsx (+ .test.tsx)
+│       ├── ui/location-picker.tsx (+ .test.tsx)
+│       └── model/use-place-lookup.ts
 └── e2e/
-    ├── fixtures.ts                            # + isolateMapServices auto fixture
-    ├── movements.spec.ts                      # imports signIn from support/session.ts
-    ├── movement-location.spec.ts              # US1 + US2 journeys
-    ├── support/session.ts                     # new: signIn, moved from movements.spec.ts
-    └── fixtures/geocoder-huelin.json          # from contracts/reverse-geocoding.md
+    ├── fixtures.ts                                  # + stubMapTiles auto fixture
+    ├── movements.spec.ts                            # signIn moved; exact Location locator
+    ├── movement-location.spec.ts                    # US1 + US2 journeys
+    └── support/session.ts, support/map.ts           # signIn; lat/lon → pixel at INITIAL_VIEW
 ```
 
-**Structure Decision**: Only `apps/web` changes, following ADR-0007's FSD layers,
-besides two build variables in the deploy workflow.
-Generic, movement-agnostic capabilities go to `shared`:
-`shared/geo` (types, longitude wrap, geocoder and geolocation clients)
-and `shared/map` (the Leaflet adapter, the only slice importing `leaflet`/`react-leaflet`).
-The area→rank mapping depends on the `Area` type,
-so it belongs to `entities/movement`.
-The picker's behaviour exists only inside the movement form,
-so it stays in `features/propose-movement` rather than becoming a new feature slice
-(a sibling feature could not be imported by the form under FSD rules).
-`pages/movements` needs no change: new and edit pages already render `MovementForm`.
+**Structure Decision**:
+`packages/core` gains a `Place` area beside `Movement` and `User`:
+the domain values and the import port in `Domain`,
+the query, command, provider, and model in `Application` (ADR-0021).
+`PlaceLevel` depends on `Domain\Movement\Area`,
+a same-layer domain dependency deptrac already allows.
+`PlaceFeed` is the first `Domain/Helper` port (`domain-helpers-0002`),
+and today's `deptrac.yaml` lets `Framework` depend only on `Application` and `DomainError`,
+so the `apps/api` adapter would fail `make lint`.
+`deptrac.yaml` therefore gains a `DomainPort` layer
+(interfaces under `packages/core/src/Domain/Helper/` other than `DomainError`)
+that `Framework`, `Application`, and `Domain` may depend on —
+the layer the rule already assumes, not a new exception (ADR-0012 owns the ruleset).
+Validation messages are keys (`place.point.out_of_range`, `place.area.unsupported`),
+rendered the same way as the existing `movement.*` keys.
+`apps/api` adds one controller in a per-aggregate folder (`scaffolding-folders-0001`),
+the console command, and the `PlaceFeed` adapter.
+In `apps/web`, the lookup client takes an `Area`,
+so it belongs to `entities/movement` rather than a new entity
+(a sibling entity could not import `Area` without `@x`);
+`shared/geo` keeps the movement-agnostic point, wrap, and position;
+`shared/map` stays the only Leaflet importer;
+the picker stays in `features/propose-movement`.
+`pages/movements` needs no change.
 
 ## Complexity Tracking
 
