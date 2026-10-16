@@ -27,8 +27,8 @@ Playwright queries for the field MUST therefore match it exactly:
 Testing Library matches whole names by default and needs no change.
 
 The map's own controls (zoom buttons, OSM attribution link)
-come from Leaflet and are not part of this contract
-beyond the attribution staying visible (OSM licence).
+come from Leaflet and `protomaps-leaflet` and are not part of this contract
+beyond the attribution staying visible: "© OpenStreetMap contributors" (ODbL) and Protomaps.
 
 ## Messages
 
@@ -46,11 +46,11 @@ Messages never block saving.
 
 | Action | Observable result |
 |--------|-------------------|
-| Click the map | A "Pinned location" image appears in the map region; field filled per [reverse-geocoding.md](reverse-geocoding.md) |
+| Click the map | A "Pinned location" image appears in the map region; field filled per [place-lookup-api.md](place-lookup-api.md) |
 | Type in the field after pinning | Field keeps the typed text even if the lookup resolves later |
-| Change area between non-international levels | Field text unchanged; no geocoder request made |
+| Change area between non-international levels | Field text unchanged; no lookup request made |
 | Change area to International | Map region, button, and Location field hidden |
-| Open an existing draft for editing | Location field shows the saved name; no geocoder request made |
+| Open an existing draft for editing | Location field shows the saved name; no lookup request made |
 | The map fails to render | Map region absent; Location field and "Use my location" button still work |
 
 The Leaflet adapter (`shared/map`) is mocked in Vitest at its public API,
