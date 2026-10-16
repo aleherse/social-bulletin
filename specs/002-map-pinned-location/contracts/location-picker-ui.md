@@ -12,12 +12,19 @@ Rendered inside the movement form, only while the area is not `international`.
 
 | Element | Role / query | Accessible name | i18n key |
 |---------|--------------|-----------------|----------|
-| Location field | `textbox` via label | "Location" | `locationLabel` (existing) |
+| Location field | `textbox`, name matched exactly | "Location" | `locationLabel` (existing) |
 | Map | `region` | "Location map" | `map.label` |
 | Pinned marker | `img` inside the map region | "Pinned location" | `map.marker` |
 | Use-my-location action | `button` | "Use my location" | `map.useMyLocation` |
 | Lookup in progress | `status` (polite live region) | "Looking up the place…" | `map.lookingUp` |
 | Messages below | `alert` | see table | see table |
+
+"Location map" and "Pinned location" contain the field's name,
+and Playwright's `getByLabel` and `getByRole` names match substrings, ignoring case,
+and also read `aria-label`.
+Playwright queries for the field MUST therefore match it exactly:
+`getByRole('textbox', { name: 'Location', exact: true })`.
+Testing Library matches whole names by default and needs no change.
 
 The map's own controls (zoom buttons, OSM attribution link)
 come from Leaflet and are not part of this contract

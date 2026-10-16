@@ -15,6 +15,11 @@ Two optional build-time variables for `apps/web`
 The public services allow light use only (research R6);
 do not script or load-test against them.
 
+Live builds never use the defaults:
+`.github/workflows/deploy.yml` passes the repository variables
+`GEOCODER_URL` and `MAP_TILE_URL` as these two variables,
+and the deploy fails if either is unset.
+
 ## Try it
 
 1. `make up`

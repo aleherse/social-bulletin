@@ -149,10 +149,19 @@ no custom `User-Agent` can be set from a browser.
 per application and requires identification and attribution.
 User-driven, one-at-a-time requests stay well under that.
 
-**Open operational item**: before production traffic grows,
-point `VITE_GEOCODER_URL` and `VITE_MAP_TILE_URL` at a self-hosted
-or commercial Nominatim-compatible endpoint.
-Recorded in the proposed ADR (R9), not a blocker for this feature.
+**Production endpoints**: the public services are for development only.
+Live builds take `VITE_GEOCODER_URL` and `VITE_MAP_TILE_URL`
+from the repository variables `GEOCODER_URL` and `MAP_TILE_URL`
+in `.github/workflows/deploy.yml`,
+and the deploy fails when either is unset,
+so production never falls back to the public services.
+A guard is required, not just a default:
+an unset variable expands to an empty string,
+which `?? default` does not replace.
+Provisioning a hosted or self-run Nominatim-compatible endpoint
+and setting both variables is a maintainer step
+that must happen before this feature's first deploy;
+the chosen provider is recorded in the proposed ADR (R9).
 
 ## R7. Browser-direct lookup instead of an API proxy
 
