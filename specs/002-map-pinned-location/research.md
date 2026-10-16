@@ -149,8 +149,10 @@ pinned in `apps/web/package.json` and recorded in ADR-0022.
 The marker stays an `L.divIcon` holding a `<span role="img">`
 named by an i18n string.
 
-The initial view is centred on `[46, -4]` at zoom 4,
-which shows both countries,
+The initial view is centred on `[45, -4]` at zoom 4 in a 384 px tall map,
+which shows latitudes 31.8 to 55.7,
+keeping both spec points (Huelin and central Sheffield)
+at least 32 px clear of the map's edges and controls,
 and is exported from `shared/map` as a constant
 so the Playwright journey can turn a latitude and longitude into a pixel to click.
 
@@ -227,7 +229,9 @@ the lookup is the platform's own query.
    runs `make map-data`, uploads the tiles to the map-data bucket's `tiles/` prefix
    and the places file to its `places/` prefix,
    presigns the places object with `aws s3 presign`,
-   and invokes the console Lambda with `app:places:import <presigned URL>`.
+   and invokes the console Lambda with `app:places:import '<presigned URL>'`,
+   the URL single-quoted because the console layer runs the command through a shell
+   and the presigned query string contains `&`.
 
 **Rationale**: Only the extraction needs OSM tooling,
 and it runs in a container like every other tool (ADR-0002, ADR-0003).
