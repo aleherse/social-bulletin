@@ -29,7 +29,7 @@ The movement itself is unchanged: only the name is saved (FR-006).
 
 The map-data build fetches the complete boundaries of Spain and Ceuta from the Overpass API,
 because Geofabrik's clipped extracts lose them,
-and fails unless both come out as polygons (FR-012, research R7).
+and fails unless Spain, Ceuta, Melilla, and the Balearic Islands come out as polygons (FR-012, research R7).
 
 ## Technical Context
 
@@ -75,7 +75,7 @@ one lookup per explicit pin, superseded requests aborted, none on typing or area
 a map that fails to render is contained by an error boundary,
 leaving the Location field and "use my location" working (spec edge case);
 "© OpenStreetMap contributors" always visible (ODbL);
-the map-data build fails unless Spain (`admin_level` 2) and Ceuta (`admin_level` 4) are polygons (FR-012);
+the map-data build fails unless Spain (`admin_level` 2) and Ceuta, Melilla, and Illes Balears (`admin_level` 4) are polygons (FR-012);
 the import fits the console Lambda's 15-minute limit (measured on first publish);
 FSD import rules and `shared/*` adapters; hexagonal boundaries checked by deptrac
 
@@ -128,6 +128,8 @@ and the first publish (quickstart "Checking published data").
     handlers with ports and providers doubled.
   - Behat: the SQL and the HTTP mapping —
     a Scenario Outline over the expected-lookups table in contracts/place-lookup-api.md,
+    including `national` and `state` for Palma, Ceuta, and Melilla
+    over a multi-part fixture España (FR-012, US1 sc.10),
     the neighbourhood fallback inside and beyond 1000 m,
     422 for an out-of-range point and for `international` with no coordinates echoed,
     401 signed out,
@@ -143,11 +145,9 @@ and the first publish (quickstart "Checking published data").
     US2 use-my-location with granted geolocation → "Málaga" → saved.
     Both hit the real API and the snapshot's fixture places;
     only `https://tile.openstreetmap.org/**` is aborted, so no suite reaches OSM.
-  - FR-012 and US1 sc.10 are about real OSM data, which no suite downloads.
-    They are proven by the build guard (`docker/map/build-map-data.sh` fails without both polygons)
-    and the by-hand check of the published data on `preview` (quickstart);
-    no fixture rows are added, because the lookup SQL they would exercise is already covered.
-    Waived in tasks.md as a data check, not a test layer.
+  - Whether the real OSM data holds those boundaries no suite can prove, since none downloads it:
+    the build guard (`docker/map/build-map-data.sh` fails without España, Ceuta, Melilla, or Illes Balears)
+    and the by-hand check of the published data on `preview` (quickstart) do.
 - **III. Decisions** — Consulted ADR-0000 (`bulletin` schema), ADR-0002 (tools in containers),
   ADR-0003 (make entrypoints), ADR-0004 (nginx serves the bundle; the `/tiles/` location is removed again),
   ADR-0005 (core/api split), ADR-0007 (FSD), ADR-0008 (i18n), ADR-0009 (PostgreSQL/DBAL),
@@ -178,7 +178,7 @@ the contracts name every request field, status, and accessible element the tests
 every layer has test tasks planned, and Complexity Tracking stays empty.
 Re-checked after the tile and FR-012 revision: still PASS.
 OSM tiles add no test layer (the journeys abort them);
-FR-012 is real-data behaviour, guarded by the build and checked by hand, with its waiver in tasks.md.
+FR-012 is proven in Behat over fixture places and, for the real data, by the build guard and the by-hand check.
 
 ## Project Structure
 

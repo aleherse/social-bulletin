@@ -9,7 +9,7 @@ the map's tiles come from OpenStreetMap's public servers in the browser (researc
 
 | Command | What it does |
 |---------|--------------|
-| `make map-data` | Downloads the Geofabrik extracts and the Spain and Ceuta boundaries from Overpass, then writes `var/map/places.geojsonl`; fails if Spain or Ceuta is missing (FR-012) |
+| `make map-data` | Downloads the Geofabrik extracts and the Spain and Ceuta boundaries from Overpass, then writes `var/map/places.geojsonl`; fails if Spain, Ceuta, Melilla, or the Balearic Islands is missing (FR-012) |
 | `make map-import` | Loads `var/map/places.geojsonl` into the development database |
 
 `make db` alone loads only the synthetic fixture places
