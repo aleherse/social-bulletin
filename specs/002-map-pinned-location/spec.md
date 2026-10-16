@@ -81,7 +81,7 @@ saving, and confirming the saved movement carries that name and no point.
    (for the Sheffield point, "United Kingdom").
 4. **Given** an author on the form with an area level chosen,
    **When** they pin a point in the Huelin neighbourhood of Málaga
-   (latitude 36.7090, longitude -4.4370),
+   (latitude 36.7033, longitude -4.4366),
    **Then** the field holds "España" for `national`,
    "Andalucía" for `state`,
    "Málaga" for `province`,
