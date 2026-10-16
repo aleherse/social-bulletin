@@ -12,10 +12,10 @@ export const test = base.extend<{ restoreDatabaseSnapshot: void; stubMapTiles: v
     },
     { auto: true },
   ],
-  // ADR-0022: no journey needs the tiles archive; the map works without a basemap.
+  // ADR-0022: no journey reaches OpenStreetMap; the map works without a basemap.
   stubMapTiles: [
     async ({ page }, use) => {
-      await page.route('**/tiles/**', (route) => route.abort());
+      await page.route('https://tile.openstreetmap.org/**', (route) => route.abort());
       await use();
     },
     { auto: true },

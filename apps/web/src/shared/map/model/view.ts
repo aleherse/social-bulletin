@@ -5,5 +5,5 @@
  */
 export const INITIAL_VIEW = { center: { lat: 45, lon: -4 }, zoom: 4 } as const;
 
-/** Same origin as the app (FR-011): nginx locally, the map-data bucket behind CloudFront in AWS. */
-export const TILES_URL = '/tiles/spain-uk.pmtiles';
+/** OpenStreetMap's public raster tiles (FR-011); their usage policy requires the attribution. */
+export const TILES_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';

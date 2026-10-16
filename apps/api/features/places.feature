@@ -25,6 +25,12 @@ Feature: Look up a place name
       | Huelin            | 36.7033 | -4.4366 | region       | Málaga-Costa del Sol |
       | Huelin            | 36.7033 | -4.4366 | municipality | Málaga               |
       | Huelin            | 36.7033 | -4.4366 | neighborhood | Huelin               |
+      | Palma             | 39.5696 | 2.6502  | national     | España               |
+      | Palma             | 39.5696 | 2.6502  | state        | Illes Balears        |
+      | Ceuta             | 35.8894 | -5.3213 | national     | España               |
+      | Ceuta             | 35.8894 | -5.3213 | state        | Ceuta                |
+      | Melilla           | 35.2923 | -2.9381 | national     | España               |
+      | Melilla           | 35.2923 | -2.9381 | state        | Melilla              |
       | central Sheffield | 53.3811 | -1.4701 | national     | United Kingdom       |
       | central Sheffield | 53.3811 | -1.4701 | municipality | Sheffield            |
       | central Sheffield | 53.3811 | -1.4701 | neighborhood | Kelham Island        |

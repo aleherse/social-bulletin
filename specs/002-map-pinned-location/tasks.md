@@ -692,7 +692,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
 
 ### Tests (write first, must fail) ⚠️
 
-- [ ] T050 [US1] In `apps/web/e2e/fixtures.ts`, change the `stubMapTiles` auto fixture
+- [X] T050 [US1] In `apps/web/e2e/fixtures.ts`, change the `stubMapTiles` auto fixture
       to `page.route('https://tile.openstreetmap.org/**', (route) => route.abort())`
       and its comment to say no journey reaches OSM;
       in `apps/web/e2e/movement-location.spec.ts`, in the US1 journey (T026),
@@ -702,7 +702,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       also expect `page.getByRole('link', { name: 'OpenStreetMap' })` toBeVisible (attribution, FR-011);
       update the header comment that mentions `/tiles/**`.
       Observe the journey failing in `make web-e2e` (the map still requests `/tiles/spain-uk.pmtiles`)
-- [ ] T051 [P] [US1] Add to the first Scenario Outline's Examples in `apps/api/features/places.feature`
+- [X] T051 [P] [US1] Add to the first Scenario Outline's Examples in `apps/api/features/places.feature`
       the six FR-012 rows of the "Expected lookups" table in
       `specs/002-map-pinned-location/contracts/place-lookup-api.md`:
       Palma (39.5696, 2.6502) `national` España and `state` Illes Balears,
@@ -713,7 +713,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
 
 ### Implementation
 
-- [ ] T052 [US1] Switch the basemap to OSM raster tiles (research R4, R5):
+- [X] T052 [US1] Switch the basemap to OSM raster tiles (research R4, R5):
       in `apps/web/src/shared/map/model/view.ts`,
       `TILES_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'`
       with its doc comment saying the tiles come from OSM's public servers (FR-011);

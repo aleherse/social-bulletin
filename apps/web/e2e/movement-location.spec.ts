@@ -4,16 +4,23 @@ import { signIn } from './support/session.ts';
 
 // Constitution Principle II (the pyramid): one happy path per user story, against
 // the real lookup endpoint and the snapshot's fixture places. The lookup's
-// failure modes are proven in Vitest and Behat; `/tiles/**` is aborted for every
-// journey (fixtures.ts), so these also prove the map works without a basemap.
+// failure modes are proven in Vitest and Behat; OSM's tile requests are aborted
+// for every journey (fixtures.ts), so these also prove the map works without a basemap.
+
+const OSM_TILE = /^https:\/\/tile\.openstreetmap\.org\/\d+\/\d+\/\d+\.png$/;
 
 test('an author pins a neighbourhood on the map and saves its name', async ({ page }) => {
   await signIn(page, 'author@example.com');
+  const tileRequest = page.waitForRequest(OSM_TILE);
   await page.getByRole('link', { name: 'New movement' }).click();
 
   await page.getByLabel('Title').fill('Huelin Community Kitchen');
   await page.getByLabel('Category').selectOption({ label: 'Cooperative' });
   await page.getByLabel('Area').selectOption({ label: 'Neighborhood' });
+
+  await expect(page.getByRole('region', { name: 'Location map' })).toBeVisible();
+  await tileRequest;
+  await expect(page.getByRole('link', { name: 'OpenStreetMap' })).toBeVisible();
 
   await clickMapAt(page, { lat: 36.7033, lon: -4.4366 });
 
