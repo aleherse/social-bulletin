@@ -100,7 +100,10 @@ over a local path or an HTTPS URL (research R7).
 
 Concrete, constructed with `Connection` (`database-dbal-0001`).
 `replaceAll(iterable<Boundary|Neighbourhood> $places): void`
-deletes both tables and inserts in batches inside one transaction.
+deletes both tables and inserts one row per place
+through one prepared statement per table, reused for every row,
+inside one transaction.
+Batching is deferred until the first timed import (T040) shows it is needed.
 
 ### `Application/Place/Provider/PlaceProvider` and `Model/Place`
 
