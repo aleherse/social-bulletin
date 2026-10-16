@@ -19,7 +19,8 @@ at the rank the area level names
 The point is never stored: it lives in form state only,
 and the lookup goes straight from the browser to an OSM Nominatim-compatible geocoder,
 so it never reaches the platform's servers or logs.
-The change is frontend-only:
+The change is frontend-only,
+plus the live build's endpoint variables in `.github/workflows/deploy.yml`:
 `packages/core`, `apps/api`, the database, and the API contract are untouched.
 Rank-based names come from Nominatim's `geocodejson` `admin.levelN` fields
 and local names from `accept-language=xx`,
@@ -35,7 +36,9 @@ PHP 8.5 code is not changed
 Existing: `@tanstack/react-query` is **not** used for lookups
 (one-shot, abortable, user-triggered calls; see data-model transitions).
 External services: OSM Nominatim reverse geocoding and OSM raster tiles,
-URLs configurable via `VITE_GEOCODER_URL` and `VITE_MAP_TILE_URL`
+URLs configurable via `VITE_GEOCODER_URL` and `VITE_MAP_TILE_URL`;
+the public services are the development default only,
+and live builds MUST set both from repository variables (research R6)
 
 **Storage**: N/A — no persisted change (data-model.md)
 
@@ -56,6 +59,7 @@ superseded requests aborted, none on typing or area change (research R6);
 a map that fails to render is contained by an error boundary,
 leaving the Location field and "use my location" working (spec edge case);
 OSM attribution always visible;
+the deploy fails when `GEOCODER_URL` or `MAP_TILE_URL` is unset;
 the point must not be sent to the platform's API (FR-005);
 FSD import rules and `shared/*` adapters for third-party libraries
 
@@ -144,6 +148,9 @@ specs/002-map-pinned-location/
 ### Source Code (repository root)
 
 ```text
+.github/workflows/
+└── deploy.yml                                 # + VITE_GEOCODER_URL, VITE_MAP_TILE_URL, unset-variable guard
+
 docs/decisions/
 └── ADR-0022-adopt-leaflet-and-nominatim.md   # new, status Proposed
 
@@ -181,7 +188,8 @@ apps/web/
     └── fixtures/geocoder-huelin.json          # from contracts/reverse-geocoding.md
 ```
 
-**Structure Decision**: Only `apps/web` changes, following ADR-0007's FSD layers.
+**Structure Decision**: Only `apps/web` changes, following ADR-0007's FSD layers,
+besides two build variables in the deploy workflow.
 Generic, movement-agnostic capabilities go to `shared`:
 `shared/geo` (types, longitude wrap, geocoder and geolocation clients)
 and `shared/map` (the Leaflet adapter, the only slice importing `leaflet`/`react-leaflet`).

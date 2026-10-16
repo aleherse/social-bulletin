@@ -64,8 +64,13 @@ add shared test data and strings, and prepare the E2E helpers.
       OSM raster tiles and Nominatim reverse geocoding called browser-direct;
       `format=geocodejson`, `zoom=18`, `accept-language=xx`;
       endpoints configurable through `VITE_MAP_TILE_URL` and `VITE_GEOCODER_URL`;
-      the public OSM services are for light use only,
-      and production must point at a hosted or self-run Nominatim-compatible endpoint;
+      the public OSM services are for development and light use only;
+      live builds read both endpoints from the repository variables
+      `GEOCODER_URL` and `MAP_TILE_URL`
+      and the deploy fails when either is unset (T029),
+      so production never falls back to the public services;
+      a provider's own attribution, where it requires one,
+      is shown alongside the OSM attribution;
       non-goals: storing coordinates, an API proxy, forward search
 - [ ] T002 Add `leaflet@1.9.4` and `react-leaflet@5.0.0` to dependencies
       and `@types/leaflet` to devDependencies in `apps/web/package.json`
@@ -88,6 +93,11 @@ add shared test data and strings, and prepare the E2E helpers.
       to `apps/web/src/shared/i18n/locales/en/common.json`
 - [ ] T005 [P] Move `signIn` out of `apps/web/e2e/movements.spec.ts`
       into `apps/web/e2e/support/session.ts` and import it from there;
+      in the same file, replace every `page.getByLabel('Location')`
+      with `page.getByRole('textbox', { name: 'Location', exact: true })`,
+      because the map region ("Location map") and the marker ("Pinned location")
+      would otherwise also match Playwright's substring, case-insensitive label lookup
+      and fail the journeys with a strict-mode violation;
       a pure refactor, confirmed by the existing journeys passing in `make web-e2e`
 
 ---
@@ -95,7 +105,9 @@ add shared test data and strings, and prepare the E2E helpers.
 ## Phase 2: Foundational (Blocking Prerequisites)
 
 **Purpose**: Movement-agnostic geo values, the geocoder client, the area→rank mapping,
-the Leaflet adapter, and E2E isolation from OSM — both stories need all of them.
+and E2E isolation from OSM — both stories need all of them.
+The Leaflet adapter (T012) is built in US1,
+after the journey that covers it.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
@@ -160,26 +172,6 @@ the Leaflet adapter, and E2E isolation from OSM — both stories need all of the
       so T008 passes
       (depends on T009 for the `PlaceHierarchy` type, imported from `@/shared/geo`;
       parallel with T010)
-- [ ] T012 Create `apps/web/src/shared/map/ui/location-map.tsx` and `apps/web/src/shared/map/index.ts`
-      exporting `LocationMap({ label, markerLabel, point, onPick })`:
-      a `<section aria-label={label}>` containing a react-leaflet `MapContainer`
-      (initial centre `[20, 0]`, zoom 2, fixed height e.g. `h-72`, full width),
-      a `TileLayer` with URL
-      `(import.meta.env.VITE_MAP_TILE_URL as string | undefined) ?? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'`
-      and the OSM attribution
-      `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors`,
-      a `Marker` at `point` when not null,
-      with `interactive: false`, `keyboard: false`,
-      and an `L.divIcon` whose html is a styled
-      `<span role="img" aria-label={markerLabel}>`,
-      a `useMapEvents` click handler calling `onPick({ lat, lon: wrapLongitude(lng) })`,
-      and a child that flies the map to `point` at zoom 14 when `point` changes;
-      import `leaflet/dist/leaflet.css` here.
-      No Vitest for this adapter: Leaflet cannot be driven in jsdom.
-      The click handler and the marker are asserted by the journeys in T014 and T022.
-      Waiver: the fly-to animation is not asserted;
-      it has no accessible outcome, and a broken fly-to leaves the pin, the name, and the save intact
-      (depends on T002, T009)
 - [ ] T013 Extend `apps/web/e2e/fixtures.ts` with a second auto fixture `isolateMapServices`
       that, before each test,
       routes `https://tile.openstreetmap.org/**` to a 200 `image/png` response
@@ -189,7 +181,7 @@ the Leaflet adapter, and E2E isolation from OSM — both stories need all of the
       ever reaches OSM;
       tests that need the geocoder override it with their own `page.route`
 
-**Checkpoint**: `make web-unit` passes T006–T008; the shared slices and the mapping are ready.
+**Checkpoint**: `make web-unit` passes T006–T008; `shared/geo` and the mapping are ready.
 
 ---
 
@@ -217,7 +209,7 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       fill Title "Huelin Community Kitchen", Category "Cooperative", Area "Neighborhood";
       click the centre of `page.getByRole('region', { name: 'Location map' })`;
       expect `page.getByRole('img', { name: 'Pinned location' })` toBeVisible;
-      expect `page.getByLabel('Location')` toHaveValue "Huelin";
+      expect `page.getByRole('textbox', { name: 'Location', exact: true })` toHaveValue "Huelin";
       click "Save draft";
       expect the list item for "Huelin Community Kitchen"
       toContainText "Neighborhood · Huelin · Cooperative";
@@ -290,6 +282,28 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
 
 ### Implementation for User Story 1
 
+- [ ] T012 [US1] Create `apps/web/src/shared/map/ui/location-map.tsx` and `apps/web/src/shared/map/index.ts`
+      exporting `LocationMap({ label, markerLabel, point, onPick })`:
+      a `<section aria-label={label}>` containing a react-leaflet `MapContainer`
+      (initial centre `[20, 0]`, zoom 2, fixed height e.g. `h-72`, full width),
+      a `TileLayer` with URL
+      `(import.meta.env.VITE_MAP_TILE_URL as string | undefined) ?? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'`
+      and the OSM attribution
+      `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors`,
+      a `Marker` at `point` when not null,
+      with `interactive: false`, `keyboard: false`,
+      and an `L.divIcon` whose html is a styled
+      `<span role="img" aria-label={markerLabel}>`,
+      a `useMapEvents` click handler calling `onPick({ lat, lon: wrapLongitude(lng) })`,
+      and a child that flies the map to `point` at zoom 14 when `point` changes;
+      import `leaflet/dist/leaflet.css` here.
+      No Vitest for this adapter: Leaflet cannot be driven in jsdom.
+      The click handler and the marker are asserted by the T014 journey,
+      written before this task and observed failing first,
+      and later by T022.
+      Waiver: the fly-to animation is not asserted;
+      it has no accessible outcome, and a broken fly-to leaves the pin, the name, and the save intact
+      (depends on T002, T009, T014)
 - [ ] T017 [US1] Create `apps/web/src/features/propose-movement/model/use-place-lookup.ts`:
       a hook `usePlaceLookup({ onFound })` returning
       `{ status: 'idle' | 'pending' | 'not-found' | 'unavailable', lookUp(point, area) }`
@@ -372,7 +386,8 @@ with permission refused, the explanation appears and a typed location still save
       Title "Málaga Tenants Union", Category "Cooperative", Area "Municipality";
       click "Use my location";
       expect `page.getByRole('img', { name: 'Pinned location' })` toBeVisible;
-      expect Location toHaveValue "Málaga"; save;
+      expect `page.getByRole('textbox', { name: 'Location', exact: true })` toHaveValue "Málaga";
+      save;
       expect the list item toContainText "Municipality · Málaga · Cooperative"
 
 ### Implementation for User Story 2
@@ -417,6 +432,24 @@ with permission refused, the explanation appears and a typed location still save
       external browser services read their base URL from a `VITE_*` variable with a dev default,
       and every external host is stubbed in the Playwright auto fixture —
       in `docs/rules/application/frontend.md`
+- [ ] T029 Update the "Build frontend assets" step of `.github/workflows/deploy.yml`:
+      add `VITE_GEOCODER_URL: ${{ vars.GEOCODER_URL }}`
+      and `VITE_MAP_TILE_URL: ${{ vars.MAP_TILE_URL }}` to its `env`,
+      next to `VITE_API_URL`,
+      and add a step before it that fails the job with an `::error::` annotation
+      naming each of `GEOCODER_URL` and `MAP_TILE_URL` that is empty.
+      An unset repository variable expands to an empty string,
+      which the `?? default` in T010 and T012 does not catch,
+      so the guard is what keeps a live build off both a broken URL
+      and the public OSM services (research R6).
+      Prerequisite outside the repository:
+      a maintainer provisions a hosted or self-run Nominatim-compatible geocoder and tile endpoint
+      and sets both repository variables before the first deploy of this feature;
+      record the chosen provider in ADR-0022 (T001).
+      No make target lints workflows,
+      so verify by running the guard step's shell locally
+      with both variables empty (exits non-zero, names both)
+      and with both set (exits zero)
 
 ---
 
@@ -428,8 +461,9 @@ with permission refused, the explanation appears and a typed location still save
   T001, T003, T004, T005 can start at once, T002 before T012
 - **Foundational (Phase 2)**: depends on Setup;
   tests T006–T008 first, then T009 → T010 and T011 in parallel;
-  T012 after T002 and T009; T013 any time after T003
-- **US1 (Phase 3)**: depends on Foundational and on T005 (T014 imports `signIn`)
+  T013 any time after T003
+- **US1 (Phase 3)**: depends on Foundational and on T005 (T014 imports `signIn`);
+  T012 after T002, T009, and T014
 - **US2 (Phase 4)**: depends on Foundational, and on T018 (it extends `location-picker.tsx`)
 - **Polish (Phase 5)**: depends on the stories being shipped
 
@@ -444,7 +478,7 @@ with permission refused, the explanation appears and a typed location still save
 ### Within Each Story
 
 - Tests written and observed failing before implementation
-- Hook (T017) → picker (T018) → form (T019)
+- Map adapter (T012) → hook (T017) → picker (T018) → form (T019)
 - Geolocation client (T023) → picker button (T024)
 
 ### Parallel Opportunities
@@ -455,7 +489,7 @@ with permission refused, the explanation appears and a typed location still save
 - US1 tests: T014 and T015 together
   (T016 shares a mock pattern with T015 but a different file)
 - US2 tests: T020, T021, T022 together
-- Polish: T028 alongside T025
+- Polish: T028 and T029 alongside T025
 
 ---
 
@@ -467,6 +501,7 @@ Task: "Playwright journey in apps/web/e2e/movement-location.spec.ts (T014)"
 Task: "Vitest LocationPicker cases in apps/web/src/features/propose-movement/ui/location-picker.test.tsx (T015)"
 
 # Then implementation in order:
+Task: "LocationMap adapter in shared/map (T012)"
 Task: "use-place-lookup hook (T017)"
 Task: "ErrorBoundary and LocationPicker component (T018)"
 Task: "MovementForm integration (T019)"
@@ -493,10 +528,10 @@ Task: "Playwright use-my-location journey in apps/web/e2e/movement-location.spec
 
 ### Incremental Delivery
 
-1. Setup + Foundational → shared geo, mapping, map adapter, isolated E2E
-2. US1 → validate → ship (MVP)
+1. Setup + Foundational → shared geo, mapping, isolated E2E
+2. US1 → map adapter, picker, form → validate → ship (MVP)
 3. US2 → validate → ship
-4. Polish → coverage audit, lint, `make ci`, rule extraction
+4. Polish → coverage audit, lint, `make ci`, rule extraction, live endpoints
 
 ---
 
