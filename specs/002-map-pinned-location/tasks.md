@@ -333,14 +333,23 @@ and the E2E map helpers. Both stories need all of them.
       export both from `apps/web/src/entities/movement/index.ts`,
       so T015 passes (depends on T023)
 - [ ] T025 Create `apps/web/src/shared/map/model/view.ts`
-      exporting `INITIAL_VIEW = { center: { lat: 46, lon: -4 }, zoom: 4 } as const`
-      and `TILES_URL = '/tiles/spain-uk.pmtiles'` (no third-party import);
+      exporting `INITIAL_VIEW = { center: { lat: 45, lon: -4 }, zoom: 4 } as const`
+      and `TILES_URL = '/tiles/spain-uk.pmtiles'` (no third-party import).
+      With T029's 384 px map, this view spans latitudes 31.8 to 55.7,
+      putting Huelin 67 px above the bottom edge
+      and central Sheffield 45 px below the top edge,
+      both clear of Leaflet's zoom and attribution controls;
       create `apps/web/e2e/support/map.ts` exporting
       `clickMapAt(page, point: { lat: number; lon: number })`:
-      it reads the bounding box of `page.getByRole('region', { name: 'Location map' })`,
+      it locates `page.getByRole('region', { name: 'Location map' })`,
+      reads its bounding box,
       projects `point` and `INITIAL_VIEW.center` to Web Mercator pixels at `INITIAL_VIEW.zoom`
       (`x = 256·2^z·(lon + 180)/360`, `y = 256·2^z·(1 − ln(tan φ + sec φ)/π)/2`),
-      and clicks at the box centre plus the difference;
+      throws naming the point if the target lies within 32 px of any edge of the box,
+      and clicks with `region.click({ position: { x: width / 2 + dx, y: height / 2 + dy } })`,
+      never `page.mouse.click`,
+      so Playwright scrolls the map into view
+      and fails if a map control would receive the click instead of the map;
       extend `apps/web/e2e/fixtures.ts` with a second auto fixture `stubMapTiles`
       that routes `**/tiles/**` to `route.abort()` before each test,
       so no journey needs the archive (research R9)
@@ -445,7 +454,8 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       exporting `LocationMap({ label, markerLabel, point, onPick })` and the T025 constants:
       a `<section aria-label={label}>` with no padding or border,
       containing a react-leaflet `MapContainer` that fills it
-      (centre and zoom from `INITIAL_VIEW`, fixed height e.g. `h-72`, full width),
+      (centre and zoom from `INITIAL_VIEW`, fixed height `h-96` (384 px), full width;
+      T025's edge margins depend on this height),
       a child that adds `protomaps-leaflet`'s `leafletLayer({ url: TILES_URL, flavor: 'light' })`
       to the map on mount and removes it on unmount,
       the attribution
@@ -638,8 +648,17 @@ Required before the feature is usable outside the fixture points.
       (`--content-type application/vnd.pmtiles`, `--cache-control max-age=86400`)
       and the places to `places/places.geojsonl`;
       `aws s3 presign` the places object for 3600 s;
-      `aws lambda invoke --cli-read-timeout 900` the console function
-      with payload `"app:places:import <presigned URL>"`, failing the job on a function error;
+      `aws lambda invoke --cli-read-timeout 900 --cli-binary-format raw-in-base64-out` the console function
+      as `deploy.yml` invokes migrations,
+      with the payload built by `jq -n --arg cmd "app:places:import '$PLACES_URL'" '$cmd'`:
+      the URL MUST be single-quoted inside the command,
+      because the Bref console layer runs the command through a shell
+      and an unquoted `&` in the presigned query string would background a truncated import
+      and still exit 0 (confirm against the deployed console layer's bootstrap;
+      the quoting is harmless either way);
+      write the response to `import-output.json`, print it,
+      and fail the job if the invoke's stdout carries a `FunctionError`
+      or the output lacks the import's seconds-taken line (T020);
       invalidate `/tiles/*` on the frontend distribution;
       finally `curl --fail -s -o /dev/null -w '%{http_code}' -H 'Range: bytes=0-15'`
       the archive on the environment's frontend host and fail the job unless it prints `206`.
