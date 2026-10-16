@@ -667,7 +667,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
 
 ### Decisions
 
-- [ ] T049 Correct `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md` in place
+- [X] T049 Correct `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md` in place
       and rename it with `git mv` to `docs/decisions/ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md`,
       title "Use OpenStreetMap tiles and a self-hosted place lookup", status still Proposed (research R10):
       "Map rendering" names `leaflet` and `react-leaflet` only, with `<TileLayer>`,

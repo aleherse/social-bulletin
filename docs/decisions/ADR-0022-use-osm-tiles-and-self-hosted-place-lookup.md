@@ -1,4 +1,4 @@
-# ADR-0022: Self-host map tiles and place lookup
+# ADR-0022: Use OpenStreetMap tiles and a self-hosted place lookup
 
 - Status: Proposed
 - Date: 2026-10-16
@@ -9,15 +9,24 @@ Feature 002 (`specs/002-map-pinned-location/`) lets an author pin a movement's l
 and fills the Location field with the local official name of the place at the rank the movement's area names:
 `national` › `state` › `province` › `region` › `municipality` › `neighborhood`.
 
-The feature's clarification session (2026-10-16, FR-011) ruled out
-any third-party request at runtime and any separately running service.
-The first draft of the plan used the public OpenStreetMap tile servers
-and the public Nominatim instance, called straight from the browser;
-both are third parties, and Nominatim's usage policy forbids relying on it for an application's traffic.
+The feature's clarification session (2026-10-16, FR-011) settled where each half comes from.
+The place lookup is the platform's own, with no separate service and no third-party geocoder:
+the public Nominatim instance's usage policy forbids relying on it for an application's traffic,
+and it would receive the pinned point.
+The map's tiles come from OpenStreetMap's public tile servers.
+A self-hosted PMTiles archive was built first and dropped:
+it cost a 6.2 GB file per build, a bucket behaviour, and a tile-cutting tool,
+for an MVP that does not need it.
 
 The pinned point is personal data about where an author is or works.
 FR-005 requires that it never appear in a URL, a log line, an error message, or a table:
 only the name is saved.
+
+FR-012 requires every point on Spanish land —
+the mainland, the Balearic and Canary Islands, Ceuta, and Melilla —
+to be named at `national` and `state`.
+The first real build lost Spain's country boundary and Ceuta's,
+because parts of both lie outside Geofabrik's Spain extract.
 
 The stack this decision builds on:
 
@@ -40,41 +49,30 @@ The stack this decision builds on:
 
 ### Map rendering
 
-`apps/web` SHALL depend on `leaflet` `1.9.4`, `react-leaflet` `5.0.0`,
-and `protomaps-leaflet` `5.1.0`, all pinned exactly,
+`apps/web` SHALL depend on `leaflet` `1.9.4` and `react-leaflet` `5.0.0`, pinned exactly,
 with `@types/leaflet` `1.9.22` as a development dependency.
 
-The basemap SHALL be drawn by `protomaps-leaflet`'s `leafletLayer({ url, flavor: 'light' })`,
-which reads a PMTiles archive directly and draws to a 2D canvas, so the map needs no WebGL.
+The basemap SHALL be drawn by react-leaflet's `<TileLayer>`
+from `https://tile.openstreetmap.org/{z}/{x}/{y}.png` with `maxZoom` 19.
 
-`apps/web/src/shared/map` SHALL be the only slice that imports
-`leaflet`, `react-leaflet`, or `protomaps-leaflet`
+`apps/web/src/shared/map` SHALL be the only slice that imports `leaflet` or `react-leaflet`
 (`application-frontend-0001`).
-It SHALL expose a `LocationMap` component and the `INITIAL_VIEW` and `TILES_URL` constants,
+It SHALL expose a `LocationMap` component and the `INITIAL_VIEW` constant,
 and nothing from the libraries themselves.
 
-The map SHALL always show the attribution
-"© OpenStreetMap contributors, Protomaps", linking to the OSM copyright page,
-as the Open Database License requires.
+The map SHALL always show the attribution "© OpenStreetMap contributors",
+linking to the OSM copyright page,
+as the Open Database License and OSM's tile usage policy require.
 
 ### Map tiles
 
-The basemap SHALL be one Protomaps PMTiles extract, `spain-uk.pmtiles`,
-covering mainland Spain, the Balearic and Canary Islands, Ceuta, Melilla,
-Great Britain, and Northern Ireland, to zoom 15.
+The browser SHALL request tiles straight from OpenStreetMap's public tile servers.
+The platform SHALL NOT build, store, proxy, or serve tiles,
+and SHALL NOT set a `Referrer-Policy` that strips the `Referer` the tile usage policy asks for.
 
-It SHALL be served as a static file at the relative path `/tiles/spain-uk.pmtiles`
-on the frontend's own origin, read by the browser with HTTP range requests:
-
-- locally, nginx SHALL serve `/tiles/` from `var/map/tiles/`,
-  answering a missing file with 404 rather than the SPA's `index.html`;
-- in AWS, a private map-data S3 bucket SHALL sit behind a `/tiles/*` behaviour
-  on the existing frontend CloudFront distribution,
-  through origin access control and the managed caching-optimised policy.
-
-The extract SHALL be cut with the `pmtiles` CLI from a dated Protomaps daily build,
-limited to the polygon in `infrastructure/map/coverage.geojson`,
-so the planet file is never downloaded.
+OSM receives the map view the author looks at, never the pinned point.
+After a pin the map flies to the point at zoom 14,
+so the tiles requested then show the area around it, to about a kilometre.
 
 ### Place lookup
 
@@ -115,13 +113,19 @@ The movement itself SHALL keep storing only the location's name.
 
 ### Map data pipeline
 
-A `map` tools container (`docker/map/`: `osmium-tool`, `jq`, a checksum-verified `pmtiles` release),
-under the Compose `tools` profile, SHALL build both data files:
+A `map` tools container (`docker/map/`: `osmium-tool`, `jq`, `curl`),
+under the Compose `tools` profile, SHALL build the places file:
 
 - `make map-data` SHALL download the Geofabrik extracts for Spain, the Canary Islands, and the United Kingdom,
-  merge and filter them with `osmium`, and write `var/map/places.geojsonl`
-  (one GeoJSON feature per line, in the shape of `apps/api/features/fixtures/places.geojsonl`),
-  and cut `var/map/tiles/spain-uk.pmtiles`;
+  fetch the complete Spain (`admin_level` 2, `ISO3166-1=ES`) and Ceuta (`ISO3166-2=ES-CE`) relations
+  with every member from the Overpass API (`docker/map/overpass-boundaries.ql`),
+  merge all four with `osmium`, filter them,
+  and write `var/map/places.geojsonl`
+  (one GeoJSON feature per line, in the shape of `apps/api/features/fixtures/places.geojsonl`);
+- the build SHALL then run `docker/map/check-places.sh`,
+  failing unless the file holds España at `admin_level` 2
+  and Ceuta, Melilla, and Illes Balears at `admin_level` 4;
+  an Overpass failure SHALL fail the build too;
 - `make map-import` SHALL load `var/map/places.geojsonl` into the development database.
 
 The import SHALL be the console command `app:places:import <path-or-url>`,
@@ -131,9 +135,8 @@ and replaces both tables in one transaction through `PlaceRepository::replaceAll
 so lookups see the old data until the commit and a malformed line rolls the import back.
 
 For `live` and `preview`, the manually dispatched `.github/workflows/map-data.yml`
-SHALL build the files, upload the archive to the map-data bucket's `tiles/` prefix
-and the places to its `places/` prefix,
-presign the places object, and invoke the console Lambda with
+SHALL build the file, upload it to the private map-data bucket's `places/` prefix,
+presign it, and invoke the console Lambda with
 `app:places:import '<presigned URL>'`, the URL single-quoted.
 Map data SHALL be published on demand, not on every deploy.
 
@@ -143,16 +146,19 @@ Behat and Playwright SHALL share synthetic fixture places
 (`apps/api/features/fixtures/places.geojsonl`),
 loaded by `apps/api/features/fixtures.feature` through the same import command production uses,
 so they live in the DSLR `fixtures` snapshot.
+The fixture España SHALL be a multi-part boundary with mainland, Balearic, Ceuta, and Melilla parts,
+so Behat proves `national` and `state` outside the mainland.
 Playwright journeys SHALL run against the real lookup endpoint
-and SHALL abort every request to `/tiles/**`, so no suite needs the archive or the network.
+and SHALL abort every request to `https://tile.openstreetmap.org/**`, so no suite reaches OSM.
 
 ## Non-Goals
 
 - Storing coordinates for a movement, or showing movements on a map.
 - Forward search (typing a name to find a place on the map).
-- Coverage beyond Spain and the United Kingdom.
-  A point elsewhere answers "no place at that level"; widening coverage means a wider extract, not a code change.
-- A tile server, a geocoder service, or any process beyond the API and the database.
+- Place names beyond Spain and the United Kingdom.
+  A point elsewhere answers "no place at that level"; widening coverage means wider extracts, not a code change.
+- Naming Spanish waters or the *plazas de soberanía* (spec FR-012).
+- A tile server, a tile proxy, a geocoder service, or any process beyond the API and the database.
 - Refreshing map data automatically.
 
 ## Implementation Plan
@@ -160,8 +166,8 @@ and SHALL abort every request to `/tiles/**`, so no suite needs the archive or t
 ### Affected paths
 
 - `apps/web/package.json`, `apps/web/package-lock.json`
-- `apps/web/src/shared/map/` (new; the only Leaflet importer)
-- `apps/web/src/shared/geo/` (new; `GeoPoint`, `wrapLongitude`, `currentPosition`)
+- `apps/web/src/shared/map/` (the only Leaflet importer)
+- `apps/web/src/shared/geo/` (`GeoPoint`, `wrapLongitude`, `currentPosition`)
 - `apps/web/src/entities/movement/api/look-up-place-name.ts`
 - `apps/web/src/features/propose-movement/`
 - `apps/web/e2e/` (journeys, `support/map.ts`, `stubMapTiles` fixture)
@@ -172,8 +178,8 @@ and SHALL abort every request to `/tiles/**`, so no suite needs the archive or t
 - `apps/api/features/places.feature`, `apps/api/features/fixtures.feature`,
   `apps/api/features/fixtures/*.geojsonl`, `apps/api/tests/Behat/PlaceContext.php`
 - `db/schema.dbml`, `deptrac.yaml`
-- `docker/postgres/`, `docker/map/`, `docker/nginx/conf.d/web.conf`, `docker-compose.yml`, `Makefile`
-- `infrastructure/map/coverage.geojson`, `infrastructure/lib/frontend-stack.ts`
+- `docker/postgres/`, `docker/map/`, `docker-compose.yml`, `Makefile`
+- `infrastructure/lib/frontend-stack.ts`
 - `.github/workflows/map-data.yml`
 
 ### Steps
@@ -185,8 +191,8 @@ and SHALL abort every request to `/tiles/**`, so no suite needs the archive or t
 4. Add the console command, the `PlaceFeed` adapter, the lookup controller, and the Behat features;
    load the fixture places in `fixtures.feature` and re-snapshot with `make db`.
 5. Add `shared/geo`, `shared/map`, the lookup client, the picker, and their Vitest cases and journeys.
-6. Add the `map` container, `make map-data` and `make map-import`, the nginx `/tiles/` location,
-   the map-data bucket and `/tiles/*` behaviour, and the publishing workflow.
+6. Add the `map` container with the Overpass fetch and the guard,
+   `make map-data` and `make map-import`, the map-data bucket, and the publishing workflow.
 
 ### Patterns to follow
 
@@ -198,10 +204,10 @@ and SHALL abort every request to `/tiles/**`, so no suite needs the archive or t
 
 ### Patterns to avoid
 
-- Any absolute URL to a tile, font, sprite, or geocoder host in `apps/web`.
+- Any absolute URL to a geocoder host in `apps/web`.
 - `GET` with coordinates in the query string.
 - Logging a request body, or building an exception message from input, anywhere on the lookup path.
-- Importing `leaflet` or `protomaps-leaflet` outside `shared/map`.
+- Importing `leaflet` or `react-leaflet` outside `shared/map`.
 
 ## Verification
 
@@ -209,11 +215,12 @@ and SHALL abort every request to `/tiles/**`, so no suite needs the archive or t
       with the lookup endpoint answering every row of
       `specs/002-map-pinned-location/contracts/place-lookup-api.md`'s expected-lookups table.
 - [ ] `make lint` passes, including `php-deptrac` with the `DomainPort` layer.
-- [ ] `grep -rn "https://" apps/web/src/shared/map` finds only the attribution links.
-- [ ] `curl -I -H 'Range: bytes=0-15'` on `/tiles/spain-uk.pmtiles` answers `206`
-      locally after `make map-data` and on `preview` after the workflow runs.
-- [ ] On `preview`, the lookups for Huelin (all six levels) and central Sheffield
-      (`national`, `municipality`) match the contract's table against real OSM data.
+- [ ] `grep -rn "https://" apps/web/src/shared/map` finds only the tile template and the attribution link.
+- [ ] `docker/map/check-places.sh` passes on `make map-data`'s output
+      and fails on a places file without Spain's outlying boundaries.
+- [ ] On `preview`, the lookups for Huelin (all six levels), central Sheffield (`national`, `municipality`),
+      and Palma, Las Palmas de Gran Canaria, Ceuta, and Melilla (`national`, `state`)
+      match the spec against real OSM data.
 - [ ] The import of the full data set completes within half the console Lambda's 15-minute limit.
 
 ## Consequences
@@ -222,9 +229,13 @@ and SHALL abort every request to `/tiles/**`, so no suite needs the archive or t
   and the Aurora cluster runs the `postgis` extension.
 - The database holds a few hundred thousand rows of reference data
   that belong to no author and are replaced wholesale by each import.
-- The frontend's new and edit movement chunks carry Leaflet and `protomaps-leaflet`;
-  other routes do not.
-- A new bucket and CloudFront behaviour serve the archive, at the cost of its storage and transfer.
+- The frontend's new and edit movement chunks carry Leaflet; other routes do not.
+- The map depends on OpenStreetMap's community-funded tile servers:
+  if they are unreachable the map has no basemap, and pinning still works.
+  Traffic beyond their usage policy means moving to a commercial tile provider.
+- OSM sees each author's IP address and the map view, including the area around a pin.
+- The map data build depends on Geofabrik and the Overpass API being reachable,
+  and fails rather than shipping without Spain's outlying boundaries.
 - Map data goes stale until someone runs the workflow; OSM boundaries change slowly.
 - The pinned point never leaves the request that carries it,
   so no privacy review is needed for stored or logged coordinates.
@@ -236,27 +247,28 @@ and SHALL abort every request to `/tiles/**`, so no suite needs the archive or t
 - The import approaches the console Lambda's 15-minute limit:
   batch the inserts first (multi-row, capped by bind parameters),
   then consider importing from a container task instead.
-- Coverage must grow past Spain and the UK:
-  the tiles and the boundary rows grow with it; re-measure both before widening.
+- Coverage must grow past Spain and the UK: the boundary rows grow with it; re-measure the import before widening.
 - Lookups miss the 3-second budget (SC-001) at the 95th percentile:
   measure the GiST query on Aurora before changing the approach.
-- A Geofabrik extract stops yielding a country's `admin_level` 2 polygon:
-  add the relation from a wider extract with `osmium getid` rather than changing the lookup.
+- The guard fails although Overpass answered: check the relations' tags
+  (`admin_level`, `ISO3166-1`, `ISO3166-2`, `name`) before changing the query or the guard.
+- Traffic approaches OSM's tile usage policy, or authors object to OSM seeing their map views:
+  move to a commercial tile provider or a caching tile proxy.
 
 ## More Information
 
 - Research and alternatives: `specs/002-map-pinned-location/research.md` R1–R10
-  (self-hosted Nominatim, Photon, Pelias, a browser-side boundary file, raster tiles, MapLibre GL, OpenLayers).
+  (self-hosted Nominatim, Photon, Pelias, a browser-side boundary file,
+  the self-hosted PMTiles archive, a commercial tile provider, MapLibre GL, OpenLayers).
 - Corrects in place [ADR-0009](ADR-0009-adopt-postgresql-and-doctrine-dbal.md) (PostGIS)
-  and [ADR-0016](ADR-0016-aws-serverless-deployment.md) (map-data bucket and `/tiles/*` behaviour).
-- `protomaps-leaflet` `5.1.0` was the latest 5.x release at install (2026-10-16)
-  and makes no network request of its own beyond the archive it is given.
+  and [ADR-0016](ADR-0016-aws-serverless-deployment.md) (map-data bucket).
 
 ### 2026-10-16: first build and import, measured locally
 
 - `make map-data` took 17 minutes on a home connection,
   most of it downloading about 3.8 GB of Geofabrik extracts and cutting the tiles.
-- `spain-uk.pmtiles` is 6.2 GB at `--maxzoom=15` from the 2026-10-12 Protomaps build.
+- `spain-uk.pmtiles` was 6.2 GB at `--maxzoom=15` from the 2026-10-12 Protomaps build;
+  the archive was dropped later the same day in favour of OSM's tile servers.
 - `places.geojsonl` is 490 MB: 32,729 boundaries and 33,067 neighbourhood nodes.
   `osmium export` names an assembled area `a<2 × relation id + 1>`,
   which the `jq` filter turns back into the relation id.
@@ -268,6 +280,6 @@ and SHALL abort every request to `/tiles/**`, so no suite needs the archive or t
 - Against the real data, Huelin answers Andalucía, Málaga, Málaga-Costa del Sol, Málaga, and Huelin
   for `state` to `neighborhood`, and central Sheffield answers United Kingdom, England, and Sheffield,
   as the contract expects.
-  Huelin at `national` answers `null`:
-  Spain's country relation does not assemble from the clipped Geofabrik extract,
-  the known risk recorded under Revisit Triggers.
+  Huelin at `national` answered `null`:
+  Spain's country relation did not assemble from the clipped Geofabrik extract,
+  and Ceuta's did not either, which led to the Overpass fetch and the guard (FR-012).
