@@ -195,9 +195,14 @@ then denying permission and confirming the author is told and can still type.
 - **Map scrolled across the date line**: clicking a point on a map
   that has been scrolled past longitude ±180
   looks up the same real-world place as the equivalent point within range.
-- **Map unavailable**: if the map cannot be displayed,
-  the location field still works as a plain text field
+- **Map unavailable**: if the map cannot be displayed at all,
+  it is left out of the form,
+  the location field still works as a plain text field,
+  "use my location" still works,
   and the movement can be saved with a typed location.
+- **Basemap unavailable**: if the map's background imagery cannot be loaded,
+  the map is shown blank
+  and clicking it still places the marker and fills the location field.
 - **Slow lookup**: the author can keep typing or save while a place-name lookup is pending;
   a lookup that completes after the author has typed in the field
   does not overwrite what they typed.
