@@ -56,6 +56,8 @@ ESLint is the canonical TypeScript and React linting tool. It should check code-
 
 ESLint must extend or include `eslint-config-prettier` last so formatting rules owned by Prettier are disabled in ESLint.
 
+ESLint SHALL include `eslint-plugin-sonarjs` with its `recommended` config for bug-detection and cognitive-complexity rules.
+
 Use **prettier** for TypeScript formatting.
 
 Prettier is the canonical formatter for TypeScript, JavaScript, JSON, CSS, and other frontend text formats it supports. ESLint should not duplicate formatting concerns that Prettier owns.
@@ -112,7 +114,7 @@ The root `Makefile` should expose linting and static analysis through stable dev
 - PHP architecture rules are enforced by Deptrac.
 - PHP static correctness is checked by PHPStan.
 - PHP style and formatting are handled by Easy Coding Standard.
-- TypeScript and React code quality is checked by ESLint.
+- TypeScript and React code quality is checked by ESLint, including the SonarJS recommended rules.
 - Frontend formatting is handled by Prettier.
 - Frontend project hygiene is checked by Knip.
 - Xdebug supports debugging and coverage when explicitly enabled.
