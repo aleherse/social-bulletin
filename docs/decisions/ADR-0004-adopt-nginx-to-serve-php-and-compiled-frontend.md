@@ -13,11 +13,13 @@ An nginx container SHALL be added to Docker Compose using an official nginx imag
 
 Versioned nginx configuration SHALL live in the repository and be mounted into the container.
 
-nginx SHALL terminate HTTP for `DEV_API_URL` and `DEV_FRONT_URL`.
+nginx SHALL terminate HTTP for `DEV_API_URL`, `DEV_FRONT_URL` and `DEV_DOCS_URL`.
 
 For `DEV_API_URL`, nginx SHALL forward PHP requests to the PHP-FPM container via FastCGI using the Symfony public front controller.
 
 For `DEV_FRONT_URL`, nginx SHALL serve the compiled Vite frontend from the build output directory under `apps/web`.
+
+For `DEV_DOCS_URL`, nginx SHALL serve the Scalar page that `make docs-build` renders under `apps/docs/dist`.
 
 The frontend location SHALL use `try_files` so client-side routes fall back to the SPA entry document.
 
