@@ -9,6 +9,7 @@ Read this before making changes; the README covers human onboarding.
 |------------------|------------------------------------------------------|
 | `apps/api`       | Symfony HTTP application                             |
 | `apps/web`       | React + Vite frontend (Feature-Sliced Design)        |
+| `apps/docs`      | OpenAPI document and its Scalar rendering            |
 | `packages/core`  | Framework-free PHP domain and application logic      |
 | `infrastructure` | AWS CDK deployment app (`live` and `preview`)        |
 | `docker`         | Container images, nginx config, generated certs      |

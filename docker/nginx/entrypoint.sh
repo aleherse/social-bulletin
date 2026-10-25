@@ -22,7 +22,7 @@ if [ ! -f "$CERT_FILE" ] || [ ! -f "$KEY_FILE" ] \
     mkcert \
         -cert-file "$CERT_FILE" \
         -key-file "$KEY_FILE" \
-        social.aleherse.com "*.social.aleherse.com" dev.api.social.aleherse.com dev.app.social.aleherse.com localhost 127.0.0.1
+        social.aleherse.com "*.social.aleherse.com" dev.api.social.aleherse.com dev.app.social.aleherse.com dev.doc.social.aleherse.com localhost 127.0.0.1
 fi
 
 chown -R "${HOST_UID:-1000}:${HOST_GID:-1000}" "$CERT_DIR"

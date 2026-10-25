@@ -72,6 +72,7 @@ services:
         aliases:
           - dev.api.social.aleherse.com
           - dev.app.social.aleherse.com
+          - dev.doc.social.aleherse.com
 
   postgres:
     image: public.ecr.aws/docker/library/postgres:17
