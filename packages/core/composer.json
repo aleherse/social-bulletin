@@ -4,7 +4,7 @@
     "type": "library",
     "license": "proprietary",
     "require": {
-        "php": ">=8.3",
+        "php": ">=8.5",
         "doctrine/dbal": "^4.4",
         "symfony/translation-contracts": "^3.7",
         "symfony/uid": "^7.4",
