@@ -25,7 +25,8 @@ final class SignInHandlerSpec extends ObjectBehavior
     public function it_registers_a_user_for_an_unknown_email(
         UserRepository $users,
     ): void {
-        $users->findByEmail('new.user@example.com')->willReturn(null);
+        $users->findByEmail('new.user@example.com')
+            ->willReturn(null);
         $users->save(Argument::that(
             static fn (User $user): bool => Uuid::isValid((string) $user->id) && 'new.user@example.com' === $user->email,
         ))->shouldBeCalled();
@@ -37,7 +38,8 @@ final class SignInHandlerSpec extends ObjectBehavior
         UserRepository $users,
     ): void {
         $existing = User::restore(UserId::from(self::UUID), 'existing.user@example.com', new \DateTimeImmutable());
-        $users->findByEmail('existing.user@example.com')->willReturn($existing)
+        $users->findByEmail('existing.user@example.com')
+            ->willReturn($existing)
             ->shouldBeCalled();
         $users->save(Argument::any())->shouldNotBeCalled();
 
@@ -48,7 +50,8 @@ final class SignInHandlerSpec extends ObjectBehavior
         UserRepository $users,
     ): void {
         $existing = User::restore(UserId::from(self::UUID), 'existing.user@example.com', new \DateTimeImmutable());
-        $users->findByEmail('existing.user@example.com')->willReturn($existing)
+        $users->findByEmail('existing.user@example.com')
+            ->willReturn($existing)
             ->shouldBeCalled();
         $users->save(Argument::any())->shouldNotBeCalled();
 
@@ -81,6 +84,8 @@ final class SignInHandlerSpec extends ObjectBehavior
 
     private static function command(string $email): SignInCommand
     {
-        return SignInCommand::fromPayload(['email' => $email]);
+        return SignInCommand::fromPayload([
+            'email' => $email,
+        ]);
     }
 }

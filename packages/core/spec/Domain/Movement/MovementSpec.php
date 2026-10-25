@@ -26,20 +26,28 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->id->shouldBeLike(MovementId::from(self::ID));
         $this->authorId->shouldBeLike(UserId::from(self::AUTHOR_ID));
-        $this->title()->shouldBe('Community Gardens for Everyone');
-        $this->description()->shouldBe("## Why\nGardens for all.");
-        $this->category()->shouldBe('cooperative');
-        $this->area()->shouldBe(Area::Municipality);
-        $this->location()->shouldBe('Sheffield');
-        $this->status()->shouldBe(MovementStatus::Draft);
+        $this->title()
+            ->shouldBe('Community Gardens for Everyone');
+        $this->description()
+            ->shouldBe("## Why\nGardens for all.");
+        $this->category()
+            ->shouldBe('cooperative');
+        $this->area()
+            ->shouldBe(Area::Municipality);
+        $this->location()
+            ->shouldBe('Sheffield');
+        $this->status()
+            ->shouldBe(MovementStatus::Draft);
     }
 
     public function it_allows_an_empty_description_while_draft(): void
     {
         $this->beConstructedAsADraft(description: '');
 
-        $this->description()->shouldBe('');
-        $this->status()->shouldBe(MovementStatus::Draft);
+        $this->description()
+            ->shouldBe('');
+        $this->status()
+            ->shouldBe(MovementStatus::Draft);
     }
 
     public function it_rejects_a_blank_title(): void
@@ -81,7 +89,8 @@ final class MovementSpec extends ObjectBehavior
     {
         $this->submit();
 
-        $this->status()->shouldBe(MovementStatus::Proposed);
+        $this->status()
+            ->shouldBe(MovementStatus::Proposed);
     }
 
     public function it_rejects_submission_while_the_description_is_empty(): void
@@ -89,7 +98,8 @@ final class MovementSpec extends ObjectBehavior
         $this->beConstructedAsADraft(description: '');
 
         $this->shouldThrow(InvalidMovement::class)->during('submit');
-        $this->status()->shouldBe(MovementStatus::Draft);
+        $this->status()
+            ->shouldBe(MovementStatus::Draft);
     }
 
     public function it_rejects_submitting_a_movement_that_is_not_a_draft(): void
@@ -97,26 +107,34 @@ final class MovementSpec extends ObjectBehavior
         $this->submit();
 
         $this->shouldThrow(MovementNotDraft::class)->during('submit');
-        $this->status()->shouldBe(MovementStatus::Proposed);
+        $this->status()
+            ->shouldBe(MovementStatus::Proposed);
     }
 
     public function it_edits_every_field_while_draft(): void
     {
         $this->edit('Save All the Bees', 'New description.', 'animal_rights', 'region', 'Yorkshire');
 
-        $this->title()->shouldBe('Save All the Bees');
-        $this->description()->shouldBe('New description.');
-        $this->category()->shouldBe('animal_rights');
-        $this->area()->shouldBe(Area::Region);
-        $this->location()->shouldBe('Yorkshire');
-        $this->status()->shouldBe(MovementStatus::Draft);
+        $this->title()
+            ->shouldBe('Save All the Bees');
+        $this->description()
+            ->shouldBe('New description.');
+        $this->category()
+            ->shouldBe('animal_rights');
+        $this->area()
+            ->shouldBe(Area::Region);
+        $this->location()
+            ->shouldBe('Yorkshire');
+        $this->status()
+            ->shouldBe(MovementStatus::Draft);
     }
 
     public function it_clears_the_location_when_edited_to_international(): void
     {
         $this->edit('Global Climate Strike', '', 'cooperative', 'international', null);
 
-        $this->location()->shouldBe(null);
+        $this->location()
+            ->shouldBe(null);
     }
 
     public function it_applies_creation_rules_when_editing(): void
@@ -147,15 +165,18 @@ final class MovementSpec extends ObjectBehavior
             location: null,
         );
 
-        $this->location()->shouldBe(null);
-        $this->area()->shouldBe(Area::International);
+        $this->location()
+            ->shouldBe(null);
+        $this->area()
+            ->shouldBe(Area::International);
     }
 
     public function it_accepts_a_category_that_is_not_in_the_managed_list(): void
     {
         $this->beConstructedAsADraft(description: '', category: 'not-a-real-category');
 
-        $this->category()->shouldBe('not-a-real-category');
+        $this->category()
+            ->shouldBe('not-a-real-category');
     }
 
     // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.
@@ -164,7 +185,7 @@ final class MovementSpec extends ObjectBehavior
         string $description = "## Why\nGardens for all.",
         string $category = 'cooperative',
         string $area = 'municipality',
-        string|null $location = 'Sheffield',
+        ?string $location = 'Sheffield',
     ): void {
         $this->beConstructedThrough('draft', [
             MovementId::from(self::ID),

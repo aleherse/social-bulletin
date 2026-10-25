@@ -76,7 +76,7 @@ final class CreateMovementHandlerSpec extends ObjectBehavior
         string $description = "## Why\nGardens for all.",
         string $category = 'cooperative',
         string $area = 'municipality',
-        string|null $location = 'Sheffield',
+        ?string $location = 'Sheffield',
     ): CreateMovementCommand {
         return CreateMovementCommand::fromPayload([
             'title' => $title,

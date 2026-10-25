@@ -34,13 +34,15 @@ final class UserSpec extends ObjectBehavior
     {
         $this->beConstructedThrough('register', [UserId::from(self::ID), '   ']);
 
-        $this->shouldThrow(new InvalidEmailAddress('email.blank'))->duringInstantiation();
+        $this->shouldThrow(new InvalidEmailAddress('email.blank'))
+            ->duringInstantiation();
     }
 
     public function it_rejects_a_malformed_email(): void
     {
         $this->beConstructedThrough('register', [UserId::from(self::ID), 'not-an-email']);
 
-        $this->shouldThrow(new InvalidEmailAddress('email.invalid'))->duringInstantiation();
+        $this->shouldThrow(new InvalidEmailAddress('email.invalid'))
+            ->duringInstantiation();
     }
 }

@@ -77,7 +77,9 @@ final class OpenApiContext implements Context
     {
         $document = $this->document();
 
-        Assert::same($document['security'] ?? null, [['cookieAuth' => []]]);
+        Assert::same($document['security'] ?? null, [[
+            'cookieAuth' => [],
+        ]]);
         Assert::same(
             $document['components']['securitySchemes']['cookieAuth'] ?? null,
             [

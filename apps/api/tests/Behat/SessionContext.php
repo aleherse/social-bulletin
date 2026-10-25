@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Behat;
 
+use App\Messenger\CommandBus;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
-use App\Messenger\CommandBus;
 use Doctrine\DBAL\Connection;
 use SocialBulletin\Core\Application\User\Command\SignInCommand;
 use Webmozart\Assert\Assert;
@@ -29,7 +29,9 @@ final class SessionContext implements Context
     public function aUserExistsWithEmail(string $email): void
     {
         // ADR-0013: Given steps create state through application code.
-        $this->commandBus->dispatch(SignInCommand::fromPayload(['email' => $email]));
+        $this->commandBus->dispatch(SignInCommand::fromPayload([
+            'email' => $email,
+        ]));
     }
 
     #[Given('the request carries a :name cookie with the value :value')]
@@ -135,7 +137,9 @@ final class SessionContext implements Context
     {
         $count = $this->connection->fetchOne(
             'SELECT COUNT(*) FROM bulletin.users WHERE LOWER(email) = LOWER(:email)',
-            ['email' => $email],
+            [
+                'email' => $email,
+            ],
         );
 
         return (int) $count;

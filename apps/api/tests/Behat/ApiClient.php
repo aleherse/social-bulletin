@@ -19,7 +19,9 @@ final class ApiClient
 {
     private ?Response $response = null;
 
-    /** @var array<string, string> Cookie jar carried across requests in one scenario. */
+    /**
+     * @var array<string, string> Cookie jar carried across requests in one scenario.
+     */
     private array $cookies = [];
 
     public function __construct(
@@ -32,15 +34,16 @@ final class ApiClient
         string $path,
         ?string $body = null,
         string $contentType = 'application/vnd.api+json',
-    ): void
-    {
+    ): void {
         $request = Request::create(
             $path,
             $method,
             [],
             $this->cookies,
             [],
-            ['CONTENT_TYPE' => $contentType],
+            [
+                'CONTENT_TYPE' => $contentType,
+            ],
             $body,
         );
 
@@ -65,7 +68,8 @@ final class ApiClient
      */
     public function decodedResponse(): array
     {
-        $content = $this->response()->getContent();
+        $content = $this->response()
+            ->getContent();
 
         Assert::string($content);
 
@@ -90,9 +94,9 @@ final class ApiClient
     {
         foreach ($this->response()->headers->getCookies() as $cookie) {
             $value = $cookie->getValue();
-            $expired = $cookie->getExpiresTime() !== 0 && $cookie->getExpiresTime() < time();
+            $expired = 0 !== $cookie->getExpiresTime() && $cookie->getExpiresTime() < time();
 
-            if ($value === null || $value === '' || $expired) {
+            if (null === $value || '' === $value || $expired) {
                 unset($this->cookies[$cookie->getName()]);
 
                 continue;

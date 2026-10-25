@@ -7,7 +7,6 @@ namespace App\Tests\Behat;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Doctrine\DBAL\Connection;
-use RuntimeException;
 
 final class DatabaseContext implements Context
 {
@@ -29,11 +28,8 @@ final class DatabaseContext implements Context
 
         exec('dslr --url "$DSLR_DATABASE_URL" restore fixtures 2>&1', $output, $exitCode);
 
-        if ($exitCode !== 0) {
-            throw new RuntimeException(sprintf(
-                "Could not restore the DSLR 'fixtures' snapshot (did you run `make db`?):\n%s",
-                implode("\n", $output),
-            ));
+        if (0 !== $exitCode) {
+            throw new \RuntimeException(sprintf("Could not restore the DSLR 'fixtures' snapshot (did you run `make db`?):\n%s", implode("\n", $output)));
         }
     }
 }
