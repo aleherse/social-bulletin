@@ -9,9 +9,9 @@ use Prophecy\Argument;
 use SocialBulletin\Core\Application\Movement\Command\SubmitMovementCommand;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
+use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
-use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
 use SocialBulletin\Core\Domain\Movement\MovementStatus;
 use SocialBulletin\Core\Domain\User\UserId;
@@ -81,7 +81,7 @@ final class SubmitMovementHandlerSpec extends ObjectBehavior
         );
     }
 
-    private function command(string|null $authorId = null): SubmitMovementCommand
+    private function command(?string $authorId = null): SubmitMovementCommand
     {
         return new SubmitMovementCommand(self::ID, $authorId ?? self::AUTHOR_ID);
     }

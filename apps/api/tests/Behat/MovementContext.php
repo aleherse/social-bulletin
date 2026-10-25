@@ -4,26 +4,28 @@ declare(strict_types=1);
 
 namespace App\Tests\Behat;
 
+use App\Messenger\CommandBus;
+use App\Messenger\QueryBus;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
 use Doctrine\DBAL\Connection;
-use App\Messenger\CommandBus;
-use App\Messenger\QueryBus;
-use SocialBulletin\Core\Application\Movement\Command\SubmitMovementCommand;
 use SocialBulletin\Core\Application\Movement\Command\CreateMovementCommand;
+use SocialBulletin\Core\Application\Movement\Command\SubmitMovementCommand;
 use SocialBulletin\Core\Application\User\Command\SignInCommand;
-use SocialBulletin\Core\Application\User\Query\CurrentUserQuery;
 use SocialBulletin\Core\Application\User\Model\User;
+use SocialBulletin\Core\Application\User\Query\CurrentUserQuery;
 use Webmozart\Assert\Assert;
 
 use function JmesPath\search;
 
 final class MovementContext implements Context
 {
-    /** @var array<string, string> Movement ids created by Given steps, keyed by title. */
+    /**
+     * @var array<string, string> Movement ids created by Given steps, keyed by title.
+     */
     private array $movementIds = [];
 
     public function __construct(
@@ -121,7 +123,9 @@ final class MovementContext implements Context
      */
     private function signIn(string $email): User
     {
-        $this->commandBus->dispatch(SignInCommand::fromPayload(['email' => $email]));
+        $this->commandBus->dispatch(SignInCommand::fromPayload([
+            'email' => $email,
+        ]));
         $user = $this->queryBus->dispatch(new CurrentUserQuery($email));
         Assert::isInstanceOf($user, User::class);
 

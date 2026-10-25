@@ -23,18 +23,22 @@ final class ListMovementsHandlerSpec extends ObjectBehavior
     ): void {
         $authorId = self::AUTHOR_ID;
         $movement = self::movement();
-        $movements->byAuthor($authorId)->willReturn([$movement]);
+        $movements->byAuthor($authorId)
+            ->willReturn([$movement]);
 
-        $this->__invoke(new ListMovementsQuery($authorId))->shouldReturn([$movement]);
+        $this->__invoke(new ListMovementsQuery($authorId))
+            ->shouldReturn([$movement]);
     }
 
     public function it_lists_nothing_for_an_author_without_movements(
         MovementProvider $movements,
     ): void {
         $authorId = self::AUTHOR_ID;
-        $movements->byAuthor($authorId)->willReturn([]);
+        $movements->byAuthor($authorId)
+            ->willReturn([]);
 
-        $this->__invoke(new ListMovementsQuery($authorId))->shouldReturn([]);
+        $this->__invoke(new ListMovementsQuery($authorId))
+            ->shouldReturn([]);
     }
 
     private static function movement(): Movement

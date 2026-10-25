@@ -9,9 +9,9 @@ use Prophecy\Argument;
 use SocialBulletin\Core\Application\Movement\Command\UpdateMovementCommand;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
+use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
-use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
 use SocialBulletin\Core\Domain\Movement\MovementStatus;
 use SocialBulletin\Core\Domain\User\UserId;
@@ -117,12 +117,12 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
 
     // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.
     private function editCommand(
-        string|null $authorId = null,
+        ?string $authorId = null,
         string $title = 'Save All the Bees',
         string $description = 'New description.',
         string $category = 'animal_rights',
         string $area = 'region',
-        string|null $location = 'Yorkshire',
+        ?string $location = 'Yorkshire',
     ): UpdateMovementCommand {
         return UpdateMovementCommand::fromPayload([
             'title' => $title,

@@ -21,8 +21,10 @@ final class ListCategoriesHandlerSpec extends ObjectBehavior
     ): void {
         $animalRights = new Category('animal_rights');
         $cooperative = new Category('cooperative');
-        $categories->all()->willReturn([$animalRights, $cooperative]);
+        $categories->all()
+            ->willReturn([$animalRights, $cooperative]);
 
-        $this->__invoke(new ListCategoriesQuery())->shouldReturn([$animalRights, $cooperative]);
+        $this->__invoke(new ListCategoriesQuery())
+            ->shouldReturn([$animalRights, $cooperative]);
     }
 }
