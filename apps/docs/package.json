@@ -1,0 +1,14 @@
+{
+  "name": "docs",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "lint": "redocly lint openapi.json"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^2.71.0",
+    "@scalar/api-reference": "1.76.0"
+  }
+}

@@ -56,7 +56,7 @@ help: ## List supported targets and their purpose
 
 .PHONY: init
 init: ## Initialise (or update) everything from scratch; safe to re-run
-	+@$(call in_order,$(MAKE),env images deps web-build up db hooks setup-claude)
+	+@$(call in_order,$(MAKE),env images deps web-build docs-build up db hooks setup-claude)
 
 .PHONY: env
 env: ## Create .env and docker-compose.override.yml from their .dist templates when missing
@@ -75,6 +75,7 @@ deps: ## Install Composer and npm dependencies and the JWT key pair
 		cd /app/apps/api && php bin/console lexik:jwt:generate-keypair --skip-if-exists'
 	$(RUN_NODE) sh -ec '\
 		npm install --no-audit --no-fund --prefix /app/apps/web; \
+		npm install --no-audit --no-fund --prefix /app/apps/docs; \
 		npm install --no-audit --no-fund --prefix /app/infrastructure'
 
 .PHONY: hooks
@@ -95,6 +96,7 @@ urls: ## Print the addresses the development stack serves
 	@echo "Frontend (Vite dev server): https://dev.app.social.aleherse.com:$(NODE_PORT)"
 	@echo "API:                        https://dev.api.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))"
 	@echo "OpenAPI document:           https://dev.api.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/api/doc.json"
+	@echo "API documentation (Scalar): https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))"
 	@echo "PostgreSQL:                 localhost:$(POSTGRES_PORT) (bulletin/bulletin)"
 
 .PHONY: down
@@ -116,6 +118,14 @@ console: ## Run a Symfony console command, e.g. `make console cmd="cache:clear"`
 .PHONY: openapi
 openapi: ## Regenerate apps/docs/openapi.json, the OpenAPI document of the API
 	$(OPENAPI_DUMP) > apps/docs/openapi.json.tmp && mv apps/docs/openapi.json.tmp apps/docs/openapi.json
+
+.PHONY: docs-lint
+docs-lint: ## Validate apps/docs/openapi.json with Redocly (whole project only: it judges the document)
+	$(RUN_NODE) npm run lint --prefix /app/apps/docs
+
+.PHONY: docs-build
+docs-build: ## Render apps/docs/openapi.json to apps/docs/dist/index.html with Scalar
+	$(RUN_NODE) npm run build --prefix /app/apps/docs
 
 .PHONY: openapi-check
 openapi-check: ## Check apps/docs/openapi.json matches the routes (whole project only: it judges the generated document)
@@ -225,9 +235,9 @@ GATE := $(GATE_ENV) $(MAKE)
 # - suites:  the database-backed suites, one after the other: both restore
 #            the same snapshot into the same database.
 GATE_PREPARE := images deps
-LINT_CHECKS := php-deptrac php-stan php-ecs openapi-check web-tsc web-eslint web-knip web-prettier infra-tsc
+LINT_CHECKS := php-deptrac php-stan php-ecs openapi-check docs-lint web-tsc web-eslint web-knip web-prettier infra-tsc
 GATE_CHEAP := $(LINT_CHECKS)
-GATE_BUILD := php-unit web-unit web-build db
+GATE_BUILD := php-unit web-unit web-build docs-build db
 GATE_SUITES := api-tests web-e2e-run
 GATE_STAGES := $(GATE_PREPARE) $(GATE_CHEAP) $(GATE_BUILD) $(GATE_SUITES)
 
