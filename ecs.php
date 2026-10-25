@@ -7,7 +7,9 @@
 
 declare(strict_types=1);
 
+use PhpCsFixer\Fixer\ControlStructure\YodaStyleFixer;
 use PhpCsFixer\Fixer\LanguageConstruct\NullableTypeDeclarationFixer;
+use PhpCsFixer\Fixer\Operator\ConcatSpaceFixer;
 use PhpCsFixer\Fixer\Phpdoc\NoSuperfluousPhpdocTagsFixer;
 use PHP_CodeSniffer\Standards\Squiz\Sniffs\PHP\CommentedOutCodeSniff;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
@@ -25,7 +27,13 @@ return ECSConfig::configure()
         'remove_inheritdoc' => true,
     ])
     ->withPreparedSets(psr12: true, common: true)
-    ->withPhpCsFixerSets(symfony: true)
+    // ECS 13.3 dropped the PHP-CS-Fixer @Symfony set; keep its two visible conventions explicitly.
+    ->withConfiguredRule(YodaStyleFixer::class, [
+        'equal' => true,
+        'identical' => true,
+        'less_and_greater' => false,
+    ])
+    ->withConfiguredRule(ConcatSpaceFixer::class, ['spacing' => 'none'])
     // PhpSpec's spec loader rejects `?type` parameters, so specs keep `type|null`.
     ->withSkip([
         NullableTypeDeclarationFixer::class => [__DIR__ . '/packages/core/spec'],
