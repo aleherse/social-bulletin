@@ -27,6 +27,8 @@ Easy Coding Standard is the canonical PHP style tool. It should own PHP code sty
 
 Easy Coding Standard SHALL be configured with sensible Symfony/PHP defaults. Easy Coding Standard SHALL not duplicate architectural dependency rules that belong to Deptrac or type-system checks that belong to PHPStan.
 
+Easy Coding Standard SHALL check `src` and the test code (Behat contexts, PhpSpec specs). PHPStan SHALL check `src` and the Behat contexts; PhpSpec specs are excluded because PhpSpec's `$this` proxy is not analysable.
+
 Use **xdebug** for PHP debugging and coverage instrumentation.
 
 Xdebug is the canonical PHP runtime extension for step debugging, coverage collection, and profiling. It should be available in development and test containers with this runtime configuration:

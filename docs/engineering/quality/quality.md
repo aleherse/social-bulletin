@@ -5,6 +5,8 @@ before it is committed:
 
 - PHP: Deptrac (architecture), PHPStan (static analysis),
   Easy Coding Standard (style).
+  ECS covers Behat contexts and PhpSpec specs too; PHPStan covers Behat contexts but not specs,
+  whose PhpSpec proxy it cannot analyse.
 - Web: `tsc`, ESLint, Prettier, knip.
 - Infrastructure: the CDK app's TypeScript typecheck.
 - Suites: PHPSpec, Vitest, Behat, Playwright, and the frontend build.
