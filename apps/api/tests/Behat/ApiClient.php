@@ -20,7 +20,7 @@ final class ApiClient
     private ?Response $response = null;
 
     /**
-     * @var array<string, string> Cookie jar carried across requests in one scenario.
+     * @var array<string, string> cookie jar carried across requests in one scenario
      */
     private array $cookies = [];
 
