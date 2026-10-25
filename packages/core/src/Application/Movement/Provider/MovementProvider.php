@@ -7,11 +7,7 @@ namespace SocialBulletin\Core\Application\Movement\Provider;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use SocialBulletin\Core\Application\Movement\Model\Movement;
-use SocialBulletin\Core\Domain\Movement\Area;
-use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
-use SocialBulletin\Core\Domain\Movement\MovementStatus;
-use SocialBulletin\Core\Domain\User\UserId;
 use Symfony\Component\Uid\Uuid;
 
 class MovementProvider
@@ -24,14 +20,14 @@ class MovementProvider
     /**
      * @return list<Movement> newest first
      */
-    public function byAuthor(UserId $authorId): array
+    public function byAuthor(string $authorId): array
     {
         /** @var list<array<string, string|null>> $rows */
         $rows = $this->getQueryBuilder()
             ->where('author_id = :author_id')
             ->orderBy('created_at', 'DESC')
             ->addOrderBy('id', 'DESC')
-            ->setParameter('author_id', (string) $authorId)
+            ->setParameter('author_id', $authorId)
             ->fetchAllAssociative();
 
         return array_map($this->hydrate(...), $rows);
@@ -40,7 +36,7 @@ class MovementProvider
     /**
      * @throws MovementNotFound when unknown or owned by another user
      */
-    public function authorMovement(string $id, UserId $authorId): Movement
+    public function authorMovement(string $id, string $authorId): Movement
     {
         // Route parameters are arbitrary text; PostgreSQL rejects
         // non-UUID values on a UUID column instead of returning no rows.
@@ -53,7 +49,7 @@ class MovementProvider
             ->where('id = :id')
             ->andWhere('author_id = :author_id')
             ->setParameter('id', $id)
-            ->setParameter('author_id', (string) $authorId)
+            ->setParameter('author_id', $authorId)
             ->fetchAssociative();
 
         if (false === $row) {
@@ -89,13 +85,13 @@ class MovementProvider
     private function hydrate(array $row): Movement
     {
         return new Movement(
-            MovementId::from((string) $row['id']),
+            (string) $row['id'],
             (string) $row['title'],
             (string) $row['description'],
             (string) $row['category'],
-            Area::from((string) $row['area']),
+            (string) $row['area'],
             $row['location'],
-            MovementStatus::from((string) $row['status']),
+            (string) $row['status'],
             new \DateTimeImmutable((string) $row['created_at']),
             new \DateTimeImmutable((string) $row['updated_at']),
         );

@@ -7,6 +7,7 @@ namespace SocialBulletin\Core\Application\Movement\Command;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
+use SocialBulletin\Core\Domain\User\UserId;
 
 final readonly class CreateMovementHandler
 {
@@ -22,7 +23,7 @@ final readonly class CreateMovementHandler
     {
         $this->movements->save(Movement::draft(
             $command->id,
-            $command->authorId,
+            UserId::from($command->authorId),
             $command->title,
             $command->description,
             $command->category,

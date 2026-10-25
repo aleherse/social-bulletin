@@ -29,8 +29,11 @@ one returning the aggregate to mutate, the other the model to render.
 
 **THEN** return `final readonly` classes named after the aggregate itself — no `View` or `Dto` suffix, since
 `core/src/Application/<Aggregate>/Model/` already says what they are — carrying public promoted properties and
-nothing else: no methods, no derived values, no validation. A model may hold domain value objects, never an
-aggregate, and carries only what its readers use: `Model\Movement` has no `authorId`, because ownership scopes the
+nothing else: no methods, no derived values, no validation. A model holds scalars and dates only — ids, enum values and statuses as `string` — never a domain value object or
+an aggregate, so the transformer that renders it (`application-framework-0006`) and the OpenAPI describer read it as it is.
+The ids a model hands out are strings, so the commands and queries a controller builds from them (`ShowMovementQuery`,
+`SubmitMovementCommand`) take `string $authorId`; the handler makes the `UserId` where the domain needs one.
+It carries only what its readers use: `Model\Movement` has no `authorId`, because ownership scopes the
 query in SQL rather than being re-checked in PHP after the read. A model and its aggregate share a short name and
 are told apart by their namespace, so a file imports only the one it needs.
 
@@ -39,8 +42,10 @@ are told apart by their namespace, so a file imports only the one it needs.
 | Wrong                                                           | Right                                                       |
 |-----------------------------------------------------------------|-------------------------------------------------------------|
 | `MovementProvider::byAuthor(): list<Domain\Movement\Movement>`   | `list<Application\Movement\Model\Movement>`                 |
-| `Model\Movement::toArray()`, `Model\Movement::isDraft()`        | plain properties; `MovementPresenter` maps them to JSON     |
+| `Model\Movement::toArray()`, `Model\Movement::isDraft()`        | plain properties; `MovementTransformer` maps them to JSON    |
 | `public UserId $authorId` on the model, compared after the read | `->andWhere('author_id = :author_id')` in the provider      |
+| `public MovementId $id`, `public Area $area` on `Model\Movement` | `public string $id`, `public string $area`                  |
+| `public UserId $id` on `Model\User`, then `UserId::from()` in a controller | `public string $id`; the handler calls `UserId::from($command->authorId)` |
 | `Application/Movement/Model/MovementView.php`                   | `Application/Movement/Model/Movement.php`                   |
 
 ## application-queries-0003: A query declares what handling it returns

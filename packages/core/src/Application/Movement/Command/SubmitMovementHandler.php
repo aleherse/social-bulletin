@@ -8,6 +8,7 @@ use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
+use SocialBulletin\Core\Domain\User\UserId;
 
 final readonly class SubmitMovementHandler
 {
@@ -23,7 +24,7 @@ final readonly class SubmitMovementHandler
      */
     public function __invoke(SubmitMovementCommand $command): void
     {
-        $movement = $this->movements->authorMovement($command->id, $command->authorId);
+        $movement = $this->movements->authorMovement($command->id, UserId::from($command->authorId));
         $movement->submit();
 
         $this->movements->save($movement);

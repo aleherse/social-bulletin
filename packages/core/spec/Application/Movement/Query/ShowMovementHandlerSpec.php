@@ -8,11 +8,7 @@ use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Application\Movement\Model\Movement;
 use SocialBulletin\Core\Application\Movement\Provider\MovementProvider;
 use SocialBulletin\Core\Application\Movement\Query\ShowMovementQuery;
-use SocialBulletin\Core\Domain\Movement\Area;
-use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementNotFound;
-use SocialBulletin\Core\Domain\Movement\MovementStatus;
-use SocialBulletin\Core\Domain\User\UserId;
 
 final class ShowMovementHandlerSpec extends ObjectBehavior
 {
@@ -27,7 +23,7 @@ final class ShowMovementHandlerSpec extends ObjectBehavior
     public function it_shows_the_movement_the_provider_scoped_to_the_author(
         MovementProvider $movements,
     ): void {
-        $authorId = UserId::from(self::AUTHOR_ID);
+        $authorId = self::AUTHOR_ID;
         $movement = self::movement();
         $movements->authorMovement(self::ID, $authorId)->willReturn($movement);
 
@@ -37,7 +33,7 @@ final class ShowMovementHandlerSpec extends ObjectBehavior
     public function it_hides_a_movement_the_provider_does_not_return(
         MovementProvider $movements,
     ): void {
-        $authorId = UserId::from(self::AUTHOR_ID);
+        $authorId = self::AUTHOR_ID;
         $movements->authorMovement(self::ID, $authorId)
             ->willThrow(new MovementNotFound('movement.not_found'));
 
@@ -49,13 +45,13 @@ final class ShowMovementHandlerSpec extends ObjectBehavior
     private static function movement(): Movement
     {
         return new Movement(
-            MovementId::from(self::ID),
+            self::ID,
             'Community Gardens for Everyone',
             "## Why\nGardens for all.",
             'cooperative',
-            Area::Municipality,
+            'municipality',
             'Sheffield',
-            MovementStatus::Draft,
+            'draft',
             new \DateTimeImmutable(),
             new \DateTimeImmutable(),
         );

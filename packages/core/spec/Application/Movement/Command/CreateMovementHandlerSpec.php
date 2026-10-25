@@ -11,7 +11,6 @@ use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementRepository;
 use SocialBulletin\Core\Domain\Movement\MovementStatus;
-use SocialBulletin\Core\Domain\User\UserId;
 
 final class CreateMovementHandlerSpec extends ObjectBehavior
 {
@@ -67,7 +66,7 @@ final class CreateMovementHandlerSpec extends ObjectBehavior
                 'description' => 'Gardens for all.',
                 'category' => 'cooperative',
                 'area' => 'international',
-            ], UserId::from(self::AUTHOR_ID)),
+            ], self::AUTHOR_ID),
         ]);
     }
 
@@ -85,6 +84,6 @@ final class CreateMovementHandlerSpec extends ObjectBehavior
             'category' => $category,
             'area' => $area,
             'location' => $location,
-        ], UserId::from(self::AUTHOR_ID));
+        ], self::AUTHOR_ID);
     }
 }

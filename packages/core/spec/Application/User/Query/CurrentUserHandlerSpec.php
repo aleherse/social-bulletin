@@ -8,7 +8,6 @@ use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Application\User\Model\User;
 use SocialBulletin\Core\Application\User\Provider\UserProvider;
 use SocialBulletin\Core\Application\User\Query\CurrentUserQuery;
-use SocialBulletin\Core\Domain\User\UserId;
 
 final class CurrentUserHandlerSpec extends ObjectBehavior
 {
@@ -19,7 +18,7 @@ final class CurrentUserHandlerSpec extends ObjectBehavior
 
     public function it_returns_the_user_behind_an_email(UserProvider $users): void
     {
-        $user = new User(UserId::from('0198f2f0-6d2c-7cf0-a2b8-111111111111'), 'author@example.com');
+        $user = new User('0198f2f0-6d2c-7cf0-a2b8-111111111111', 'author@example.com');
         $users->byEmail('author@example.com')->willReturn($user);
 
         $this->__invoke(new CurrentUserQuery('author@example.com'))->shouldReturn($user);
@@ -34,7 +33,7 @@ final class CurrentUserHandlerSpec extends ObjectBehavior
 
     public function it_looks_the_user_up_under_the_normalised_email(UserProvider $users): void
     {
-        $user = new User(UserId::from('0198f2f0-6d2c-7cf0-a2b8-111111111111'), 'author@example.com');
+        $user = new User('0198f2f0-6d2c-7cf0-a2b8-111111111111', 'author@example.com');
         $users->byEmail('author@example.com')->willReturn($user);
 
         $this->__invoke(new CurrentUserQuery('  author@example.com  '))->shouldReturn($user);
