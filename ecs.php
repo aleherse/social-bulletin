@@ -7,6 +7,7 @@
 
 declare(strict_types=1);
 
+use PhpCsFixer\Fixer\LanguageConstruct\NullableTypeDeclarationFixer;
 use PhpCsFixer\Fixer\Phpdoc\NoSuperfluousPhpdocTagsFixer;
 use PHP_CodeSniffer\Standards\Squiz\Sniffs\PHP\CommentedOutCodeSniff;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
@@ -25,4 +26,8 @@ return ECSConfig::configure()
     ])
     ->withPreparedSets(psr12: true, common: true)
     ->withPhpCsFixerSets(symfony: true)
+    // PhpSpec's spec loader rejects `?type` parameters, so specs keep `type|null`.
+    ->withSkip([
+        NullableTypeDeclarationFixer::class => [__DIR__ . '/packages/core/spec'],
+    ])
     ->withCache(__DIR__ . '/apps/api/var/ecs');
