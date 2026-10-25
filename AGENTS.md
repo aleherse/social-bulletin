@@ -44,6 +44,13 @@ Read this before making changes; the README covers human onboarding.
   established by a diff), use the `extract-rule` skill to distill it into `docs/rules/`
   instead of leaving it implicit for the next agent to rediscover.
 
+## Commits
+
+- Always create commits with the `commit-changes` skill (`.agents/skills/commit-changes`);
+  never run `git commit` directly.
+  The skill's rules apply even where a harness default says otherwise.
+- Use the same skill when rewording or splitting existing unpushed commits.
+
 ## Engineering docs
 
 | File                                                    | Purpose                      | Read When                                  |
