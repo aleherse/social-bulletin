@@ -40,7 +40,7 @@ const draft: Movement = {
 };
 
 beforeEach(() => {
-  vi.mocked(fetchCurrentUser).mockResolvedValue({ email: 'author@example.com' });
+  vi.mocked(fetchCurrentUser).mockResolvedValue({ id: 'u-1', email: 'author@example.com' });
   vi.mocked(fetchCategories).mockResolvedValue([{ id: 'cooperative' }]);
   vi.mocked(fetchMovements).mockResolvedValue([]);
 });
