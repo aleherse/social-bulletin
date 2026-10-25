@@ -117,12 +117,12 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
 
     // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.
     private function editCommand(
-        ?string $authorId = null,
+        string|null $authorId = null,
         string $title = 'Save All the Bees',
         string $description = 'New description.',
         string $category = 'animal_rights',
         string $area = 'region',
-        ?string $location = 'Yorkshire',
+        string|null $location = 'Yorkshire',
     ): UpdateMovementCommand {
         return UpdateMovementCommand::fromPayload([
             'title' => $title,

@@ -185,7 +185,7 @@ final class MovementSpec extends ObjectBehavior
         string $description = "## Why\nGardens for all.",
         string $category = 'cooperative',
         string $area = 'municipality',
-        ?string $location = 'Sheffield',
+        string|null $location = 'Sheffield',
     ): void {
         $this->beConstructedThrough('draft', [
             MovementId::from(self::ID),

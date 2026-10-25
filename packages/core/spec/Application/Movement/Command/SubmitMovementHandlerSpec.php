@@ -81,7 +81,7 @@ final class SubmitMovementHandlerSpec extends ObjectBehavior
         );
     }
 
-    private function command(?string $authorId = null): SubmitMovementCommand
+    private function command(string|null $authorId = null): SubmitMovementCommand
     {
         return new SubmitMovementCommand(self::ID, $authorId ?? self::AUTHOR_ID);
     }
