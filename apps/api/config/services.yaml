@@ -19,6 +19,13 @@ services:
     App\:
         resource: '../src/'
 
+    # one Fractal manager, rendering every resource as a JSON:API document
+    League\Fractal\Manager:
+        calls:
+            - setSerializer: ['@League\Fractal\Serializer\JsonApiSerializer']
+
+    League\Fractal\Serializer\JsonApiSerializer: ~
+
     # makes every packages/core `*Repository` class available as a service:
     SocialBulletin\Core\Domain\:
         resource: '../../../packages/core/src/Domain/*/*Repository.php'

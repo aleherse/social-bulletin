@@ -27,7 +27,12 @@ final class ApiClient
     ) {
     }
 
-    public function request(string $method, string $path, ?string $body = null): void
+    public function request(
+        string $method,
+        string $path,
+        ?string $body = null,
+        string $contentType = 'application/vnd.api+json',
+    ): void
     {
         $request = Request::create(
             $path,
@@ -35,12 +40,17 @@ final class ApiClient
             [],
             $this->cookies,
             [],
-            ['CONTENT_TYPE' => 'application/json'],
+            ['CONTENT_TYPE' => $contentType],
             $body,
         );
 
         $this->response = $this->kernel->handle($request);
         $this->storeResponseCookies();
+    }
+
+    public function setCookie(string $name, string $value): void
+    {
+        $this->cookies[$name] = $value;
     }
 
     public function response(): Response
