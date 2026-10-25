@@ -33,7 +33,8 @@ in_order_k = ( rc=0; $(foreach t,$(2),$(1) $(t) || rc=$$?;) exit $$rc )
 # prefix its container works from, and says so when none are left.
 FILES ?=
 PATHS ?=
-php_files = $(filter %.php,$(FILES))
+# ECS and PHPStan scope: the source trees their configs list, so narrowing never adds files the whole-project run skips.
+php_files = $(filter apps/api/src/%.php packages/core/src/%.php,$(FILES))
 web_files = $(patsubst apps/web/%,%,$(filter apps/web/%,$(FILES)))
 # $(call narrowed,<matching files>,<command>): whole project without FILES,
 # the matching files with it, nothing when FILES matches none.
