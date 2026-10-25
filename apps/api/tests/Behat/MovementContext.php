@@ -18,7 +18,6 @@ use SocialBulletin\Core\Application\User\Command\SignInCommand;
 use SocialBulletin\Core\Application\User\Model\User;
 use SocialBulletin\Core\Application\User\Query\CurrentUserQuery;
 use Webmozart\Assert\Assert;
-
 use function JmesPath\search;
 
 final class MovementContext implements Context

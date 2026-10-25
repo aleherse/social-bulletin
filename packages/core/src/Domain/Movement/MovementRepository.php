@@ -39,15 +39,15 @@ class MovementRepository
                 SQL
                 , [
                     'id' => (string) $movement->id,
-                                'author_id' => (string) $movement->authorId,
-                                'title' => $movement->title(),
-                                'description' => $movement->description(),
-                                'category' => $movement->category(),
-                                'area' => $movement->area()
-                                    ->value,
-                                'location' => $movement->location(),
-                                'status' => $movement->status()
-                                    ->value,
+                    'author_id' => (string) $movement->authorId,
+                    'title' => $movement->title(),
+                    'description' => $movement->description(),
+                    'category' => $movement->category(),
+                    'area' => $movement->area()
+                        ->value,
+                    'location' => $movement->location(),
+                    'status' => $movement->status()
+                        ->value,
                 ]);
         } catch (ForeignKeyConstraintViolationException $exception) {
             if (! str_contains($exception->getMessage(), 'movements_category_fk')) {

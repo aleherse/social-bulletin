@@ -7,7 +7,6 @@ namespace App\Tests\Behat;
 use Behat\Behat\Context\Context;
 use Behat\Step\Then;
 use Webmozart\Assert\Assert;
-
 use function JmesPath\search;
 
 final class OpenApiContext implements Context

@@ -15,6 +15,7 @@ use SocialBulletin\Core\Domain\User\UserId;
 final class MovementSpec extends ObjectBehavior
 {
     private const ID = '0198f2f0-6d2c-7cf0-a2b8-222222222222';
+
     private const AUTHOR_ID = '0198f2f0-6d2c-7cf0-a2b8-111111111111';
 
     public function let(): void

@@ -13,6 +13,7 @@ use SocialBulletin\Core\Domain\Movement\MovementNotFound;
 final class ShowMovementHandlerSpec extends ObjectBehavior
 {
     private const ID = '0198f2f0-6d2c-7cf0-a2b8-222222222222';
+
     private const AUTHOR_ID = '0198f2f0-6d2c-7cf0-a2b8-111111111111';
 
     public function let(MovementProvider $movements): void

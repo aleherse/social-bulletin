@@ -35,7 +35,7 @@ class UserRepository
             SQL
             , [
                 'id' => (string) $user->id,
-                        'email' => $user->email,
+                'email' => $user->email,
             ]);
     }
 

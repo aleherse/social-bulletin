@@ -13,7 +13,6 @@ use Behat\Step\When;
 use Doctrine\DBAL\Connection;
 use SocialBulletin\Core\Application\User\Command\SignInCommand;
 use Webmozart\Assert\Assert;
-
 use function JmesPath\search;
 
 final class SessionContext implements Context
