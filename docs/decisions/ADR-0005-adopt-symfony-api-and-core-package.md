@@ -19,12 +19,13 @@ The Symfony application owns HTTP controllers, framework configuration, public r
 
 These Symfony packages SHALL be installed:
 - `nelmio/api-doc-bundle` to expose the OpenAPI specification as a JSON document only.
+- `league/fractal` to render controller results as JSON:API documents.
 - `symfony/monolog-bundle` to emit structured JSON log events to `stderr` in all environments.
 - `nelmio/cors-bundle` to send Cross-Origin Resource Sharing headers.
 - `symfony/uid` to generate unique identifiers based on `Uuid::v7()`.
 - `webmozart/assert` to validate method input/output with nice error messages.
 
-CORS SHALL be configured to accept connections from `DEV_FRONT_URL`.
+CORS SHALL be configured to accept connections from `DEV_FRONT_URL` and `DEV_DOCS_URL`, with credentials.
 
 Docker PHP container `CMD` SHALL execute `php-fpm`.
 
