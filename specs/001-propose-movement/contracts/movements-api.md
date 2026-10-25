@@ -7,19 +7,31 @@ an `errors` array whose objects carry `status` and a translatable `title`;
 validation errors add one object per field, with the problem in `detail` and
 `source.pointer` set to the request field (e.g. `/title`).
 
-Movement JSON representation (all responses):
+Success responses are JSON:API documents (`application/vnd.api+json`) with the
+resource under `data` (`type`, `id`, `attributes`); lists are a `data` array.
+Requests are resource documents too: `Content-Type: application/vnd.api+json` and
+`{"data": {"type": "movements", "attributes": {…}}}`, where the fields listed under
+**Request** below are the `attributes`. Another media type is refused with `415`,
+a malformed body with `400`, and a wrong `type` or an `id` that contradicts the
+path with `409`.
+The generated `apps/docs/openapi.json` (`make openapi`) is the authoritative schema.
+
+Movement resource (`data` of every movement response):
 
 ```json
 {
+  "type": "movements",
   "id": "0198c2f4-…",
-  "title": "Community Gardens for Everyone",
-  "description": "## Why\n…raw markdown…",
-  "category": "cooperative",
-  "area": "municipality",
-  "location": "Sheffield",
-  "status": "draft",
-  "createdAt": "2026-07-19T10:00:00+00:00",
-  "updatedAt": "2026-07-19T10:00:00+00:00"
+  "attributes": {
+    "title": "Community Gardens for Everyone",
+    "description": "## Why\n…raw markdown…",
+    "category": "cooperative",
+    "area": "municipality",
+    "location": "Sheffield",
+    "status": "draft",
+    "createdAt": "2026-07-19T10:00:00+00:00",
+    "updatedAt": "2026-07-19T10:00:00+00:00"
+  }
 }
 ```
 
@@ -30,7 +42,7 @@ Movement JSON representation (all responses):
 Returns the managed category list for the proposal form (FR-002).
 
 - **Auth**: required (form is only for signed-in users).
-- **200**: `{"categories": [{"id": "animal_rights"}, …]}` in sort
+- **200**: `{"data": [{"type": "categories", "id": "animal_rights"}, …]}` in sort
   order.
 
 ## POST /api/movements
@@ -39,7 +51,7 @@ Creates a movement draft (US1, FR-001, FR-005).
 
 - **Request**: `title`, `category`, `area`, `location` (omit or null
   for `international`), optional `description` (defaults to `""`).
-- **201**: the movement JSON, `status = "draft"`.
+- **201**: the movement resource, `status = "draft"`.
 - **400**: missing/invalid fields (title empty or too long, unknown
   `category`, invalid `area`, location/area mismatch); body names each
   offending field (US1 scenario 4).
@@ -49,14 +61,14 @@ Creates a movement draft (US1, FR-001, FR-005).
 
 Lists the authenticated user's own movements, newest first (FR-007).
 
-- **200**: `{"movements": [ …movement JSON… ]}`.
+- **200**: `{"data": [ …movement resources… ]}`.
 - **401**: no valid session cookie.
 
 ## GET /api/movements/{id}
 
 Fetches one movement.
 
-- **200**: movement JSON — only if the requester is the author
+- **200**: movement resource — only if the requester is the author
   (FR-007).
 - **404**: unknown id, or the movement belongs to another user
   (existence is not revealed).
@@ -68,7 +80,7 @@ Edits a draft (US3).
 
 - **Request**: any subset of `title`, `description`, `category`,
   `area`, `location`.
-- **200**: updated movement JSON; `updatedAt` refreshed (FR-009).
+- **200**: updated movement resource; `updatedAt` refreshed (FR-009).
 - **400**: same field validation as creation.
 - **404**: unknown id or not the author.
 - **409**: movement is not in `draft` status (edits are draft-only).
@@ -78,7 +90,7 @@ Edits a draft (US3).
 
 Submits a draft as a proposal (US2, FR-006).
 
-- **200**: movement JSON with `status = "proposed"`.
+- **200**: movement resource with `status = "proposed"`.
 - **400**: description is empty — body says a description is required
   to propose the movement (US2 scenario 2).
 - **404**: unknown id or not the author (US2 scenario 4).
