@@ -116,3 +116,63 @@ the web client (`readApiError()`) and the Behat steps read this shape.
 |----------------------------------------------|--------------------------------------------------------------------------------------------------|
 | `{"message": "…", "errors": {"title": "…"}}` | `{"errors": [{"status": "400", "title": "…", "detail": "…", "source": {"pointer": "/title"}}]}` |
 | Behat: `the JSON at "errors.title"`          | `the JSON at "errors[?source.pointer=='/title'].detail \| [0]"`                                  |
+
+## application-framework-0006: Controllers return models; a view listener renders the JSON:API document
+
+**WHEN** a controller under `apps/api/src/Controller` answers with a resource or a list of them
+
+**THEN** return the `Core\Application` model (or `list<Model>`) and mark the controller with
+`#[JsonApi(<Name>Transformer::class, '<type>')]` (`status:` when it is not 200). `App\EventListener\JsonApiViewListener`
+wraps the result in a `data` document served as `application/vnd.api+json`, and
+`App\Http\OpenApi\JsonApiRouteDescriber` documents the same route from the same attribute. The transformer in
+`apps/api/src/Http/Transformer/` is the only place that maps a model to the wire shape — `id` stays in its array, and
+Fractal lifts it out of `attributes`. A controller that sets a cookie still returns the model and leaves the token on the request
+(`SessionCookieListener::TOKEN_ATTRIBUTE`); one that returns no body returns its own `Response`, which the listener
+leaves alone. Never build `new JsonResponse([...])` for a resource.
+
+**Example:**
+
+| Wrong                                                                 | Right                                                                   |
+|-----------------------------------------------------------------------|-------------------------------------------------------------------------|
+| `return new JsonResponse(MovementPresenter::toArray($movement));`     | `#[JsonApi(MovementTransformer::class, 'movements')]` and `return $movement;` |
+| `new JsonResponse(['movements' => [...]])`                            | `list<Movement>` return; the document is `{"data": [...]}`              |
+| `new JsonResponse($body, Response::HTTP_CREATED)` for a create        | `#[JsonApi(MovementTransformer::class, 'movements', status: Response::HTTP_CREATED)]` |
+| Behat: `the JSON at "title"`                                          | `the JSON at "data.attributes.title"`                                   |
+
+## application-framework-0007: A write reads its payload from a JSON:API resource document
+
+**WHEN** a non-GET controller under `apps/api/src/Controller` takes fields from the request body
+
+**THEN** declare `#[JsonApiPayload('<type>', <Command>::class)] array $payload` instead of reading `Request::toArray()`.
+`App\Http\JsonApiPayloadResolver` hands the controller the `data.attributes` of a body sent as
+`application/vnd.api+json`, and answers `415` for another media type, `400` for malformed JSON or a body that is not a
+resource object, and `409` when `data.type` is not `<type>` or `data.id` contradicts the `{id}` in the path. The
+controller then passes `$payload` to `<Command>::fromPayload()` (`application-framework-0002`) as before; no controller
+unwraps `data` itself. The command named on the attribute is also what documents the request: `JsonApiRouteDescriber`
+lists its public properties, bar `id` and `authorId`, as the `attributes` in `apps/docs/openapi.json`.
+
+**Example:**
+
+| Wrong                                                          | Right                                                              |
+|----------------------------------------------------------------|--------------------------------------------------------------------|
+| `$payload = $request->toArray();` in `CreateMovementController` | `#[JsonApiPayload('movements', CreateMovementCommand::class)] array $payload` |
+| `$payload['data']['attributes']['title']` in a controller        | `CreateMovementCommand::fromPayload($payload, $currentUser->id)`   |
+| Behat: `{"title": "Save the Bees"}`                              | `{"data": {"type": "movements", "attributes": {"title": "…"}}}`   |
+
+## application-framework-0008: An API change regenerates the OpenAPI document
+
+**WHEN** a route, command, transformer or the session behaviour changes under `apps/api`
+
+**THEN** run `make openapi` and commit `apps/docs/openapi.json`; `make openapi-check` fails the gate otherwise
+(ADR-0023). Document the route from its attributes (`application-framework-0006`, `application-framework-0007`),
+never with a hand-written schema. Only what attributes cannot express goes in
+`apps/api/config/packages/nelmio_api_doc.yaml` — security, `Set-Cookie` headers, non-default statuses, public routes —
+and `features/openapi.feature` asserts it.
+
+**Example:**
+
+| Wrong                                                  | Right                                                              |
+|--------------------------------------------------------|--------------------------------------------------------------------|
+| Edit `apps/docs/openapi.json` by hand                  | `make openapi`                                                     |
+| A `components.schemas` entry copying `CreateMovementCommand` | `#[JsonApiPayload('movements', CreateMovementCommand::class)]` |
+| `/api/logout` left with the global `cookieAuth` security | `paths./api/logout.post.security: []` and its `204` in `nelmio_api_doc.yaml` |
