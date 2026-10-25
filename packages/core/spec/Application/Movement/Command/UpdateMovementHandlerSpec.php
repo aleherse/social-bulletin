@@ -52,7 +52,7 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
 
         $this->__invoke(UpdateMovementCommand::fromPayload([
             'title' => 'Save All the Bees',
-        ], UserId::from(self::AUTHOR_ID), self::ID));
+        ], self::AUTHOR_ID, self::ID));
     }
 
     public function it_clears_a_location_the_edit_payload_sets_to_null(
@@ -68,7 +68,7 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
         $this->__invoke(UpdateMovementCommand::fromPayload([
             'area' => 'international',
             'location' => null,
-        ], UserId::from(self::AUTHOR_ID), self::ID));
+        ], self::AUTHOR_ID, self::ID));
     }
 
     public function it_refuses_to_edit_a_movement_that_left_draft(
@@ -117,7 +117,7 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
 
     // `string|null` rather than `?string`: PhpSpec's spec loader rejects `?type` parameters.
     private function editCommand(
-        UserId|null $authorId = null,
+        string|null $authorId = null,
         string $title = 'Save All the Bees',
         string $description = 'New description.',
         string $category = 'animal_rights',
@@ -130,6 +130,6 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
             'category' => $category,
             'area' => $area,
             'location' => $location,
-        ], $authorId ?? UserId::from(self::AUTHOR_ID), self::ID);
+        ], $authorId ?? self::AUTHOR_ID, self::ID);
     }
 }

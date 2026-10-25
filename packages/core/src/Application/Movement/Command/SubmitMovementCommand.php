@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SocialBulletin\Core\Application\Movement\Command;
 
 use SocialBulletin\Core\Application\Helper\BaseCommand;
-use SocialBulletin\Core\Domain\User\UserId;
 
 /**
  * Command: move the author's `draft` movement on to `proposed`.
@@ -17,7 +16,7 @@ final readonly class SubmitMovementCommand extends BaseCommand
 {
     public function __construct(
         public string $id,
-        public UserId $authorId,
+        public string $authorId,
     ) {
     }
 }

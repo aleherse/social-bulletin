@@ -6,7 +6,6 @@ namespace SocialBulletin\Core\Application\Movement\Command;
 
 use SocialBulletin\Core\Application\Helper\BaseCommand;
 use SocialBulletin\Core\Domain\Movement\MovementId;
-use SocialBulletin\Core\Domain\User\UserId;
 use Webmozart\Assert\Assert;
 
 /**
@@ -30,7 +29,7 @@ final readonly class CreateMovementCommand extends BaseCommand
      * @param array<string, mixed> $payload
      */
     private function __construct(
-        public UserId $authorId,
+        public string $authorId,
         array $payload,
     ) {
         $this->id = MovementId::generate();
@@ -59,7 +58,7 @@ final readonly class CreateMovementCommand extends BaseCommand
     /**
      * @param array<string, mixed> $payload
      */
-    public static function fromPayload(array $payload, UserId $authorId): self
+    public static function fromPayload(array $payload, string $authorId): self
     {
         return new self($authorId, $payload);
     }

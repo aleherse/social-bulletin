@@ -6,7 +6,6 @@ namespace SocialBulletin\Core\Application\User\Provider;
 
 use Doctrine\DBAL\Connection;
 use SocialBulletin\Core\Application\User\Model\User;
-use SocialBulletin\Core\Domain\User\UserId;
 use Webmozart\Assert\Assert;
 
 class UserProvider
@@ -28,6 +27,6 @@ class UserProvider
             ->setParameter('email', $email)
             ->fetchAssociative();
 
-        return false === $row ? null : new User(UserId::from($row['id']), $row['email']);
+        return false === $row ? null : new User($row['id'], $row['email']);
     }
 }

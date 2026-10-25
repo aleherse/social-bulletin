@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SocialBulletin\Core\Application\Movement\Command;
 
 use SocialBulletin\Core\Application\Helper\BaseCommand;
-use SocialBulletin\Core\Domain\User\UserId;
 use Webmozart\Assert\Assert;
 
 /**
@@ -41,7 +40,7 @@ final readonly class UpdateMovementCommand extends BaseCommand
      */
     private function __construct(
         public string $id,
-        public UserId $authorId,
+        public string $authorId,
         array $payload,
     ) {
         if (\array_key_exists('title', $payload)) {
@@ -73,7 +72,7 @@ final readonly class UpdateMovementCommand extends BaseCommand
     /**
      * @param array<string, mixed> $payload
      */
-    public static function fromPayload(array $payload, UserId $authorId, string $id): self
+    public static function fromPayload(array $payload, string $authorId, string $id): self
     {
         return new self($id, $authorId, $payload);
     }
