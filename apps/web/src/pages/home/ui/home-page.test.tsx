@@ -22,7 +22,7 @@ describe('HomePage', () => {
   });
 
   it('shows the hello view when the visitor is authenticated', async () => {
-    vi.mocked(fetchCurrentUser).mockResolvedValue({ email: 'user@example.com' });
+    vi.mocked(fetchCurrentUser).mockResolvedValue({ id: 'u-1', email: 'user@example.com' });
 
     renderRoute('/en');
 
