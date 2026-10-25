@@ -3,6 +3,54 @@ nelmio_api_doc:
         info:
             title: Social Bulletin API
             version: 1.0.0
+        # ADR-0011: the JWT travels only in the httpOnly `token` cookie that signing in sets.
+        security:
+            - cookieAuth: []
+        paths:
+            /api/session:
+                post:
+                    security: []
+                    responses:
+                        '200':
+                            headers:
+                                Set-Cookie:
+                                    description: The `token` cookie (httpOnly, secure, SameSite=Strict, one hour) that authenticates later requests.
+                                    schema: { type: string }
+            /api/logout:
+                post:
+                    security: []
+                    responses:
+                        '204':
+                            description: The session ended; the `token` cookie is cleared.
+                            headers:
+                                Set-Cookie:
+                                    description: Expires the `token` cookie.
+                                    schema: { type: string }
+        components:
+            securitySchemes:
+                cookieAuth:
+                    type: apiKey
+                    in: cookie
+                    name: token
+                    description: "The httpOnly `token` cookie set by `POST /api/session`. Sign in there first: the browser stores and sends the cookie itself, so the value field below is not used."
+            schemas:
+                JsonApiErrors:
+                    type: object
+                    required: [errors]
+                    properties:
+                        errors:
+                            type: array
+                            items:
+                                type: object
+                                required: [status, title]
+                                properties:
+                                    status: { type: string, example: '400' }
+                                    title: { type: string }
+                                    detail: { type: string }
+                                    source:
+                                        type: object
+                                        properties:
+                                            pointer: { type: string, example: /title }
     areas:
         path_patterns:
             - ^/api(?!/doc(\.json)?$)

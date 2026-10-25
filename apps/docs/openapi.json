@@ -1,0 +1,744 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Social Bulletin API",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/session": {
+            "post": {
+                "operationId": "post_api_session_create",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "required": [
+                                    "data"
+                                ],
+                                "properties": {
+                                    "data": {
+                                        "required": [
+                                            "type",
+                                            "attributes"
+                                        ],
+                                        "properties": {
+                                            "type": {
+                                                "type": "string",
+                                                "example": "sessions"
+                                            },
+                                            "attributes": {
+                                                "description": "Every field is optional here: the domain validates them and answers 400 per field.",
+                                                "properties": {
+                                                    "email": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The users JSON:API document.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "The `token` cookie (httpOnly, secure, SameSite=Strict, one hour) that authenticates later requests.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "attributes"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "users"
+                                                },
+                                                "attributes": {
+                                                    "$ref": "#/components/schemas/UserAttributes"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "operationId": "post_api_logout",
+                "responses": {
+                    "204": {
+                        "description": "The session ended; the `token` cookie is cleared.",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Expires the `token` cookie.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/movements": {
+            "get": {
+                "operationId": "get_api_movements_list",
+                "responses": {
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "The movements JSON:API document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "required": [
+                                                    "id",
+                                                    "type",
+                                                    "attributes"
+                                                ],
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string"
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "example": "movements"
+                                                    },
+                                                    "attributes": {
+                                                        "$ref": "#/components/schemas/MovementAttributes"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "post_api_movements_create",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "required": [
+                                    "data"
+                                ],
+                                "properties": {
+                                    "data": {
+                                        "required": [
+                                            "type",
+                                            "attributes"
+                                        ],
+                                        "properties": {
+                                            "type": {
+                                                "type": "string",
+                                                "example": "movements"
+                                            },
+                                            "attributes": {
+                                                "description": "Every field is optional here: the domain validates them and answers 400 per field.",
+                                                "properties": {
+                                                    "title": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "category": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "area": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "location": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "The movements JSON:API document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "attributes"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "movements"
+                                                },
+                                                "attributes": {
+                                                    "$ref": "#/components/schemas/MovementAttributes"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories": {
+            "get": {
+                "operationId": "get_api_categories_list",
+                "responses": {
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "The categories JSON:API document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "required": [
+                                                    "id",
+                                                    "type",
+                                                    "attributes"
+                                                ],
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string"
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "example": "categories"
+                                                    },
+                                                    "attributes": {
+                                                        "$ref": "#/components/schemas/CategoryAttributes"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/movements/{id}": {
+            "get": {
+                "operationId": "get_api_movements_show",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "The movements JSON:API document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "attributes"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "movements"
+                                                },
+                                                "attributes": {
+                                                    "$ref": "#/components/schemas/MovementAttributes"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "patch_api_movements_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "required": [
+                                    "data"
+                                ],
+                                "properties": {
+                                    "data": {
+                                        "required": [
+                                            "type",
+                                            "attributes"
+                                        ],
+                                        "properties": {
+                                            "type": {
+                                                "type": "string",
+                                                "example": "movements"
+                                            },
+                                            "attributes": {
+                                                "description": "Every field is optional here: the domain validates them and answers 400 per field.",
+                                                "properties": {
+                                                    "title": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "category": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "area": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "location": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "The movements JSON:API document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "attributes"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "movements"
+                                                },
+                                                "attributes": {
+                                                    "$ref": "#/components/schemas/MovementAttributes"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/movements/{id}/submit": {
+            "post": {
+                "operationId": "post_api_movements_submit",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "The movements JSON:API document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "attributes"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "movements"
+                                                },
+                                                "attributes": {
+                                                    "$ref": "#/components/schemas/MovementAttributes"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me": {
+            "get": {
+                "operationId": "get_api_me",
+                "responses": {
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "The users JSON:API document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "attributes"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "users"
+                                                },
+                                                "attributes": {
+                                                    "$ref": "#/components/schemas/UserAttributes"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "JsonApiErrors": {
+                "required": [
+                    "errors"
+                ],
+                "properties": {
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "required": [
+                                "status",
+                                "title"
+                            ],
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "400"
+                                },
+                                "title": {
+                                    "type": "string"
+                                },
+                                "detail": {
+                                    "type": "string"
+                                },
+                                "source": {
+                                    "properties": {
+                                        "pointer": {
+                                            "type": "string",
+                                            "example": "/title"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "MovementAttributes": {
+                "required": [
+                    "title",
+                    "description",
+                    "category",
+                    "area",
+                    "status",
+                    "createdAt",
+                    "updatedAt"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "area": {
+                        "type": "string"
+                    },
+                    "location": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "CategoryAttributes": {
+                "required": [],
+                "properties": {},
+                "type": "object"
+            },
+            "UserAttributes": {
+                "required": [
+                    "email"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "cookieAuth": {
+                "type": "apiKey",
+                "description": "The httpOnly `token` cookie set by `POST /api/session`. Sign in there first: the browser stores and sends the cookie itself, so the value field below is not used.",
+                "name": "token",
+                "in": "cookie"
+            }
+        }
+    },
+    "security": [
+        {
+            "cookieAuth": []
+        }
+    ]
+}

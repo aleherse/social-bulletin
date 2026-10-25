@@ -19,6 +19,18 @@ services:
     App\:
         resource: '../src/'
 
+    # documents every #[JsonApi] controller in the OpenAPI document
+    App\Http\OpenApi\JsonApiRouteDescriber:
+        tags:
+            - { name: nelmio_api_doc.route_describer, priority: -200 }
+
+    # JSON:API `attributes` schemas leave the model's id to the resource object
+    App\Http\OpenApi\JsonApiAttributesModelDescriber:
+        arguments:
+            $objectDescriber: '@nelmio_api_doc.model_describers.object'
+        tags:
+            - { name: nelmio_api_doc.model_describer, priority: 50 }
+
     # one Fractal manager, rendering every resource as a JSON:API document
     League\Fractal\Manager:
         calls:
