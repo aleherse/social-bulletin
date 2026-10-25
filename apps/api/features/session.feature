@@ -37,6 +37,21 @@ Feature: Email session
     And the JSON at "data.id" should not be empty
     And the JSON at "data.attributes.email" should equal "known.user@example.com"
 
+  Scenario: A token with less than twenty minutes left is replaced with a fresh cookie
+    Given a user exists with email "stale.user@example.com"
+    And the request carries a session token for "stale.user@example.com" issued 45 minutes ago
+    When I send a GET request to "/api/me"
+    Then the response status code should be 200
+    And the response should set an httpOnly cookie named "token"
+    And the "token" cookie should be same-site strict and expire in one hour
+
+  Scenario: A token with more than twenty minutes left is left alone
+    Given a user exists with email "recent.user@example.com"
+    And the request carries a session token for "recent.user@example.com" issued 25 minutes ago
+    When I send a GET request to "/api/me"
+    Then the response status code should be 200
+    And the response should not set a cookie named "token"
+
   Scenario: The current user is unauthorised without a cookie
     When I send a GET request to "/api/me"
     Then the response status code should be 401

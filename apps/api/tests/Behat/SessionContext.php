@@ -11,6 +11,7 @@ use Behat\Step\Given;
 use Behat\Step\Then;
 use Behat\Step\When;
 use Doctrine\DBAL\Connection;
+use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use SocialBulletin\Core\Application\User\Command\SignInCommand;
 use Webmozart\Assert\Assert;
 use function JmesPath\search;
@@ -21,6 +22,7 @@ final class SessionContext implements Context
         private readonly ApiClient $apiClient,
         private readonly CommandBus $commandBus,
         private readonly Connection $connection,
+        private readonly JWTEncoderInterface $jwtEncoder,
     ) {
     }
 
@@ -37,6 +39,18 @@ final class SessionContext implements Context
     public function theRequestCarriesACookieWithTheValue(string $name, string $value): void
     {
         $this->apiClient->setCookie($name, $value);
+    }
+
+    #[Given('the request carries a session token for :email issued :minutes minutes ago')]
+    public function theRequestCarriesASessionTokenIssuedMinutesAgo(string $email, int $minutes): void
+    {
+        $issuedAt = time() - $minutes * 60;
+
+        $this->apiClient->setCookie('token', $this->jwtEncoder->encode([
+            'username' => $email,
+            'iat' => $issuedAt,
+            'exp' => $issuedAt + 3600,
+        ]));
     }
 
     #[When('I send a :method request to :path')]
