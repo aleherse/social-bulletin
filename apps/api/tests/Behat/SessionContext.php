@@ -32,6 +32,12 @@ final class SessionContext implements Context
         $this->commandBus->dispatch(SignInCommand::fromPayload(['email' => $email]));
     }
 
+    #[Given('the request carries a :name cookie with the value :value')]
+    public function theRequestCarriesACookieWithTheValue(string $name, string $value): void
+    {
+        $this->apiClient->setCookie($name, $value);
+    }
+
     #[When('I send a :method request to :path')]
     public function iSendARequestTo(string $method, string $path): void
     {
@@ -44,10 +50,26 @@ final class SessionContext implements Context
         $this->apiClient->request($method, $path, $body->getRaw());
     }
 
+    #[When('I send a :method request to :path as :contentType with body:')]
+    public function iSendARequestToAsWithBody(
+        string $method,
+        string $path,
+        string $contentType,
+        PyStringNode $body,
+    ): void {
+        $this->apiClient->request($method, $path, $body->getRaw(), $contentType);
+    }
+
     #[Then('the response status code should be :code')]
     public function theResponseStatusCodeShouldBe(int $code): void
     {
         Assert::same($this->apiClient->response()->getStatusCode(), $code);
+    }
+
+    #[Then('the response content type should be :contentType')]
+    public function theResponseContentTypeShouldBe(string $contentType): void
+    {
+        Assert::same($this->apiClient->response()->headers->get('Content-Type'), $contentType);
     }
 
     #[Then('the JSON at :expression should equal :value')]

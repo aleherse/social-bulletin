@@ -11,8 +11,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 final class JsonApiErrorResponse
 {
-    private const CONTENT_TYPE = 'application/vnd.api+json';
-
     /**
      * @param array<string, string> $fieldErrors request field => detail, each reported with a source pointer
      */
@@ -41,7 +39,7 @@ final class JsonApiErrorResponse
         return new JsonResponse([
             'errors' => $errors,
         ], $status, [
-            'Content-Type' => self::CONTENT_TYPE,
+            'Content-Type' => JsonApi::CONTENT_TYPE,
         ]);
     }
 }

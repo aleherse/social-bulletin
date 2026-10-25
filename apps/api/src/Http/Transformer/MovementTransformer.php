@@ -2,29 +2,26 @@
 
 declare(strict_types=1);
 
-namespace App\Controller\Movement;
+namespace App\Http\Transformer;
 
+use League\Fractal\TransformerAbstract;
 use SocialBulletin\Core\Application\Movement\Model\Movement;
 
-final class MovementPresenter
+final class MovementTransformer extends TransformerAbstract
 {
-    private function __construct()
-    {
-    }
-
     /**
      * @return array<string, string|null>
      */
-    public static function toArray(Movement $movement): array
+    public function transform(Movement $movement): array
     {
         return [
-            'id' => (string) $movement->id,
+            'id' => $movement->id,
             'title' => $movement->title,
             'description' => $movement->description,
             'category' => $movement->category,
-            'area' => $movement->area->value,
+            'area' => $movement->area,
             'location' => $movement->location,
-            'status' => $movement->status->value,
+            'status' => $movement->status,
             'createdAt' => $movement->createdAt->format(\DateTimeInterface::ATOM),
             'updatedAt' => $movement->updatedAt->format(\DateTimeInterface::ATOM),
         ];

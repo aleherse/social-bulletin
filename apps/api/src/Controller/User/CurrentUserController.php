@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controller\User;
 
-use App\Security\ApiUser;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Http\Attribute\JsonApi;
+use App\Http\Transformer\UserTransformer;
+use SocialBulletin\Core\Application\User\Model\User;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 final class CurrentUserController
 {
+    #[JsonApi(UserTransformer::class, 'users')]
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
-    public function __invoke(#[CurrentUser] ApiUser $user): JsonResponse
+    public function __invoke(User $currentUser): User
     {
-        return new JsonResponse([
-            'email' => $user->getUserIdentifier(),
-        ]);
+        return $currentUser;
     }
 }
