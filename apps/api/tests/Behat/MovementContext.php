@@ -24,7 +24,7 @@ use function JmesPath\search;
 final class MovementContext implements Context
 {
     /**
-     * @var array<string, string> Movement ids created by Given steps, keyed by title.
+     * @var array<string, string> movement ids created by Given steps, keyed by title
      */
     private array $movementIds = [];
 
