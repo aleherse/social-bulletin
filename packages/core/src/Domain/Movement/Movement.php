@@ -9,6 +9,7 @@ use SocialBulletin\Core\Domain\User\UserId;
 final class Movement
 {
     public const TITLE_MAX_LENGTH = 200;
+
     public const DESCRIPTION_MAX_LENGTH = 20000;
 
     private \DateTimeImmutable $createdAt;

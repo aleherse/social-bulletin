@@ -26,6 +26,7 @@ final class JsonApiRouteDescriber implements RouteDescriberInterface, ModelRegis
 {
     use ModelRegistryAwareTrait;
     use RouteDescriberTrait;
+
     private const SERVER_OWNED = ['id', 'authorId'];
 
     public function describe(OA\OpenApi $api, Route $route, \ReflectionMethod $reflectionMethod): void
