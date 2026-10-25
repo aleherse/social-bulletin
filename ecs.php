@@ -14,7 +14,9 @@ use Symplify\EasyCodingStandard\Config\ECSConfig;
 return ECSConfig::configure()
     ->withPaths([
         __DIR__ . '/apps/api/src',
+        __DIR__ . '/apps/api/tests',
         __DIR__ . '/packages/core/src',
+        __DIR__ . '/packages/core/spec',
     ])
     ->withRules([CommentedOutCodeSniff::class])
     ->withConfiguredRule(NoSuperfluousPhpdocTagsFixer::class, [

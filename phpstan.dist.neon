@@ -2,7 +2,10 @@
 # Level 8 is the strict-but-incremental baseline; harden towards max as the codebase grows.
 parameters:
     level: 8
+    # packages/core/spec stays out: PhpSpec and Prophecy live only in packages/core/vendor and
+    # their magic `$this->` proxy is not analysable, so specs get ECS but no PHPStan.
     paths:
         - apps/api/src
+        - apps/api/tests
         - packages/core/src
     tmpDir: apps/api/var/phpstan

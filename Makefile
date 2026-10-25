@@ -34,8 +34,10 @@ in_order_k = ( rc=0; $(foreach t,$(2),$(1) $(t) || rc=$$?;) exit $$rc )
 # prefix its container works from, and says so when none are left.
 FILES ?=
 PATHS ?=
-# ECS and PHPStan scope: the source trees their configs list, so narrowing never adds files the whole-project run skips.
-php_files = $(filter apps/api/src/%.php packages/core/src/%.php,$(FILES))
+# Scope of each tool, as its config lists it, so narrowing never adds files the whole-project run skips.
+# PHPStan skips packages/core/spec: PhpSpec is not analysable from apps/api/vendor.
+ecs_files = $(filter apps/api/src/%.php apps/api/tests/%.php packages/core/src/%.php packages/core/spec/%.php,$(FILES))
+stan_files = $(filter apps/api/src/%.php apps/api/tests/%.php packages/core/src/%.php,$(FILES))
 web_files = $(patsubst apps/web/%,%,$(filter apps/web/%,$(FILES)))
 # $(call narrowed,<matching files>,<command>): whole project without FILES,
 # the matching files with it, nothing when FILES matches none.
@@ -162,11 +164,11 @@ php-deptrac: ## Check PHP architecture boundaries with Deptrac (whole project on
 
 .PHONY: php-stan
 php-stan: ## Run PHPStan static analysis (FILES narrows)
-	$(call narrowed,$(php_files),$(RUN_PHP) apps/api/vendor/bin/phpstan analyse -c phpstan.dist.neon --no-progress)
+	$(call narrowed,$(stan_files),$(RUN_PHP) apps/api/vendor/bin/phpstan analyse -c phpstan.dist.neon --no-progress)
 
 .PHONY: php-ecs
 php-ecs: ## Apply (locally) or check (CI) the PHP coding standard with ECS (FILES narrows)
-	$(call narrowed,$(php_files),$(RUN_PHP) apps/api/vendor/bin/ecs check --config ecs.php --no-progress-bar $(ECS_MODE))
+	$(call narrowed,$(ecs_files),$(RUN_PHP) apps/api/vendor/bin/ecs check --config ecs.php --no-progress-bar $(ECS_MODE))
 
 .PHONY: web-tsc
 web-tsc: ## Type-check the frontend (whole project only: tsc -b builds project references)
