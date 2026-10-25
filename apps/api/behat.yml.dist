@@ -20,3 +20,4 @@ default:
                 - App\Tests\Behat\DatabaseContext
                 - App\Tests\Behat\SessionContext
                 - App\Tests\Behat\MovementContext
+                - App\Tests\Behat\OpenApiContext
