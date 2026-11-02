@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Behat;
 
+use App\Tests\Support\DatabaseSnapshot;
 use Behat\Behat\Context\Context;
 use Behat\Hook\BeforeScenario;
 use Doctrine\DBAL\Connection;
@@ -23,13 +24,6 @@ final class DatabaseContext implements Context
     #[BeforeScenario('~@fixtures')]
     public function restoreDatabaseSnapshot(): void
     {
-        // DSLR recreates the database, so any open connection must go first.
-        $this->connection->close();
-
-        exec('dslr --url "$DSLR_DATABASE_URL" restore fixtures 2>&1', $output, $exitCode);
-
-        if (0 !== $exitCode) {
-            throw new \RuntimeException(sprintf("Could not restore the DSLR 'fixtures' snapshot (did you run `make db`?):\n%s", implode("\n", $output)));
-        }
+        DatabaseSnapshot::restore($this->connection);
     }
 }

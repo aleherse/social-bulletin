@@ -7,3 +7,10 @@ services:
 
     App\Tests\Behat\:
         resource: '../tests/Behat/*'
+
+    App\Tests\Support\:
+        resource: '../tests/Support/*'
+
+    # Records what the domain publishes, and whether it was already stored.
+    App\Tests\Support\RecordingEventDispatcher:
+        decorates: SocialBulletin\Core\Domain\Helper\EventDispatcher
