@@ -673,6 +673,58 @@
                 }
             }
         },
+        "/api/realtime-tickets": {
+            "post": {
+                "operationId": "post_api_realtime_tickets_issue",
+                "responses": {
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "The realtime-tickets JSON:API document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "attributes"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "realtime-tickets"
+                                                },
+                                                "attributes": {
+                                                    "$ref": "#/components/schemas/RealtimeTicketAttributes"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/me": {
             "get": {
                 "operationId": "get_api_me",
@@ -818,6 +870,33 @@
                     "name": {
                         "type": "string",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "RealtimeTicketAttributes": {
+                "required": [
+                    "ticket",
+                    "expiresAt",
+                    "endpoint",
+                    "channels"
+                ],
+                "properties": {
+                    "ticket": {
+                        "type": "string"
+                    },
+                    "expiresAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "endpoint": {
+                        "type": "string"
+                    },
+                    "channels": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 },
                 "type": "object"

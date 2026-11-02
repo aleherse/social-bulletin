@@ -15,9 +15,14 @@ final readonly class MovementChanged implements Notification
     ) {
     }
 
+    public static function channelFor(string $authorId): string
+    {
+        return '/users/'.$authorId.'/movements';
+    }
+
     public function channel(): string
     {
-        return '/users/'.$this->authorId.'/movements';
+        return self::channelFor($this->authorId);
     }
 
     public function payload(): array

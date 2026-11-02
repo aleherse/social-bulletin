@@ -28,6 +28,11 @@ Feature: Document the API
     And the OpenAPI document should describe the 200 response of POST "/api/session" as a jsonapi resource of "UserAttributes"
     And the OpenAPI schema "UserAttributes" should have the properties "email"
 
+  Scenario: The realtime ticket is documented as a realtime-tickets resource
+    Then the OpenAPI document should describe the 201 response of POST "/api/realtime-tickets" as a jsonapi resource of "RealtimeTicketAttributes"
+    And the OpenAPI schema "RealtimeTicketAttributes" should have the properties "ticket, expiresAt, endpoint, channels"
+    And the OpenAPI schema "RealtimeTicketAttributes" should not have a property "id"
+
   Scenario: Writes document the resource document they accept
     Then the OpenAPI document should describe a "movements" request body for POST "/api/movements"
     And the OpenAPI document should describe a "movements" request body for PATCH "/api/movements/{id}"
