@@ -95,7 +95,7 @@ to `apps/docs/dist/index.html`, with a request console that sends to `API_URL`
 (default `https://dev.api.social.aleherse.com`; sign in first, the session is a cookie).
 The API and browser suites need the database snapshot: run `make db` once
 after `make init` and after any migration
-(`make tests` runs all four suites against the development stack).
+(`make tests` runs all five suites against the development stack).
 
 **The full gate** is the only verdict, and it is what CI runs on every pull
 request and push to `main`:

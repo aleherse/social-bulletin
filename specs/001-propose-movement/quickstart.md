@@ -49,13 +49,14 @@ curl -k -b cookies.txt -X POST \
 
 ```bash
 make php-unit   # PHPSpec: Movement + MovementService specs (core)
+make api-integration  # PHPUnit: repository and bus tests below HTTP (api)
 make api-tests  # Behat: features/movements.feature (api)
 make web-unit   # Vitest: form + list component tests (web)
 make web-e2e    # Playwright: e2e/movements.spec.ts browser journeys
 make lint       # deptrac, phpstan, ecs, tsc, eslint, knip, prettier
 ```
 
-`make tests` runs the four test suites above in that order
+`make tests` runs the five test suites above in that order
 (`make lint` stays separate).
 `make web-e2e` rebuilds the frontend first
 and drives the compiled bundle nginx serves against the real API,
