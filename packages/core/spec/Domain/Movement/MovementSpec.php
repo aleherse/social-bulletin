@@ -7,6 +7,7 @@ namespace spec\SocialBulletin\Core\Domain\Movement;
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Domain\Movement\Area;
 use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenCreated;
+use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenSubmitted;
 use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenUpdated;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\MovementId;
@@ -85,6 +86,26 @@ final class MovementSpec extends ObjectBehavior
                 new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
                 new MovementHasBeenUpdated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
             ]);
+    }
+
+    public function it_records_that_it_has_been_submitted(): void
+    {
+        $this->submit();
+
+        $this->pullEvents()
+            ->shouldBeLike([
+                new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
+                new MovementHasBeenSubmitted(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
+            ]);
+    }
+
+    public function it_records_no_submission_when_the_description_is_still_empty(): void
+    {
+        $this->beConstructedAsADraft(description: '');
+
+        $this->shouldThrow(InvalidMovement::class)->during('submit');
+        $this->pullEvents()
+            ->shouldBeLike([new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID))]);
     }
 
     public function it_records_no_update_when_the_edit_is_rejected(): void

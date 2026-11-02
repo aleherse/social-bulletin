@@ -6,6 +6,7 @@ namespace SocialBulletin\Core\Domain\Movement;
 
 use SocialBulletin\Core\Domain\Helper\RecordsEvents;
 use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenCreated;
+use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenSubmitted;
 use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenUpdated;
 use SocialBulletin\Core\Domain\User\UserId;
 
@@ -132,6 +133,7 @@ final class Movement
         }
 
         $this->status = MovementStatus::Proposed;
+        $this->recordThat(new MovementHasBeenSubmitted($this->id, $this->authorId));
     }
 
     public function title(): string

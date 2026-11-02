@@ -7,6 +7,7 @@ namespace App\Tests\Integration\Movement;
 use App\Tests\Integration\IntegrationTestCase;
 use App\Tests\Support\RecordingEventDispatcher;
 use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenCreated;
+use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenSubmitted;
 use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenUpdated;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
@@ -106,13 +107,28 @@ final class MovementRepositoryTest extends IntegrationTestCase
         self::assertInstanceOf(MovementHasBeenUpdated::class, $dispatched[1]);
     }
 
-    private function draft(string $category = 'cooperative'): Movement
+    public function testItPublishesTheSubmissionWhenAStoredMovementIsSubmitted(): void
+    {
+        $draft = $this->draft(description: '## Why');
+        $this->movements->save($draft);
+
+        $stored = $this->movements->authorMovement((string) $draft->id, $this->authorId);
+        $stored->submit();
+        $this->movements->save($stored);
+
+        $dispatched = $this->events->dispatched();
+        self::assertCount(2, $dispatched);
+        self::assertInstanceOf(MovementHasBeenCreated::class, $dispatched[0]);
+        self::assertInstanceOf(MovementHasBeenSubmitted::class, $dispatched[1]);
+    }
+
+    private function draft(string $category = 'cooperative', string $description = ''): Movement
     {
         return Movement::draft(
             MovementId::generate(),
             $this->authorId,
             'Community Gardens for Everyone',
-            '',
+            $description,
             $category,
             'municipality',
             'Sheffield',
