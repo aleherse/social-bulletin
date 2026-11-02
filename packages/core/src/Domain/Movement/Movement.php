@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace SocialBulletin\Core\Domain\Movement;
 
+use SocialBulletin\Core\Domain\Helper\RecordsEvents;
+use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenCreated;
 use SocialBulletin\Core\Domain\User\UserId;
 
 final class Movement
 {
+    use RecordsEvents;
+
     public const TITLE_MAX_LENGTH = 200;
 
     public const DESCRIPTION_MAX_LENGTH = 20000;
@@ -42,7 +46,7 @@ final class Movement
     ): self {
         $areaValue = self::assertValidFields($title, $description, $category, $area, $location);
 
-        return new self(
+        $movement = new self(
             $id,
             $authorId,
             trim($title),
@@ -52,6 +56,9 @@ final class Movement
             Area::International === $areaValue ? null : trim((string) $location),
             MovementStatus::Draft,
         );
+        $movement->recordThat(new MovementHasBeenCreated($id, $authorId));
+
+        return $movement;
     }
 
     /**

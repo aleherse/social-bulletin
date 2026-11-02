@@ -38,6 +38,9 @@ services:
 
     League\Fractal\Serializer\JsonApiSerializer: ~
 
+    # the domain's event port, backed by the event bus
+    SocialBulletin\Core\Domain\Helper\EventDispatcher: '@App\Messenger\EventBus'
+
     # makes every packages/core `*Repository` class available as a service:
     SocialBulletin\Core\Domain\:
         resource: '../../../packages/core/src/Domain/*/*Repository.php'
