@@ -201,8 +201,8 @@ infra-tsc: ## Type-check the AWS CDK infrastructure app (whole project only)
 	$(COMPOSE) run --rm --no-deps --workdir /app/infrastructure node npm run typecheck
 
 .PHONY: tests
-tests: ## Run the four test suites against the development stack
-	+@$(call in_order,$(MAKE),php-unit api-tests web-unit web-e2e)
+tests: ## Run the five test suites against the development stack
+	+@$(call in_order,$(MAKE),php-unit api-integration api-tests web-unit web-e2e)
 
 .PHONY: php-unit
 php-unit: ## Run core PHPSpec specs; narrow with PATHS=packages/core/spec/UserServiceSpec.php
@@ -211,6 +211,10 @@ php-unit: ## Run core PHPSpec specs; narrow with PATHS=packages/core/spec/UserSe
 .PHONY: api-tests
 api-tests: ## Run the Behat API suite (needs `make db`); narrow with PATHS=apps/api/features/session.feature
 	$(COMPOSE) run --rm --workdir /app/apps/api php vendor/bin/behat $(patsubst apps/api/%,%,$(PATHS))
+
+.PHONY: api-integration
+api-integration: ## Run the PHPUnit integration suite (needs `make db`); narrow with PATHS=apps/api/tests/Integration/Movement
+	$(COMPOSE) run --rm --workdir /app/apps/api php vendor/bin/phpunit $(patsubst apps/api/%,%,$(PATHS))
 
 .PHONY: web-unit
 web-unit: ## Run Vitest; narrow with PATHS=apps/web/src/pages/home/ui/home-page.test.tsx
@@ -250,10 +254,11 @@ GATE_PREPARE := images deps
 LINT_CHECKS := php-deptrac php-stan php-ecs openapi-check docs-lint web-tsc web-eslint web-knip web-prettier infra-tsc
 GATE_CHEAP := $(LINT_CHECKS)
 GATE_BUILD := php-unit web-unit web-build docs-build db
-GATE_SUITES := api-tests web-e2e-run
+GATE_SUITES := api-integration api-tests web-e2e-run
 GATE_STAGES := $(GATE_PREPARE) $(GATE_CHEAP) $(GATE_BUILD) $(GATE_SUITES)
 
 # What a suite stage needs from earlier tiers when re-run on its own.
+STAGE_NEEDS_api-integration := db
 STAGE_NEEDS_api-tests := db
 STAGE_NEEDS_web-e2e-run := web-build db
 

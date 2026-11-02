@@ -88,6 +88,8 @@
         "friends-of-behat/symfony-extension": "^2.6",
         "mtdowling/jmespath.php": "^2.9",
         "phpstan/phpstan": "^2.2",
+        "phpunit/phpunit": "^13.4",
+        "symfony/process": "7.4.*",
         "symplify/easy-coding-standard": "^13.2"
     }
 }
