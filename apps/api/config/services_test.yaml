@@ -14,3 +14,7 @@ services:
     # Records what the domain publishes, and whether it was already stored.
     App\Tests\Support\RecordingEventDispatcher:
         decorates: SocialBulletin\Core\Domain\Helper\EventDispatcher
+
+    # Stands in for the network: records what the app would send to AppSync Events.
+    App\Tests\Support\RecordingHttpClient:
+        decorates: http_client
