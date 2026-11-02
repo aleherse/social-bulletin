@@ -7,6 +7,7 @@ namespace App\Tests\Integration\Movement;
 use App\Tests\Integration\IntegrationTestCase;
 use App\Tests\Support\RecordingEventDispatcher;
 use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenCreated;
+use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenUpdated;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\Movement;
 use SocialBulletin\Core\Domain\Movement\MovementId;
@@ -90,7 +91,7 @@ final class MovementRepositoryTest extends IntegrationTestCase
         self::assertSame([], $this->events->dispatched());
     }
 
-    public function testItPublishesTheCreationOnlyOnce(): void
+    public function testItPublishesTheUpdateButNotTheCreationAgainWhenAStoredMovementIsEdited(): void
     {
         $draft = $this->draft();
         $this->movements->save($draft);
@@ -99,7 +100,10 @@ final class MovementRepositoryTest extends IntegrationTestCase
         $stored->edit('Save All the Bees', '', 'cooperative', 'municipality', 'Sheffield');
         $this->movements->save($stored);
 
-        self::assertCount(1, $this->events->dispatched());
+        $dispatched = $this->events->dispatched();
+        self::assertCount(2, $dispatched);
+        self::assertInstanceOf(MovementHasBeenCreated::class, $dispatched[0]);
+        self::assertInstanceOf(MovementHasBeenUpdated::class, $dispatched[1]);
     }
 
     private function draft(string $category = 'cooperative'): Movement

@@ -7,6 +7,7 @@ namespace spec\SocialBulletin\Core\Domain\Movement;
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Domain\Movement\Area;
 use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenCreated;
+use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenUpdated;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
@@ -73,6 +74,25 @@ final class MovementSpec extends ObjectBehavior
 
         $this->pullEvents()
             ->shouldBe([]);
+    }
+
+    public function it_records_that_it_has_been_updated_when_edited(): void
+    {
+        $this->edit('Save All the Bees', 'New description.', 'animal_rights', 'region', 'Yorkshire');
+
+        $this->pullEvents()
+            ->shouldBeLike([
+                new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
+                new MovementHasBeenUpdated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
+            ]);
+    }
+
+    public function it_records_no_update_when_the_edit_is_rejected(): void
+    {
+        $this->shouldThrow(InvalidMovement::class)->during('edit', ['   ', '', 'cooperative', 'municipality', 'Sheffield']);
+
+        $this->pullEvents()
+            ->shouldBeLike([new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID))]);
     }
 
     public function it_allows_an_empty_description_while_draft(): void
