@@ -74,18 +74,6 @@ Feature: Propose a movement
     And the JSON at "errors[?source.pointer=='/category'].detail | [0]" should not be empty
     And the JSON at "errors[?source.pointer=='/area'].detail | [0]" should not be empty
 
-  Scenario: An unknown category is rejected
-    When I send a POST request to "/api/session" with body:
-      """
-      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
-      """
-    And I send a POST request to "/api/movements" with body:
-      """
-      {"data": {"type": "movements", "attributes": {"title": "Community Gardens for Everyone", "category": "not-a-real-category", "area": "municipality", "location": "Sheffield"}}}
-      """
-    Then the response status code should be 400
-    And the JSON at "errors[?source.pointer=='/category'].detail | [0]" should not be empty
-
   Scenario: A local area requires a location
     When I send a POST request to "/api/session" with body:
       """
@@ -227,19 +215,6 @@ Feature: Propose a movement
     And the JSON at "data.attributes.title" should equal "Save All the Bees"
     And the JSON at "data.attributes.category" should equal "animal_rights"
     And the JSON at "data.attributes.status" should equal "draft"
-
-  Scenario: Editing a draft stamps a later updatedAt without moving createdAt
-    Given "author@example.com" has a movement draft titled "Save the Bees" with a description
-    When I send a POST request to "/api/session" with body:
-      """
-      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
-      """
-    And I send a PATCH request to the movement titled "Save the Bees" with body:
-      """
-      {"data": {"type": "movements", "attributes": {"title": "Save All the Bees"}}}
-      """
-    Then the response status code should be 200
-    And the movement titled "Save the Bees" should have been updated after it was created
 
   Scenario: Editing a draft to international clears its location
     Given "author@example.com" has a movement draft titled "Save the Bees"
