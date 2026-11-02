@@ -21,10 +21,9 @@ and it must keep local development and CI free of paid or cloud-only dependencie
 - `packages/core` SHALL define a port for publishing notifications.
   `apps/api` SHALL provide an AppSync adapter for production and a lightweight websocket container for local development and CI.
   LocalStack SHALL NOT be required.
-- Handlers in `packages/core/src/Application/<Aggregate>/EventHandler/` SHALL listen to domain events
-  and publish a separate `final readonly` notification carrying the ids a client needs to refetch,
+- Handlers in `packages/core/src/Application/<Aggregate>/Event/` SHALL listen to domain events
+  and publish a separate `final readonly` notification, kept beside them, carrying the ids a client needs to refetch,
   on channels scoped to the recipient, per user and per community.
-  The first handler adds the `EventHandler/` glob that ADR-0021 anticipates.
 - Browsers SHALL authenticate with a short-lived signed ticket issued by a new authenticated API endpoint.
   An AppSync Lambda authorizer SHALL verify it and decide which channels the user may subscribe to.
   The cookie domain SHALL NOT be widened.

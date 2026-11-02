@@ -102,7 +102,7 @@ and handlers and controllers never dispatch, so no save path can forget to.
 
 `App\Messenger\EventBus` implements the port: it puts each event on `event.bus`
 and rethrows the nested exception like the other buses.
-Event handlers, once they exist, live in `Application/<Aggregate>/EventHandler/`
+Event handlers live in `Application/<Aggregate>/Event/`
 and are tagged on `event.bus` by a glob added with the first one.
 
 ### Publishing is not atomic with the write
