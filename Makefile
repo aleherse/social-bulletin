@@ -99,7 +99,9 @@ urls: ## Print the addresses the development stack serves
 	@echo "Frontend (Vite dev server): https://dev.app.social.aleherse.com:$(NODE_PORT)"
 	@echo "API:                        https://dev.api.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))"
 	@echo "OpenAPI document:           https://dev.api.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/api/doc.json"
-	@echo "API documentation (Scalar): https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))"
+	@echo "Documentation:              https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))"
+	@echo "  HTTP API (Scalar):        https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/api/"
+	@echo "  Realtime events:          https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/event/"
 	@echo "PostgreSQL:                 localhost:$(POSTGRES_PORT) (bulletin/bulletin)"
 
 .PHONY: down
@@ -127,11 +129,11 @@ asyncapi: ## Regenerate apps/docs/asyncapi.json, the AsyncAPI document of the re
 	$(ASYNCAPI_DUMP) > apps/docs/asyncapi.json.tmp && mv apps/docs/asyncapi.json.tmp apps/docs/asyncapi.json
 
 .PHONY: docs-lint
-docs-lint: ## Validate apps/docs/openapi.json with Redocly (whole project only: it judges the document)
+docs-lint: ## Validate apps/docs/openapi.json with Redocly and asyncapi.json with the AsyncAPI CLI (whole project only: it judges the documents)
 	$(RUN_NODE) npm run lint --prefix /app/apps/docs
 
 .PHONY: docs-build
-docs-build: ## Render apps/docs/openapi.json to apps/docs/dist/index.html with Scalar
+docs-build: ## Render the docs landing page, openapi.json (Scalar, /api/) and asyncapi.json (AsyncAPI, /event/) into apps/docs/dist
 	$(RUN_NODE) npm run build --prefix /app/apps/docs
 
 .PHONY: openapi-check

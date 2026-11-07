@@ -28,6 +28,7 @@ and it must keep local development and CI free of paid or cloud-only dependencie
   An AppSync Lambda authorizer SHALL verify it and decide which channels the user may subscribe to.
   The cookie domain SHALL NOT be widened.
 - An AsyncAPI document SHALL describe the channels and payloads and SHALL be committed.
+  `make docs-build` renders it at `/event/` of the documentation site (ADR-0023) and links it from the landing page.
   `make asyncapi-check` SHALL fail the merge gate (ADR-0015) when it differs from the code, like `make openapi-check`.
 - Notifications SHALL be published in the request after the write, with no outbox (ADR-0021).
   Clients SHALL treat a notification as a hint to refetch, and SHALL refetch on reconnect.

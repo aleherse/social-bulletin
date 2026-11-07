@@ -51,7 +51,8 @@ After setup (`make urls` reprints these):
 - Frontend (compiled build via nginx): <https://dev.app.social.aleherse.com>
 - Frontend (Vite dev server): <https://dev.app.social.aleherse.com:3000>
 - API: <https://dev.api.social.aleherse.com>
-- API documentation (Scalar, built by `make init`): <https://dev.doc.social.aleherse.com>
+- Documentation (built by `make init`): <https://dev.doc.social.aleherse.com>, a landing page linking to
+  the HTTP API reference (Scalar) at `/api/` and the realtime events reference (AsyncAPI) at `/event/`
 
 The host ports are published by `docker-compose.override.yml`
 (copied from `docker-compose.yml.dist`) and set in `.env` (copied from `.env.dist`),
@@ -87,12 +88,14 @@ make web-e2e PATHS=apps/web/e2e/session.spec.ts
 ```
 
 Each linter also runs on its own (`make php-stan FILES=...`, `make web-eslint FILES=...`).
-Deptrac, `tsc -b`, knip, the infrastructure typecheck and `openapi-check`
-(`apps/docs/openapi.json` must match the routes; `make openapi` regenerates it)
+Deptrac, `tsc -b`, knip, the infrastructure typecheck, `openapi-check` and `asyncapi-check`
+(`apps/docs/openapi.json` must match the routes and `apps/docs/asyncapi.json` the realtime notifications;
+`make openapi` and `make asyncapi` regenerate them)
 accept no file argument and run whole.
-`make docs-lint` validates the OpenAPI document with Redocly, and `make docs-build` renders it with Scalar
-to `apps/docs/dist/index.html`, with a request console that sends to `API_URL`
-(default `https://dev.api.social.aleherse.com`; sign in first, the session is a cookie).
+`make docs-lint` validates the OpenAPI document with Redocly and the AsyncAPI document with the AsyncAPI CLI,
+and `make docs-build` renders the first with Scalar to `apps/docs/dist/api/index.html`, with a request console that sends to `API_URL`
+(default `https://dev.api.social.aleherse.com`; sign in first, the session is a cookie),
+the second to `apps/docs/dist/event/index.html`, and a landing page linking both to `apps/docs/dist/index.html`.
 The API and browser suites need the database snapshot: run `make db` once
 after `make init` and after any migration
 (`make tests` runs all five suites against the development stack).

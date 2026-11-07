@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "lint": "redocly lint openapi.json"
+    "lint": "redocly lint openapi.json && ASYNCAPI_METRICS=false asyncapi validate asyncapi.json"
   },
   "devDependencies": {
+    "@asyncapi/cli": "^6.3.0",
+    "@asyncapi/react-component": "^3.2.3",
     "@redocly/cli": "^2.71.0",
     "@scalar/api-reference": "1.76.0"
   }

@@ -23,7 +23,8 @@ The ones agents need most:
 | `make web-e2e`    | Playwright against the real API                                                  |
 | `make lint`       | All linters in parallel; narrow with `FILES="..."`                               |
 | `make console`    | Symfony console (`make console cmd="cache:clear"`)                               |
-| `make docs-build` | Render the OpenAPI document with Scalar to `apps/docs/dist/index.html`           |
+| `make docs-build` | Render the docs landing page, OpenAPI (Scalar, `/api/`) and AsyncAPI (`/event/`) to `apps/docs/dist` |
 | `make openapi`    | Regenerate `apps/docs/openapi.json`; `make openapi-check` fails when it is stale |
 | `make map-data`   | Build the real places from OpenStreetMap                                         |
 | `make map-import` | Load the built places into the dev database                                      |
+| `make asyncapi`   | Regenerate `apps/docs/asyncapi.json`; `make asyncapi-check` fails when it is stale |

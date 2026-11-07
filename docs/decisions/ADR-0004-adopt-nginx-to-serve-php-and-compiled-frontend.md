@@ -19,7 +19,7 @@ For `DEV_API_URL`, nginx SHALL forward PHP requests to the PHP-FPM container via
 
 For `DEV_FRONT_URL`, nginx SHALL serve the compiled Vite frontend from the build output directory under `apps/web`.
 
-For `DEV_DOCS_URL`, nginx SHALL serve the Scalar page that `make docs-build` renders under `apps/docs/dist`.
+For `DEV_DOCS_URL`, nginx SHALL serve the documentation site that `make docs-build` renders under `apps/docs/dist`.
 
 The frontend location SHALL use `try_files` so client-side routes fall back to the SPA entry document.
 
