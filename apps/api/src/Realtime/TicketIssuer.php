@@ -17,9 +17,9 @@ use Symfony\Component\Uid\Uuid;
  */
 final readonly class TicketIssuer
 {
-    private const int LIFETIME_SECONDS = 60;
+    public const int LIFETIME_SECONDS = 60;
 
-    private const string AUDIENCE = 'realtime';
+    public const string AUDIENCE = 'realtime';
 
     public function __construct(
         private JWTEncoderInterface $encoder,

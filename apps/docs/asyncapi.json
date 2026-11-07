@@ -1,0 +1,86 @@
+{
+    "asyncapi": "3.0.0",
+    "info": {
+        "title": "Social Bulletin realtime",
+        "version": "1.0.0",
+        "description": "Notifications the API pushes to signed-in browsers over AppSync Events. Commands and queries stay on the HTTP API; a notification only tells the client what to refetch."
+    },
+    "channels": {
+        "userMovements": {
+            "address": "/users/{userId}/movements",
+            "description": "Changes to the movements of one user.",
+            "parameters": {
+                "userId": {
+                    "description": "The id of the user, as returned by `GET /api/me`. A ticket only subscribes to its own user."
+                }
+            },
+            "messages": {
+                "movementChanged": {
+                    "$ref": "#/components/messages/MovementChanged"
+                }
+            }
+        }
+    },
+    "operations": {
+        "receiveMovementChanged": {
+            "action": "receive",
+            "summary": "A movement of the user was created, updated or submitted.",
+            "channel": {
+                "$ref": "#/channels/userMovements"
+            },
+            "security": [
+                {
+                    "$ref": "#/components/securitySchemes/ticket"
+                }
+            ],
+            "messages": [
+                {
+                    "$ref": "#/channels/userMovements/messages/movementChanged"
+                }
+            ]
+        }
+    },
+    "components": {
+        "messages": {
+            "MovementChanged": {
+                "name": "MovementChanged",
+                "summary": "Refetch the movements: one of them changed.",
+                "contentType": "application/json",
+                "payload": {
+                    "$ref": "#/components/schemas/MovementChanged"
+                }
+            }
+        },
+        "schemas": {
+            "MovementChanged": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "change",
+                    "movementId"
+                ],
+                "properties": {
+                    "change": {
+                        "type": "string",
+                        "enum": [
+                            "created",
+                            "updated",
+                            "submitted"
+                        ]
+                    },
+                    "movementId": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "ticket": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "The ticket returned by `POST /api/realtime-tickets`, valid for 60 seconds, with the `realtime` audience. It is sent when connecting; the session cookie is not read by AppSync."
+            }
+        }
+    }
+}

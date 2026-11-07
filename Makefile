@@ -21,6 +21,7 @@ POSTGRES_PORT = $(or $(call env_value,POSTGRES_PORT),5432)
 RUN_PHP := $(COMPOSE) run --rm --no-deps php
 RUN_NODE := $(COMPOSE) run --rm --no-deps node
 OPENAPI_DUMP := $(COMPOSE) run --rm --no-deps -T --workdir /app/apps/api php php bin/console nelmio:apidoc:dump --format=json
+ASYNCAPI_DUMP := $(COMPOSE) run --rm --no-deps -T --workdir /app/apps/api php php bin/console app:asyncapi:dump
 
 # $(call in_order,<make command>,<targets>): one sub-make per target, one
 # after the other, stopping at the first failure. Prerequisite lists only
@@ -121,6 +122,10 @@ console: ## Run a Symfony console command, e.g. `make console cmd="cache:clear"`
 openapi: ## Regenerate apps/docs/openapi.json, the OpenAPI document of the API
 	$(OPENAPI_DUMP) > apps/docs/openapi.json.tmp && mv apps/docs/openapi.json.tmp apps/docs/openapi.json
 
+.PHONY: asyncapi
+asyncapi: ## Regenerate apps/docs/asyncapi.json, the AsyncAPI document of the realtime notifications
+	$(ASYNCAPI_DUMP) > apps/docs/asyncapi.json.tmp && mv apps/docs/asyncapi.json.tmp apps/docs/asyncapi.json
+
 .PHONY: docs-lint
 docs-lint: ## Validate apps/docs/openapi.json with Redocly (whole project only: it judges the document)
 	$(RUN_NODE) npm run lint --prefix /app/apps/docs
@@ -132,6 +137,10 @@ docs-build: ## Render apps/docs/openapi.json to apps/docs/dist/index.html with S
 .PHONY: openapi-check
 openapi-check: ## Check apps/docs/openapi.json matches the routes (whole project only: it judges the generated document)
 	@$(OPENAPI_DUMP) | diff -u apps/docs/openapi.json - || { echo "apps/docs/openapi.json is stale: run 'make openapi' and commit it"; exit 1; }
+
+.PHONY: asyncapi-check
+asyncapi-check: ## Check apps/docs/asyncapi.json matches the notifications (whole project only: it judges the generated document)
+	@$(ASYNCAPI_DUMP) | diff -u apps/docs/asyncapi.json - || { echo "apps/docs/asyncapi.json is stale: run 'make asyncapi' and commit it"; exit 1; }
 
 .PHONY: shell
 shell: ## Open an interactive shell in the PHP container (or another via `make shell service=node`)
@@ -251,7 +260,7 @@ GATE := $(GATE_ENV) $(MAKE)
 # - suites:  the database-backed suites, one after the other: both restore
 #            the same snapshot into the same database.
 GATE_PREPARE := images deps
-LINT_CHECKS := php-deptrac php-stan php-ecs openapi-check docs-lint web-tsc web-eslint web-knip web-prettier infra-tsc
+LINT_CHECKS := php-deptrac php-stan php-ecs openapi-check asyncapi-check docs-lint web-tsc web-eslint web-knip web-prettier infra-tsc
 GATE_CHEAP := $(LINT_CHECKS)
 GATE_BUILD := php-unit web-unit web-build docs-build db
 GATE_SUITES := api-integration api-tests web-e2e-run
