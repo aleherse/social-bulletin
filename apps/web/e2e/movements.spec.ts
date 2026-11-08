@@ -133,3 +133,26 @@ test('an author edits a draft before submitting it', async ({ page }) => {
   await expect(row).toContainText('Region · Yorkshire · Cooperative');
   await expect(row).toContainText('Draft');
 });
+
+test('a movement drafted in one window appears in the author’s other window without a reload', async ({
+  browser,
+  page,
+}) => {
+  // ADR-0024: the API pushes a notification and the open list refetches.
+  await signIn(page, 'author@example.com');
+  await expect(page.getByText('You have not proposed any movements yet.')).toBeVisible();
+
+  const otherWindow = await (await browser.newContext()).newPage();
+  await signIn(otherWindow, 'author@example.com');
+  await expect(otherWindow.getByText('You have not proposed any movements yet.')).toBeVisible();
+
+  await createDraft(page, {
+    title: 'Live Gardens',
+    category: 'Cooperative',
+    area: 'Municipality',
+    location: 'Sheffield',
+  });
+
+  await expect(otherWindow.getByRole('link', { name: 'Live Gardens' })).toBeVisible();
+  await otherWindow.context().close();
+});
