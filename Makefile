@@ -207,6 +207,10 @@ web-knip: ## Check frontend project hygiene with knip (whole project only: it lo
 web-prettier: ## Apply (locally) or check (CI) frontend formatting with Prettier (FILES narrows)
 	$(call narrowed,$(web_files),$(RUN_NODE) npx prettier $(PRETTIER_MODE) --ignore-unknown,.)
 
+.PHONY: infra-test
+infra-test: ## Run the infrastructure tests: CDK template assertions and the realtime authorizer (node:test)
+	$(COMPOSE) run --rm --no-deps --workdir /app/infrastructure node npm test
+
 .PHONY: infra-tsc
 infra-tsc: ## Type-check the AWS CDK infrastructure app (whole project only)
 	$(COMPOSE) run --rm --no-deps --workdir /app/infrastructure node npm run typecheck
@@ -264,7 +268,7 @@ GATE := $(GATE_ENV) $(MAKE)
 GATE_PREPARE := images deps
 LINT_CHECKS := php-deptrac php-stan php-ecs openapi-check asyncapi-check docs-lint web-tsc web-eslint web-knip web-prettier infra-tsc
 GATE_CHEAP := $(LINT_CHECKS)
-GATE_BUILD := php-unit web-unit web-build docs-build db
+GATE_BUILD := php-unit web-unit infra-test web-build docs-build db
 GATE_SUITES := api-integration api-tests web-e2e-run
 GATE_STAGES := $(GATE_PREPARE) $(GATE_CHEAP) $(GATE_BUILD) $(GATE_SUITES)
 

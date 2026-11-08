@@ -21,9 +21,11 @@ Adopt these documentation constants.
 | `DEV_API_URL`        | dev.api.social.aleherse.com                  | Local development API hostname.                                   |
 | `DEV_FRONT_URL`      | dev.app.social.aleherse.com                  | Local development frontend hostname.                              |
 | `DEV_DOCS_URL`       | dev.doc.social.aleherse.com                  | Local development API documentation hostname.                     |
+| `DEV_REALTIME_URL`   | dev.realtime.social.aleherse.com             | Local development realtime (websocket) hostname.                  |
 | `DEV_TLS_HOSTNAME`   | social.aleherse.com                          | TLS certificate hostname.                                         |
 | `LIVE_API_URL`       | api.social.aleherse.com                      | Live API URL.                                                     |
 | `LIVE_FRONT_URL`     | app.social.aleherse.com                      | Live frontend URL.                                                |
+| `LIVE_REALTIME_URL`  | realtime.social.aleherse.com                 | Live realtime (AppSync Events) URL.                               |
 | `SOCIAL_BOARD_URL`   | https://boards.aircury.net/b/social-bulletin | Boards project board                                              |
 | `BOARDS_API_ORIGIN`  | https://api.boards.aircury.net               | Boards API origin                                                 |
 | `INTEGRATION_BRANCH` | ready                                        | Git branch used for integrations                                  |

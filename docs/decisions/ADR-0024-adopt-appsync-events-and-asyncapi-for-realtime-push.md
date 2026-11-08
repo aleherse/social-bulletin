@@ -45,4 +45,7 @@ and it must keep local development and CI free of paid or cloud-only dependencie
 - A new notification is one class plus one handler; domain events stay free to change.
 - A failed publish fails the request after the write is stored, and a crash loses the notification.
   A missed notification costs freshness, never correctness, until a transactional outbox exists.
-- AppSync Events quotas and browser authentication through a Lambda authorizer must be confirmed before the realtime stack is built.
+- The Lambda authorizer reads the API's JWT public key from the environment's `jwt-public-key` Parameter Store entry,
+  which must exist before the realtime stack serves traffic.
+- Connecting and subscribing through the Lambda authorizer while publishing with IAM is documented by AppSync only by implication,
+  so it must be confirmed on `preview` before `live`.

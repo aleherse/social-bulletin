@@ -18,7 +18,8 @@ The project needs repeatable cloud deployment for the frontend, API, database, c
   ([ADR-0024](ADR-0024-use-openstreetmap-tiles-and-self-hosted-place-lookup.md)).
 - The API SHALL run as a Bref PHP-FPM Lambda behind CloudFront at `LIVE_API_URL`.
 - Console commands SHALL run through a Bref console Lambda so production migrations can be invoked after deploy.
-- CDK SHALL manage the Route53 aliases and ACM certificate for both production hostnames.
+- CDK SHALL manage the Route53 aliases and ACM certificate for the production hostnames.
+- Realtime push SHALL be an AWS AppSync Events API at `LIVE_REALTIME_URL`, in its own CDK stack (ADR-0024).
 - Database SHALL use Aurora Serverless v2 cluster with one writer and no reader, uses cost-optimised settings.
 - Configuration and secrets SHALL use AWS Systems Manager Parameter Store under environment-scoped paths.
 - Deployment SHALL be triggered from a GitHub action on merge into `live`.
