@@ -5,6 +5,7 @@ import { ApiStack } from '../lib/api-stack';
 import { DatabaseStack } from '../lib/database-stack';
 import { environments, PROJECT_SLUG } from '../lib/environment';
 import { FrontendStack } from '../lib/frontend-stack';
+import { RealtimeStack } from '../lib/realtime-stack';
 
 const app = new cdk.App();
 
@@ -21,6 +22,7 @@ for (const environment of environments) {
   const prefix = `${PROJECT_SLUG}-${environment.name}`;
 
   new DatabaseStack(app, `${prefix}-database`, { environment, env });
-  new ApiStack(app, `${prefix}-api`, { environment, env });
+  const realtime = new RealtimeStack(app, `${prefix}-realtime`, { environment, env });
+  new ApiStack(app, `${prefix}-api`, { environment, env, realtimeApi: realtime.api });
   new FrontendStack(app, `${prefix}-frontend`, { environment, env });
 }

@@ -2,6 +2,7 @@ import * as path from 'node:path';
 
 import * as cdk from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as appsync from 'aws-cdk-lib/aws-appsync';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -15,6 +16,7 @@ import { lookupHostedZone } from './hosted-zone';
 
 export interface ApiStackProps extends cdk.StackProps {
   readonly environment: DeploymentEnvironment;
+  readonly realtimeApi: appsync.IEventApi;
 }
 
 // Bref publishes its layers from this account; versions are pinned via CDK
@@ -55,6 +57,9 @@ export class ApiStack extends cdk.Stack {
       // under this environment-scoped prefix (ADR-0016).
       SSM_PARAMETER_PREFIX: `/${PROJECT_SLUG}/${environment.name}`,
       DATABASE_URL_PARAMETER: parameterPath(environment, 'database-url'),
+      // ADR-0024: the API publishes to AppSync Events and hands browsers the websocket endpoint.
+      REALTIME_PUBLISH_URL: `https://${environment.realtimeDomainName}/event`,
+      REALTIME_WS_URL: `wss://${environment.realtimeDomainName}/event/realtime`,
     };
 
     const apiFunction = new lambda.Function(this, 'ApiFunction', {
@@ -92,6 +97,10 @@ export class ApiStack extends cdk.Stack {
     });
     apiFunction.addToRolePolicy(parameterReadAccess);
     consoleFunction.addToRolePolicy(parameterReadAccess);
+
+    // Publishing is the only way in; browsers get a ticket, never publish rights (ADR-0024).
+    props.realtimeApi.grantPublish(apiFunction);
+    props.realtimeApi.grantPublish(consoleFunction);
 
     const functionUrl = apiFunction.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,

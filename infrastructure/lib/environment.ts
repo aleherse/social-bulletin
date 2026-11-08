@@ -2,12 +2,13 @@ export const PROJECT_SLUG = 'social-bulletin';
 
 /**
  * ADR-0016: two isolated deployment environments. `live` serves the ADR-0000
- * production hostnames; `preview` mirrors it under a `preview.` sub-zone.
+ * production hostnames; `preview` mirrors it with `preview.` in front of each service name.
  */
 export interface DeploymentEnvironment {
   readonly name: 'live' | 'preview';
   readonly apiDomainName: string;
   readonly frontDomainName: string;
+  readonly realtimeDomainName: string;
 }
 
 export const environments: readonly DeploymentEnvironment[] = [
@@ -15,11 +16,13 @@ export const environments: readonly DeploymentEnvironment[] = [
     name: 'live',
     apiDomainName: 'api.social.aleherse.com',
     frontDomainName: 'app.social.aleherse.com',
+    realtimeDomainName: 'realtime.social.aleherse.com',
   },
   {
     name: 'preview',
-    apiDomainName: 'api.preview.social.aleherse.com',
-    frontDomainName: 'app.preview.social.aleherse.com',
+    apiDomainName: 'preview.api.social.aleherse.com',
+    frontDomainName: 'preview.app.social.aleherse.com',
+    realtimeDomainName: 'preview.realtime.social.aleherse.com',
   },
 ] as const;
 

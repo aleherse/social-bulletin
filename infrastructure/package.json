@@ -5,7 +5,8 @@
   "scripts": {
     "cdk": "cdk",
     "synth": "cdk synth",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --require ts-node/register --test \"test/**/*.test.ts\" \"lambda/**/*.test.mjs\""
   },
   "dependencies": {
     "aws-cdk-lib": "^2.170.0",
