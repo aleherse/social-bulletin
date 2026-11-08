@@ -28,4 +28,5 @@ The ones agents need most:
 | `make map-data`   | Build the real places from OpenStreetMap                                         |
 | `make map-import` | Load the built places into the dev database                                      |
 | `make infra-test` | Infrastructure tests: CDK template assertions and the realtime authorizer (node:test) |
+| `make realtime-test` | Tests of the local AppSync Events stand-in (node:test) |
 | `make asyncapi`   | Regenerate `apps/docs/asyncapi.json`; `make asyncapi-check` fails when it is stale |

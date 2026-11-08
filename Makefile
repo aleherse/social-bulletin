@@ -79,7 +79,8 @@ deps: ## Install Composer and npm dependencies and the JWT key pair
 	$(RUN_NODE) sh -ec '\
 		npm install --no-audit --no-fund --prefix /app/apps/web; \
 		npm install --no-audit --no-fund --prefix /app/apps/docs; \
-		npm install --no-audit --no-fund --prefix /app/infrastructure'
+		npm install --no-audit --no-fund --prefix /app/infrastructure; \
+		npm install --no-audit --no-fund --prefix /app/docker/realtime'
 
 .PHONY: hooks
 hooks: ## Install the Lefthook git hooks, using the node container to fetch the host's lefthook binary
@@ -102,6 +103,7 @@ urls: ## Print the addresses the development stack serves
 	@echo "Documentation:              https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))"
 	@echo "  HTTP API (Scalar):        https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/api/"
 	@echo "  Realtime events:          https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/event/"
+	@echo "Realtime (websocket):       wss://dev.realtime.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/event/realtime"
 	@echo "PostgreSQL:                 localhost:$(POSTGRES_PORT) (bulletin/bulletin)"
 
 .PHONY: down
@@ -211,6 +213,10 @@ web-prettier: ## Apply (locally) or check (CI) frontend formatting with Prettier
 infra-test: ## Run the infrastructure tests: CDK template assertions and the realtime authorizer (node:test)
 	$(COMPOSE) run --rm --no-deps --workdir /app/infrastructure node npm test
 
+.PHONY: realtime-test
+realtime-test: ## Run the local AppSync Events stand-in's tests (node:test)
+	$(COMPOSE) run --rm --no-deps --workdir /app/docker/realtime node npm test
+
 .PHONY: infra-tsc
 infra-tsc: ## Type-check the AWS CDK infrastructure app (whole project only)
 	$(COMPOSE) run --rm --no-deps --workdir /app/infrastructure node npm run typecheck
@@ -268,7 +274,7 @@ GATE := $(GATE_ENV) $(MAKE)
 GATE_PREPARE := images deps
 LINT_CHECKS := php-deptrac php-stan php-ecs openapi-check asyncapi-check docs-lint web-tsc web-eslint web-knip web-prettier infra-tsc
 GATE_CHEAP := $(LINT_CHECKS)
-GATE_BUILD := php-unit web-unit infra-test web-build docs-build db
+GATE_BUILD := php-unit web-unit infra-test realtime-test web-build docs-build db
 GATE_SUITES := api-integration api-tests web-e2e-run
 GATE_STAGES := $(GATE_PREPARE) $(GATE_CHEAP) $(GATE_BUILD) $(GATE_SUITES)
 
