@@ -1,0 +1,14 @@
+{
+  "name": "social-bulletin-realtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local stand-in for AppSync Events (ADR-0024): the same publish endpoint and websocket protocol, authorised by the production authorizer.",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
