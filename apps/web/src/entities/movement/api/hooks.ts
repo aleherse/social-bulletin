@@ -1,4 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+
+import { watchRealtime } from '@/shared/realtime';
 
 import type { MovementDraftInput } from '../model/types.ts';
 
@@ -56,4 +59,14 @@ export function useUpdateMovement() {
       updateMovement(id, input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: movementsKey }),
   });
+}
+
+export function useMovementChanges() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const refetch = () => void queryClient.invalidateQueries({ queryKey: movementsKey });
+
+    return watchRealtime({ onNotification: refetch, onResync: refetch });
+  }, [queryClient]);
 }

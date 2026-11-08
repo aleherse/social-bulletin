@@ -2,6 +2,7 @@ export {
   useCategories,
   useCreateMovement,
   useMovement,
+  useMovementChanges,
   useMovements,
   useSubmitMovement,
   useUpdateMovement,

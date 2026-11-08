@@ -22,6 +22,8 @@ vi.mock('@/entities/movement/api/client.ts', () => ({
   updateMovement: vi.fn(),
 }));
 
+vi.mock('@/shared/realtime', () => ({ watchRealtime: vi.fn(() => vi.fn()) }));
+
 vi.mock('@/shared/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/shared/api')>()),
   fetchCurrentUser: vi.fn(),
