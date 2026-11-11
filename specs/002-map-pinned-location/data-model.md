@@ -89,12 +89,12 @@ throws `InvalidPlaceFeed` naming `$line`.
 Raised while parsing an import line, with the line number in its message.
 Not a `DomainError`: it only reaches the console command, never HTTP.
 
-### `Domain/Helper/PlaceFeed` (port)
+### `Application/Helper/JsonLinesReader`
 
-`features(string $source): iterable<int, array<string, mixed>>`,
-keyed by line number, one decoded feature per line.
-`apps/api` implements it as `GeoJsonSeqPlaceFeed`
-over a local path or an HTTPS URL (research R7).
+`lines(string $source): iterable<int, array<mixed>>`,
+keyed by line number, one decoded object per non-blank line.
+It opens a local path or an HTTPS URL with `fopen` (research R7);
+it is plain PHP, so it lives in `core` and needs no port.
 
 ### `Domain/Place/PlaceRepository`
 

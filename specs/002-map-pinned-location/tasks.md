@@ -63,7 +63,7 @@ because both stories end in the same lookup.
 **Purpose**: Record the decisions, add dependencies and PostGIS,
 fix the shared E2E helpers, and prepare the shared test data and strings.
 
-- [X] T001 Write `docs/decisions/ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md`
+- [X] T001 Write `docs/decisions/ADR-0024-use-openstreetmap-tiles-and-self-hosted-place-lookup.md`
       (first written as a self-hosted PMTiles decision; T049 revised it)
       with the `adr-skill`, status Proposed, following ADR-0019's section layout,
       from research.md R1–R10:
@@ -73,10 +73,9 @@ fix the shared E2E helpers, and prepare the shared test data and strings.
       the point only in the body, never stored or logged;
       the `map-data` pipeline and its manual workflow;
       non-goals: storing coordinates, forward search, coverage beyond Spain and the UK.
-      In the same change, correct in place
-      `docs/decisions/ADR-0009-adopt-postgresql-and-doctrine-dbal.md`
-      (the container is PostgreSQL 17 with PostGIS; the `postgis` extension is enabled by migration)
-      and `docs/decisions/ADR-0016-aws-serverless-deployment.md`
+      State in the ADR that PostgreSQL 17 needs PostGIS, enabled by migration
+      (ADR-0009 stays generic), and in the same change correct in place
+      `docs/decisions/ADR-0016-aws-serverless-deployment.md`
       (a private map-data bucket behind a `/tiles/*` behaviour on the frontend distribution)
       (Constitution III)
 - [X] T002 Add `leaflet@1.9.4`, `react-leaflet@5.0.0`, and the latest 5.x `protomaps-leaflet`
@@ -93,7 +92,8 @@ fix the shared E2E helpers, and prepare the shared test data and strings.
       if `docker-compose.ci.yml` lists built services for its layer cache, add `postgres` there;
       verify with `make images`, `make up`, and
       `make console cmd="dbal:run-sql 'CREATE EXTENSION IF NOT EXISTS postgis'"` succeeding
-- [X] T004 [P] Add a `DomainPort` layer to `deptrac.yaml`:
+- [X] T004 [P] *(Superseded: the port was dropped for `Application/Helper/JsonLinesReader`, so the layer was reverted.)*
+      Add a `DomainPort` layer to `deptrac.yaml`:
       a `bool` collector for classes under `packages/core/src/Domain/Helper/`
       that must be an interface and must not be the `DomainError` layer,
       excluded from the `Domain` layer's collector;
@@ -174,9 +174,9 @@ and the E2E map helpers. Both stories need all of them.
       `admin_level` 9, a missing or empty `name`, a `boundary` with a `Point`,
       a `neighbourhood` with a `Polygon`, an unknown `kind`, a missing `osm_id`
 - [X] T011 [P] Write `packages/core/spec/Application/Place/Command/ImportPlacesHandlerSpec.php`
-      with `PlaceFeed` and `PlaceRepository` doubled:
+      with `JsonLinesReader` and `PlaceRepository` doubled:
       for `ImportPlacesCommand::fromSource('places.geojsonl')`
-      the feed is asked for `features('places.geojsonl')`,
+      the reader is asked for `lines('places.geojsonl')`,
       and `replaceAll()` receives an iterable that yields
       the parsed `Boundary` then `Neighbourhood`, in feed order
       (assert with `Argument::that` consuming it via `iterator_to_array`);
@@ -258,8 +258,8 @@ and the E2E map helpers. Both stories need all of them.
       Document both tables in `db/schema.dbml` with the `dbml-database-docs` skill,
       noting they hold OSM reference data replaced by each import.
       Verify with `make db`
-- [X] T018 Create `packages/core/src/Domain/Helper/PlaceFeed.php`
-      (interface, `features(string $source): iterable<int, array<string, mixed>>`, keyed by line number),
+- [X] T018 Create `packages/core/src/Application/Helper/JsonLinesReader.php`
+      (*revised: was a `Domain/Helper/PlaceFeed` port;* `lines(string $source): iterable<int, array<mixed>>`, keyed by line number),
       `packages/core/src/Domain/Place/PlaceRepository.php`
       (`replaceAll(iterable<Boundary|Neighbourhood> $places): void`:
       inside `Connection::transactional()`,
@@ -284,7 +284,8 @@ and the E2E map helpers. Both stories need all of them.
       (`@extends BaseQuery<Place>`, `fromPayload` over a private constructor, `application-framework-0002`)
       with `LookUpPlaceHandler.php`,
       so T012 passes (depends on T016, T017)
-- [X] T020 Create `apps/api/src/Place/GeoJsonSeqPlaceFeed.php` implementing `PlaceFeed`
+- [X] T020 *(Revised: the reader moved to `core` as T018's `JsonLinesReader`, registered in `services.yaml`, with its own spec.)*
+      Create `apps/api/src/Place/GeoJsonSeqPlaceFeed.php` implementing `PlaceFeed`
       (opens the source with `fopen` in read mode, which covers a local path and an HTTPS URL;
       yields `json_decode($line, true, flags: JSON_THROW_ON_ERROR)` keyed by 1-based line number,
       rethrowing a `\JsonException` as a `\RuntimeException` whose message names the line
@@ -683,7 +684,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
 
 ### Decisions
 
-- [X] T049 Correct `docs/decisions/ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md` in place,
+- [X] T049 Correct `docs/decisions/ADR-0024-use-openstreetmap-tiles-and-self-hosted-place-lookup.md` in place,
       title "Use OpenStreetMap tiles and a self-hosted place lookup", status still Proposed (research R10):
       "Map rendering" names `leaflet` and `react-leaflet` only, with `<TileLayer>`,
       `maxZoom` 19, and the attribution "© OpenStreetMap contributors";
@@ -698,8 +699,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       "Revisit Triggers" replaces the Geofabrik `osmium getid` entry with
       "the guard fails although Overpass answered: check the relations' tags";
       keep the 2026-10-16 measurements and add a line that the 6.2 GB archive was dropped.
-      Update the links in `docs/decisions/ADR-0009-adopt-postgresql-and-doctrine-dbal.md`
-      and `docs/decisions/ADR-0016-aws-serverless-deployment.md`,
+      Update the links in `docs/decisions/ADR-0016-aws-serverless-deployment.md`,
       and correct ADR-0016 in place: the map-data bucket holds the places file only,
       with no `/tiles/*` behaviour, and the line saying the browser makes no cross-origin map request
       becomes "map tiles come from OpenStreetMap's tile servers (ADR-0024)".
@@ -818,7 +818,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       name the test that fails without it (see Notes);
       temporarily revert each implementation file and confirm its tests go red
 - [X] T046 Run `make lint` and fix every finding,
-      including `php-deptrac` (the `DomainPort` layer from T004)
+      including `php-deptrac`
       and any `web-knip` unused-export report for
       `apps/web/src/shared/geo/index.ts`, `apps/web/src/shared/map/index.ts`,
       `apps/web/src/shared/ui/index.ts`, and `apps/web/src/entities/movement/index.ts`
@@ -834,7 +834,6 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       Typed names are not validated against place data, by design: FR-004, FR-006, SC-004.)
 - [X] T048 [P] Use the `extract-rule` skill on the final diff
       to record the conventions this feature sets, each in its matching `docs/rules/` file:
-      `Domain/Helper` ports are their own deptrac layer that `Framework` may implement;
       large static assets are served from the app's own origin, never a third party;
       shared Behat/Playwright reference data is loaded by `fixtures.feature` through the same command production uses;
       a provider reading two tables gives each its own query builder (if review agrees with T019)
