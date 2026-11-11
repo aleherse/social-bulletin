@@ -829,6 +829,9 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       on `preview` after T043, time ten pins in DevTools → Network
       and record whether the place name filled within 3 s for each (SC-001);
       the pull request description names `make ci` as the gate that ran
+      (Done 2026-11-11: `make ci` passed and the quickstart steps were walked by hand against `make up`
+      with the real data; open: the `preview` timing, after T043.
+      Typed names are not validated against place data, by design: FR-004, FR-006, SC-004.)
 - [X] T048 [P] Use the `extract-rule` skill on the final diff
       to record the conventions this feature sets, each in its matching `docs/rules/` file:
       `Domain/Helper` ports are their own deptrac layer that `Framework` may implement;
