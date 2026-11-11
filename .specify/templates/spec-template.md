@@ -5,6 +5,11 @@
 **Created**: [DATE]
 
 **Status**: Draft
+<!--
+  Allowed values (set by hand, nothing automates it):
+  Draft | In Progress | Implemented | Superseded by NNN-name | Abandoned
+  Only the feature named under "Active feature" in AGENTS.md is read by agents.
+-->
 
 **Input**: User description: "$ARGUMENTS"
 
