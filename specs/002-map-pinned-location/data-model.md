@@ -109,7 +109,8 @@ Batching is deferred until the first timed import (T040) shows it is needed.
 
 `nameAt(GeoPoint $point, PlaceLevel $level): ?Place`
 (`application-queries-0001`, `-0002`),
-where `Model\Place` is `final readonly class Place { public string $name; }`:
+where `Model\Place` is `final readonly class Place { public ?string $name; }`
+(`null` only in the answer to a lookup that found nothing; the provider returns `null` instead of such a `Place`):
 
 1. the boundary at `$level` whose `geom` covers the point (`ST_Covers`),
    preferring the smallest area if two overlap;
@@ -122,7 +123,7 @@ where `Model\Place` is `final readonly class Place { public string $name; }`:
 
 | Use case | Class | Result |
 |----------|-------|--------|
-| Look up a place name | `Application/Place/Query/LookUpPlaceQuery` (`fromPayload`: `lat`, `lon`, `area`) → `LookUpPlaceHandler` | `?Place` |
+| Look up a place name | `Application/Place/Query/LookUpPlaceQuery` (`fromPayload`: `lat`, `lon`, `area`) → `LookUpPlaceHandler` | `Place` (`name` is `null` when none is found) |
 | Import places | `Application/Place/Command/ImportPlacesCommand` (`source`) → `ImportPlacesHandler` | `void` |
 
 ## Client-side values (`apps/web`)

@@ -81,7 +81,7 @@ FSD import rules and `shared/*` adapters; hexagonal boundaries checked by deptra
 
 **Scale/Scope**: Place names for Spain and the UK; Spanish land named at `national` and `state` (FR-012); tiles worldwide.
 `packages/core`: one new `Place` area (5 domain classes, 2 domain exceptions, 1 port, 1 repository, 1 provider, 1 model, 1 query, 1 command).
-`apps/api`: 1 controller, 1 console command, 1 port adapter, 1 migration, the listener extended to one more error.
+`apps/api`: 1 controller with its transformer and request-payload class, 1 console command, 1 port adapter, 1 migration, the listener extended to one more error.
 `apps/web`: 2 `shared` slices (`map`, `geo`), 1 `ErrorBoundary`, 1 lookup client in `entities/movement`, the picker in `features/propose-movement`, 8 i18n strings.
 Ops: 2 Dockerfiles, 2 make targets, 1 build script with an Overpass fetch and a guard, 1 manual workflow, 1 CDK bucket (places only, no CloudFront behaviour)
 
@@ -115,8 +115,8 @@ constitutional gate; they are governed by ADR-0005/ADR-0007 and enforced by
 | User journeys | yes | Playwright | `apps/web/e2e/movement-location.spec.ts` |
 
 No layer is waived.
-`infrastructure`, `docker`, and the workflow are not test layers under ADR-0013;
-they are checked by `make infra-tsc`, `make images`, `make ci` building the PostGIS image,
+`infrastructure`, `docker`, `apps/docs`, and the workflow are not test layers under ADR-0013;
+`apps/docs/openapi.json` is checked by `make openapi-check`, the others by `make infra-tsc`, `make images`, `make ci` building the PostGIS image,
 and the first publish (quickstart "Checking published data").
 
 **Gate notes**:
@@ -153,8 +153,9 @@ and the first publish (quickstart "Checking published data").
   ADR-0005 (core/api split), ADR-0007 (FSD), ADR-0008 (i18n), ADR-0009 (PostgreSQL/DBAL),
   ADR-0010 (shadcn `Button`), ADR-0012 (deptrac owns the layer rules), ADR-0013 (tools),
   ADR-0015 (`make ci`), ADR-0016 (AWS),
-  ADR-0019 (lazy routes), ADR-0021 (CQRS).
-  **ADR-0024** (Proposed, already written) is corrected in place and renamed
+  ADR-0019 (lazy routes), ADR-0021 (CQRS),
+  ADR-0022 (JSON:API) and ADR-0023 (generated OpenAPI), adopted on `main` after this plan was first written.
+  **ADR-0024** (Proposed, already written; numbered 0022 until the 2026-11 rebase took 0022 and 0023) is corrected in place and renamed
   to `ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md`:
   OSM raster tiles instead of the PMTiles archive, the Overpass fetch, and the build guard.
   Corrected in place in the same change: **ADR-0009** (PostGIS-enabled container and extension, unchanged)
@@ -165,6 +166,8 @@ and the first publish (quickstart "Checking published data").
   `test-integration-0001`, `test-unit-0001`, `scaffolding-folders-0001`.
   Notable applications: the import port lives in `Domain/Helper/` (`domain-helpers-0002`);
   `LookUpPlaceQuery::fromPayload` follows `application-framework-0002`'s shape for a query;
+  the lookup is a JSON:API resource (`application-framework-0005` to `-0007`):
+  `PlaceTransformer`, `LookUpPlacePayload` for the documented request, and a regenerated `apps/docs/openapi.json` (`-0008`);
   Behat loads places through `CommandBus` (`test-integration-0001`).
 - **IV. Gates** — New make targets `map-data` and `map-import` (ADR-0003);
   `make images` builds the PostGIS and `map` images;
@@ -245,7 +248,9 @@ packages/core/
 apps/api/
 ├── migrations/Version<timestamp>.php                # postgis extension + both tables
 ├── config/services.yaml                             # alias PlaceFeed → GeoJsonSeqPlaceFeed
-├── src/Controller/Place/LookUpPlaceController.php   # POST /api/places/lookup
+├── src/Controller/Place/LookUpPlaceController.php   # POST /api/places/lookup, JSON:API
+├── src/Controller/Place/LookUpPlacePayload.php      # request attributes, for the OpenAPI document
+├── src/Http/Transformer/PlaceTransformer.php        # fixed id `lookup`
 ├── src/Console/ImportPlacesConsoleCommand.php       # app:places:import <path-or-url>
 ├── src/Place/GeoJsonSeqPlaceFeed.php                # PlaceFeed adapter
 ├── src/EventListener/DomainErrorListener.php        # + InvalidPlaceLookup errors
