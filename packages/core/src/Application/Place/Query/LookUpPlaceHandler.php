@@ -16,6 +16,6 @@ final readonly class LookUpPlaceHandler
 
     public function __invoke(LookUpPlaceQuery $query): Place
     {
-        return $this->places->nameAt($query->point, $query->level) ?? new Place(null);
+        return $this->places->nameAt($query->point, $query->level);
     }
 }
