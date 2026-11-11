@@ -18,14 +18,12 @@ what its aggregates share, carrying no aggregate vocabulary of its own.
 
 ## domain-helpers-0002: A domain helper is a port, and apps/api supplies the adapter
 
-**WHEN** the domain needs a capability it cannot honestly provide itself — reaching outside the process, a real
-runtime/environment dependency (e.g. reading the system clock), or anything `apps/api`-specific
+**WHEN** the domain needs a capability it cannot honestly provide itself — a real runtime/environment dependency
+(e.g. reading the system clock), or anything `apps/api`-specific. Plain-PHP I/O only the application layer uses
+(e.g. reading a file) is not one: see `application-helpers-0004`.
 
 **THEN** declare it in `Domain/Helper/` as an **interface** named for the capability, implement it in `apps/api`,
 and alias the two in `apps/api/config/services.yaml` — that's what keeps `core` framework-free.
-deptrac collects `Domain/Helper` interfaces into the `DomainPort` layer, which `Framework`, `Application` and
-`Domain` may depend on, so the adapter passes `make php-deptrac`; never widen `Framework`'s ruleset to `Domain` to
-let one through.
 
 Exception: a small, dependency-free Symfony component `deptrac.yaml` already permits inside `Domain` on its own
 layer (e.g. `SymfonyUid`) can be called directly
@@ -42,7 +40,7 @@ Don't add a `*RepositoryInterface` to `Helper/` to match this pattern.
 | a `Helper/` interface with no adapter aliased                       | aliased in `apps/api/config/services.yaml`                             |
 | `MovementRepositoryInterface` in `Domain/Helper/`                    | concrete `MovementRepository` in `Domain/Movement/`                    |
 | a concrete `Clock` class in `Domain/Helper/`                         | a `Clock` interface there, implemented in `apps/api`                   |
-| `Framework: [Domain, …]` in `deptrac.yaml` for `GeoJsonSeqPlaceFeed`  | `Framework: [DomainPort, …]`; `PlaceFeed` is collected as a port       |
+| a `PlaceFeed` port in `Domain/Helper/` for a handler's `fopen`      | `Application\Helper\JsonLinesReader` (`application-helpers-0004`)     |
 
 ## domain-helpers-0003: A domain failure apps/api maps implements DomainError
 

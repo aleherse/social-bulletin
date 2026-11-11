@@ -54,3 +54,17 @@ of `BaseCommand` rather than copying it.
 | `final readonly class ShowMovementQuery` standing alone  | `… extends BaseQuery`, `@extends BaseQuery<Movement>` |
 | `ShowMovementQuery extends BaseCommand`           | `… extends BaseQuery`                                        |
 | `hasProperty()` copied onto `BaseQuery`           | left on `BaseCommand` until a query needs it                 |
+
+## application-helpers-0004: Plain-PHP I/O is a concrete Application helper
+
+**WHEN** a handler needs I/O that plain PHP does without a framework or vendor package, and the domain never calls it
+
+**THEN** write a concrete class in `core/src/Application/Helper/` (`application-helpers-0001`), non-final so PHPSpec
+can double it (`application-style-0001`). Add no `Domain/Helper` port, adapter or alias; `domain-helpers-0002` applies
+only when `apps/api` must supply the implementation or the domain calls it.
+
+**Example:**
+
+| Wrong                                                       | Right                                        |
+|-------------------------------------------------------------|----------------------------------------------|
+| `Domain\Helper\PlaceFeed` + `apps/api` `GeoJsonSeqPlaceFeed` | `Application\Helper\JsonLinesReader` over `fopen` |
