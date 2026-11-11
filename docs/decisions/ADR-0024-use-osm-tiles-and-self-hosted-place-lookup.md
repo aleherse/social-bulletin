@@ -302,3 +302,21 @@ and SHALL abort every request to `https://tile.openstreetmap.org/**`, so no suit
   At `national` every FR-012 point answers España;
   at `state`, Palma answers Illes Balears, Las Palmas de Gran Canaria answers Canarias,
   Ceuta answers Ceuta, and Melilla answers Melilla.
+
+### 2026-11-11: rebuild with a duplicated node, measured locally
+
+- The first rebuild failed in `osmium export` with "Node ID twice in input".
+  The Spain and Canary Islands extracts overlap at their edge
+  and come from different snapshots,
+  so a ferry terminal node (345366405) carried version 20 and version 21;
+  `osmium merge` removes only duplicates identical in id and version.
+  The 2026-10-16 builds worked because both extracts held the same versions then.
+  The script now merges Spain and the United Kingdom,
+  then applies the Canary Islands and Overpass files with `osmium apply-changes`,
+  which keeps the newest version of each object.
+- `make map-data` took 7 minutes 12 seconds,
+  including one Overpass 502 that `--retry` recovered from.
+  `places.geojsonl` is 490 MB: 32,746 boundaries and 33,203 neighbourhood nodes.
+- `make map-import` took 33.3 seconds.
+- Against the real data, every answer of the 2026-10-16 entry above is unchanged,
+  for Huelin, central Sheffield, and the four FR-012 points.
