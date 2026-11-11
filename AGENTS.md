@@ -15,7 +15,7 @@ Read this before making changes; the README covers human onboarding.
 | `docker`         | Container images, nginx config, generated certs      |
 | `docs/decisions` | Architecture Decision Records                        |
 | `docs/rules`     | Distilled engineering rules, by category/subcategory |
-| `specs/changes`  | Change specifications and task lists                 |
+| `specs`          | Archived feature specs (history only, see below)     |
 
 ## Decisions and specs
 
@@ -67,6 +67,14 @@ Read this before making changes; the README covers human onboarding.
 `make setup-claude` symlinks `.agents/skills` into `.claude/skills`
 and links `CLAUDE.md` to this file.
 
+## Ignore inactive specs
+
+- Treat `specs/` as an archive: only read the feature named under "Active feature" below.
+- Ignore every other spec, plan and task list unless the user explicitly asks for it;
+  they record past intent and may contradict the current code.
+- Use `docs/decisions/`, `docs/rules/` and the code as the source of truth.
+
+
 <!-- SPECKIT START -->
 ## Active feature (Spec Kit)
 
@@ -74,4 +82,3 @@ and links `CLAUDE.md` to this file.
 - Plan: [specs/002-map-pinned-location/plan.md](specs/002-map-pinned-location/plan.md)
 - Spec: [specs/002-map-pinned-location/spec.md](specs/002-map-pinned-location/spec.md)
 <!-- SPECKIT END -->
-

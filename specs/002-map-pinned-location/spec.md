@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "A movement author can pin a movement's location on a map instead of only typing it.
 Clicking the map or using "use my location" places a marker.
