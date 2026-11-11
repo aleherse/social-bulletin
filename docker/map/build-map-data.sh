@@ -1,5 +1,5 @@
 #!/bin/sh
-# ADR-0022: builds var/map/places.geojsonl (the shape of
+# ADR-0024: builds var/map/places.geojsonl (the shape of
 # apps/api/features/fixtures/places.geojsonl).
 set -eu
 

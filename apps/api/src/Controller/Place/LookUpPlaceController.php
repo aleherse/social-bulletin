@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * ADR-0022: the point arrives in the body, never the URL, and is not kept (FR-005).
+ * ADR-0024: the point arrives in the body, never the URL, and is not kept (FR-005).
  */
 final readonly class LookUpPlaceController
 {

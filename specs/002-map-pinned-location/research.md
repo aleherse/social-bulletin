@@ -231,7 +231,7 @@ Behat and Playwright load their fixture places through the same command
 OSM data changes slowly, so publishing is on demand, not on every deploy.
 
 **The clipped boundaries (FR-012)**: Geofabrik clips its extracts,
-and the first real build (ADR-0022, measured 2026-10-16) lost two relations
+and the first real build (ADR-0024, measured 2026-10-16) lost two relations
 whose members reach outside the Spain extract:
 Spain's country boundary (`admin_level` 2, its maritime line)
 and Ceuta's (`admin_level` 4, on the African coast).
@@ -283,7 +283,7 @@ Without them Huelin answered `null` at `national`, and Ceuta had no `state`.
 - *A sample of probe points (Palma, Las Palmas, Ceuta, Melilla) resolved by the build*:
   needs PostGIS in the build. Rejected for the MVP; the by-hand check covers it.
 
-The import's run time against the console Lambda's 15-minute limit was measured locally (29 s, ADR-0022).
+The import's run time against the console Lambda's 15-minute limit was measured locally (29 s, ADR-0024).
 
 **Alternatives considered**:
 
@@ -354,8 +354,8 @@ because no suite should download it.
 
 ## R10. Architecture decision records
 
-**Decision**: Correct `ADR-0022` in place (it is still Proposed)
-and rename it `ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md`,
+**Decision**: Correct `ADR-0024` in place (it is still Proposed)
+and rename it `ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md`,
 updating its links from ADR-0009, ADR-0016, and this feature's documents:
 OSM raster tiles through `L.tileLayer` replace the PMTiles archive and `protomaps-leaflet`;
 the map data pipeline gains the Overpass fetch and the guard;

@@ -15,7 +15,7 @@ so its major version matches Aurora PostgreSQL 17 ([ADR-0016](ADR-0016-aws-serve
 
 The `postgis` extension SHALL be enabled by a migration (`CREATE EXTENSION IF NOT EXISTS postgis`),
 not by the container, so the same migration enables it on Aurora
-([ADR-0022](ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md)).
+([ADR-0024](ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md)).
 
 These Symfony packages SHALL be installed:
 - `doctrine/dbal` to connect to the database, configured via an environment variable.

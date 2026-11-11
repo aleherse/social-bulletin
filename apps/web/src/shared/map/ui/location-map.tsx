@@ -16,7 +16,7 @@ const MAX_ZOOM = 19;
 const ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-/** ADR-0022: the one place Leaflet is used. */
+/** ADR-0024: the one place Leaflet is used. */
 export function LocationMap({ label, markerLabel, point, onPick }: LocationMapProps) {
   return (
     <section aria-label={label}>

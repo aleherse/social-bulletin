@@ -88,7 +88,7 @@ services:
       timeout: 5s
       retries: 10
 
-  # ADR-0022: builds the map data on demand (`make map-data`); never started by `make up`.
+  # ADR-0024: builds the map data on demand (`make map-data`); never started by `make up`.
   map:
     build: docker/map
     profiles: [tools]

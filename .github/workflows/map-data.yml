@@ -1,4 +1,4 @@
-# ADR-0022: builds the places, publishes them to one environment,
+# ADR-0024: builds the places, publishes them to one environment,
 # and imports them through the console Lambda. Run by hand; OSM changes slowly.
 name: Map data
 
