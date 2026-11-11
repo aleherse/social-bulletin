@@ -1,4 +1,4 @@
-import { apiRequest } from '@/shared/api';
+import { apiRequest, jsonApiRequest } from '@/shared/api';
 import { type GeoPoint, wrapLongitude } from '@/shared/geo';
 
 import type { Area } from '../model/types.ts';
@@ -56,9 +56,7 @@ async function postLookup(
   signal: AbortSignal,
 ): Promise<string | null> {
   const response = await apiRequest('/api/places/lookup', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ lat: point.lat, lon: wrapLongitude(point.lon), area }),
+    ...jsonApiRequest('POST', 'places', { lat: point.lat, lon: wrapLongitude(point.lon), area }),
     signal,
   });
 
@@ -66,10 +64,11 @@ async function postLookup(
     throw new PlaceLookupUnavailable();
   }
 
-  const body = (await response.json()) as { name?: unknown };
+  const body = (await response.json()) as { data?: { attributes?: { name?: unknown } } };
+  const name = body.data?.attributes?.name;
 
-  if (typeof body.name === 'string' || body.name === null) {
-    return body.name;
+  if (typeof name === 'string' || name === null) {
+    return name;
   }
 
   throw new PlaceLookupUnavailable();

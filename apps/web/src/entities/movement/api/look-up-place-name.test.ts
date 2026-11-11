@@ -7,8 +7,12 @@ const HUELIN = { lat: 36.7033, lon: -4.4366 };
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/vnd.api+json' },
   });
+}
+
+function placeDocument(name: string | null) {
+  return { data: { type: 'places', id: 'lookup', attributes: { name } } };
 }
 
 describe('lookUpPlaceName', () => {
@@ -29,7 +33,7 @@ describe('lookUpPlaceName', () => {
   }
 
   it('posts the point in the body only, with credentials', async () => {
-    fetchMock.mockResolvedValue(jsonResponse(200, { name: 'Huelin' }));
+    fetchMock.mockResolvedValue(jsonResponse(200, placeDocument('Huelin')));
 
     await lookUp();
 
@@ -40,31 +44,34 @@ describe('lookUpPlaceName', () => {
     expect(String(url)).not.toContain('-4.4366');
     expect(init?.method).toBe('POST');
     expect(init?.credentials).toBe('include');
-    expect(new Headers(init?.headers).get('Content-Type')).toBe('application/json');
+    expect(new Headers(init?.headers).get('Content-Type')).toBe('application/vnd.api+json');
     expect(JSON.parse(String(init?.body))).toEqual({
-      lat: 36.7033,
-      lon: -4.4366,
-      area: 'neighborhood',
+      data: {
+        type: 'places',
+        attributes: { lat: 36.7033, lon: -4.4366, area: 'neighborhood' },
+      },
     });
   });
 
   it('sends a longitude wrapped into range', async () => {
-    fetchMock.mockResolvedValue(jsonResponse(200, { name: 'Huelin' }));
+    fetchMock.mockResolvedValue(jsonResponse(200, placeDocument('Huelin')));
 
     await lookUp({ lat: 36.7033, lon: 355.5634 });
 
-    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as { lon: number };
-    expect(body.lon).toBeCloseTo(-4.4366, 10);
+    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as {
+      data: { attributes: { lon: number } };
+    };
+    expect(body.data.attributes.lon).toBeCloseTo(-4.4366, 10);
   });
 
   it('resolves the name of the place found', async () => {
-    fetchMock.mockResolvedValue(jsonResponse(200, { name: 'Huelin' }));
+    fetchMock.mockResolvedValue(jsonResponse(200, placeDocument('Huelin')));
 
     await expect(lookUp()).resolves.toBe('Huelin');
   });
 
   it('resolves null when no place is at that level', async () => {
-    fetchMock.mockResolvedValue(jsonResponse(200, { name: null }));
+    fetchMock.mockResolvedValue(jsonResponse(200, placeDocument(null)));
 
     await expect(lookUp()).resolves.toBeNull();
   });
@@ -73,7 +80,10 @@ describe('lookUpPlaceName', () => {
     ['a 503', () => Promise.resolve(jsonResponse(503, {}))],
     ['a 422', () => Promise.resolve(jsonResponse(422, { errors: [] }))],
     ['a network failure', () => Promise.reject(new TypeError('Failed to fetch'))],
-    ['a body without a name', () => Promise.resolve(jsonResponse(200, {}))],
+    [
+      'a body without a name',
+      () => Promise.resolve(jsonResponse(200, { data: { attributes: {} } })),
+    ],
   ])('reports the lookup as unavailable on %s', async (_case, respond) => {
     fetchMock.mockImplementation(respond);
 

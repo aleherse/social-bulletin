@@ -12,7 +12,7 @@ use SocialBulletin\Core\Domain\Place\InvalidPlaceLookup;
 use SocialBulletin\Core\Domain\Place\PlaceLevel;
 
 /**
- * @extends BaseQuery<Place|null>
+ * @extends BaseQuery<Place>
  */
 final readonly class LookUpPlaceQuery extends BaseQuery
 {

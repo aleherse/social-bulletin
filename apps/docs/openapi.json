@@ -575,6 +575,104 @@
                 }
             }
         },
+        "/api/places/lookup": {
+            "post": {
+                "operationId": "post_api_places_lookup",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "required": [
+                                    "data"
+                                ],
+                                "properties": {
+                                    "data": {
+                                        "required": [
+                                            "type",
+                                            "attributes"
+                                        ],
+                                        "properties": {
+                                            "type": {
+                                                "type": "string",
+                                                "example": "places"
+                                            },
+                                            "attributes": {
+                                                "description": "Every field is optional here: the domain validates them and answers 400 per field.",
+                                                "properties": {
+                                                    "lat": {
+                                                        "type": "number",
+                                                        "nullable": false
+                                                    },
+                                                    "lon": {
+                                                        "type": "number",
+                                                        "nullable": false
+                                                    },
+                                                    "area": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "4XX": {
+                        "description": "A JSON:API error document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JsonApiErrors"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "The places JSON:API document.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "required": [
+                                                "id",
+                                                "type",
+                                                "attributes"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "places"
+                                                },
+                                                "attributes": {
+                                                    "$ref": "#/components/schemas/PlaceAttributes"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/me": {
             "get": {
                 "operationId": "get_api_me",
@@ -713,6 +811,15 @@
             "CategoryAttributes": {
                 "required": [],
                 "properties": {},
+                "type": "object"
+            },
+            "PlaceAttributes": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
                 "type": "object"
             },
             "UserAttributes": {
