@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Place;
 
+use App\Http\Attribute\JsonApi;
+use App\Http\Attribute\JsonApiPayload;
+use App\Http\Transformer\PlaceTransformer;
 use App\Messenger\QueryBus;
+use SocialBulletin\Core\Application\Place\Model\Place;
 use SocialBulletin\Core\Application\Place\Query\LookUpPlaceQuery;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
@@ -20,15 +22,13 @@ final readonly class LookUpPlaceController
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
+    #[JsonApi(PlaceTransformer::class, 'places')]
     #[Route('/api/places/lookup', name: 'api_places_lookup', methods: ['POST'])]
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(#[JsonApiPayload('places', LookUpPlacePayload::class)] array $payload): Place
     {
-        /** @var array<string, mixed> $payload */
-        $payload = $request->toArray();
-        $place = $this->queryBus->dispatch(LookUpPlaceQuery::fromPayload($payload));
-
-        return new JsonResponse([
-            'name' => $place?->name,
-        ]);
+        return $this->queryBus->dispatch(LookUpPlaceQuery::fromPayload($payload));
     }
 }

@@ -29,6 +29,12 @@ final class JsonApiRouteDescriber implements RouteDescriberInterface, ModelRegis
 
     private const SERVER_OWNED = ['id', 'authorId'];
 
+    private const FIELD_TYPES = [
+        'string' => 'string',
+        'float' => 'number',
+        'int' => 'integer',
+    ];
+
     public function describe(OA\OpenApi $api, Route $route, \ReflectionMethod $reflectionMethod): void
     {
         $attribute = ($reflectionMethod->getAttributes(JsonApiAttribute::class)
@@ -154,11 +160,12 @@ final class JsonApiRouteDescriber implements RouteDescriberInterface, ModelRegis
                 continue;
             }
 
-            Assert::same($type->getName(), 'string', sprintf('%s::$%s is not a string field.', $command, $property->getName()));
+            $name = $type->getName();
+            Assert::keyExists(self::FIELD_TYPES, $name, sprintf('%s::$%s is not a string or number field.', $command, $property->getName()));
 
             $properties[] = new OA\Property([
                 'property' => $property->getName(),
-                'type' => 'string',
+                'type' => self::FIELD_TYPES[$name],
                 'nullable' => $type->allowsNull(),
             ]);
         }

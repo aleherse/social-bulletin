@@ -7,7 +7,7 @@ namespace SocialBulletin\Core\Application\Place\Model;
 final readonly class Place
 {
     public function __construct(
-        public string $name,
+        public ?string $name,
     ) {
     }
 }

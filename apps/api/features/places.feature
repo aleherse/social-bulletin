@@ -8,14 +8,16 @@ Feature: Look up a place name
   Scenario Outline: A point inside a place at the area's rank is named
     When I send a POST request to "/api/session" with body:
       """
-      {"email": "author@example.com"}
+      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": <lat>, "lon": <lon>, "area": "<area>"}
+      {"data": {"type": "places", "attributes": {"lat": <lat>, "lon": <lon>, "area": "<area>"}}}
       """
     Then the response status code should be 200
-    And the JSON at "name" should equal "<name>"
+    And the response content type should be "application/vnd.api+json"
+    And the JSON at "data.type" should equal "places"
+    And the JSON at "data.attributes.name" should equal "<name>"
 
     Examples:
       | point             | lat     | lon     | area         | name                 |
@@ -38,14 +40,14 @@ Feature: Look up a place name
   Scenario Outline: A point with no place at the area's rank has no name
     When I send a POST request to "/api/session" with body:
       """
-      {"email": "author@example.com"}
+      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": <lat>, "lon": <lon>, "area": "<area>"}
+      {"data": {"type": "places", "attributes": {"lat": <lat>, "lon": <lon>, "area": "<area>"}}}
       """
     Then the response status code should be 200
-    And the JSON at "name" should be null
+    And the JSON at "data.attributes.name" should be null
 
     Examples:
       | point                                   | lat     | lon     | area         |
@@ -57,11 +59,11 @@ Feature: Look up a place name
   Scenario: A latitude out of range is refused without echoing it
     When I send a POST request to "/api/session" with body:
       """
-      {"email": "author@example.com"}
+      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": 91.123456, "lon": -4.4366, "area": "national"}
+      {"data": {"type": "places", "attributes": {"lat": 91.123456, "lon": -4.4366, "area": "national"}}}
       """
     Then the response status code should be 422
     And the JSON at "errors[?source.pointer=='/lat'].detail | [0]" should not be empty
@@ -70,11 +72,11 @@ Feature: Look up a place name
   Scenario: A longitude out of range is refused without echoing it
     When I send a POST request to "/api/session" with body:
       """
-      {"email": "author@example.com"}
+      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": 36.7033, "lon": 181.654321, "area": "national"}
+      {"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": 181.654321, "area": "national"}}}
       """
     Then the response status code should be 422
     And the JSON at "errors[?source.pointer=='/lon'].detail | [0]" should not be empty
@@ -83,11 +85,11 @@ Feature: Look up a place name
   Scenario: An international area has no rank to look up
     When I send a POST request to "/api/session" with body:
       """
-      {"email": "author@example.com"}
+      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": 36.7033, "lon": -4.4366, "area": "international"}
+      {"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": -4.4366, "area": "international"}}}
       """
     Then the response status code should be 422
     And the JSON at "errors[?source.pointer=='/area'].detail | [0]" should not be empty
@@ -95,11 +97,11 @@ Feature: Look up a place name
   Scenario: A lookup without an area is refused
     When I send a POST request to "/api/session" with body:
       """
-      {"email": "author@example.com"}
+      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": 36.7033, "lon": -4.4366}
+      {"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": -4.4366}}}
       """
     Then the response status code should be 422
     And the JSON at "errors[?source.pointer=='/area'].detail | [0]" should not be empty
@@ -107,7 +109,7 @@ Feature: Look up a place name
   Scenario: A guest cannot look up places
     When I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": 36.7033, "lon": -4.4366, "area": "national"}
+      {"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": -4.4366, "area": "national"}}}
       """
     Then the response status code should be 401
 
@@ -116,40 +118,40 @@ Feature: Look up a place name
     Then the console command should succeed
     When I send a POST request to "/api/session" with body:
       """
-      {"email": "author@example.com"}
+      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}
+      {"data": {"type": "places", "attributes": {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}}}
       """
-    Then the JSON at "name" should equal "Sheffield City"
+    Then the JSON at "data.attributes.name" should equal "Sheffield City"
     When I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": 36.7033, "lon": -4.4366, "area": "national"}
+      {"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": -4.4366, "area": "national"}}}
       """
-    Then the JSON at "name" should be null
+    Then the JSON at "data.attributes.name" should be null
 
   Scenario: A malformed import changes nothing
     When I run the console command "app:places:import" with the file "fixtures/places-malformed.geojsonl"
     Then the console command should fail mentioning "line 2"
     When I send a POST request to "/api/session" with body:
       """
-      {"email": "author@example.com"}
+      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}
+      {"data": {"type": "places", "attributes": {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}}}
       """
-    Then the JSON at "name" should equal "Sheffield"
+    Then the JSON at "data.attributes.name" should equal "Sheffield"
 
   Scenario: Where boundaries at one rank overlap, the smallest names the point
     Given the places in "fixtures/places-overlapping.geojsonl" are imported
     When I send a POST request to "/api/session" with body:
       """
-      {"email": "author@example.com"}
+      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}
+      {"data": {"type": "places", "attributes": {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}}}
       """
-    Then the JSON at "name" should equal "Sheffield"
+    Then the JSON at "data.attributes.name" should equal "Sheffield"

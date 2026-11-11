@@ -30,14 +30,14 @@ final class LookUpPlaceHandlerSpec extends ObjectBehavior
         $this->__invoke(self::huelin())->shouldReturn($place);
     }
 
-    public function it_returns_null_when_no_place_is_at_that_level(PlaceProvider $places): void
+    public function it_returns_a_place_without_a_name_when_none_is_at_that_level(PlaceProvider $places): void
     {
         $places->nameAt(
             GeoPoint::fromDegrees(36.7033, -4.4366),
             PlaceLevel::forArea(Area::Neighborhood),
         )->willReturn(null);
 
-        $this->__invoke(self::huelin())->shouldReturn(null);
+        $this->__invoke(self::huelin())->shouldBeLike(new Place(null));
     }
 
     private static function huelin(): LookUpPlaceQuery
