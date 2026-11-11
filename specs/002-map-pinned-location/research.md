@@ -209,8 +209,8 @@ the lookup is the platform's own query.
    It then runs the guard (below) and exits non-zero if it fails.
 2. **Import**: the console command `app:places:import <path-or-url>`
    dispatches `ImportPlacesCommand`.
-   Its handler reads features through a `PlaceFeed` port
-   (`domain-helpers-0002`; `apps/api` implements it over a local path or an HTTPS URL),
+   Its handler reads features through the `Application\Helper\JsonLinesReader`
+   (a plain `fopen` over a local path or an HTTPS URL, so no port is needed),
    turns each line into a domain `Boundary` or `Neighbourhood`,
    and hands them to `PlaceRepository::replaceAll()`,
    which deletes and re-inserts both tables in one transaction,
@@ -234,7 +234,7 @@ Behat and Playwright load their fixture places through the same command
 OSM data changes slowly, so publishing is on demand, not on every deploy.
 
 **The clipped boundaries (FR-012)**: Geofabrik clips its extracts,
-and the first real build (ADR-0024, measured 2026-10-16) lost two relations
+and the first real build (see "Measured builds" below, 2026-10-16) lost two relations
 whose members reach outside the Spain extract:
 Spain's country boundary (`admin_level` 2, its maritime line)
 and Ceuta's (`admin_level` 4, on the African coast).
@@ -286,7 +286,7 @@ Without them Huelin answered `null` at `national`, and Ceuta had no `state`.
 - *A sample of probe points (Palma, Las Palmas, Ceuta, Melilla) resolved by the build*:
   needs PostGIS in the build. Rejected for the MVP; the by-hand check covers it.
 
-The import's run time against the console Lambda's 15-minute limit was measured locally (29 s, ADR-0024).
+The import's run time against the console Lambda's 15-minute limit was measured locally (29 s; see "Measured builds" below).
 
 **Alternatives considered**:
 
@@ -306,8 +306,8 @@ The first migration of this feature runs `CREATE EXTENSION IF NOT EXISTS postgis
 
 **Rationale**: It keeps the ECR mirror the project already pulls from
 and pins PostgreSQL 17 to match Aurora (`database-stack.ts`).
-ADR-0009 names a plain PostgreSQL container,
-so it is corrected in place to name PostGIS (Constitution III).
+ADR-0009 stays generic (a PostgreSQL container),
+so ADR-0024 states the PostGIS requirement.
 
 **Alternatives considered**: the Docker Hub `postgis/postgis:17-3.5` image.
 Rejected: it leaves the ECR mirror,
@@ -358,15 +358,45 @@ because no suite should download it.
 ## R10. Architecture decision records
 
 **Decision**: Correct the OSM ADR in place (it is still Proposed)
-and rename it `ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md` (numbered 0022 at the time, see plan III),
-updating its links from ADR-0009, ADR-0016, and this feature's documents:
+and rename it `ADR-0024-use-openstreetmap-tiles-and-self-hosted-place-lookup.md` (numbered 0022 at the time, see plan III),
+updating its links from ADR-0016 and this feature's documents:
 OSM raster tiles through `L.tileLayer` replace the PMTiles archive and `protomaps-leaflet`;
 the map data pipeline gains the Overpass fetch and the guard;
 the Verification list swaps the tiles range-request check for the guard
 and the FR-012 points;
 the "Patterns to avoid" entry on absolute tile URLs is narrowed to geocoder hosts.
 In the same change, correct ADR-0016 in place (the map-data bucket holds places only, with no `/tiles/*` behaviour);
-ADR-0009 (PostGIS) is unchanged.
+ADR-0009 is unchanged.
 
 **Rationale**: Constitution III corrects an ADR in place rather than superseding it,
 and a Proposed ADR whose title names a dropped decision would mislead its next reader.
+
+## Measured builds
+
+Local measurements moved here from ADR-0024, which keeps only the decision.
+
+- **2026-10-16, first build and import.**
+  `make map-data` took 17 minutes on a home connection, mostly downloading about 3.8 GB of Geofabrik extracts and cutting tiles.
+  `spain-uk.pmtiles` was 6.2 GB at `--maxzoom=15`; the archive was dropped the same day for OSM's tile servers.
+  `places.geojsonl` was 490 MB (32,729 boundaries, 33,067 neighbourhood nodes).
+  `osmium export` names an assembled area `a<2 × relation id + 1>`, which the `jq` filter turns back into the relation id.
+  `make map-import` took 29 seconds, peaking near 160 MB.
+  Highland (8.4 MB of GeoJSON) decodes to more than PHP's default 128 MB,
+  so `app:places:import` raises its limit to 512 MB; the console Lambda has 1024 MB.
+  Huelin at `national` answered `null`: Spain's and Ceuta's relations did not assemble from the clipped extract,
+  which led to the Overpass fetch and the guard (FR-012).
+- **2026-10-16, with the Overpass fetch and the guard.**
+  `make map-data` took 6 min 39 s without tiles; the fetch took about 53 s and returned 7.0 MB of OSM XML.
+  The guard passed (España at `admin_level` 2; Ceuta, Melilla and Illes Balears at 4).
+  `places.geojsonl` was 491 MB (32,732 boundaries, 33,067 nodes); `make map-import` took 32 s.
+  Every FR-012 point answered España at `national`, and Palma, Las Palmas de Gran Canaria, Ceuta and Melilla
+  answered Illes Balears, Canarias, Ceuta and Melilla at `state`.
+- **2026-11-11, rebuild with a duplicated node.**
+  `osmium export` failed with "Node ID twice in input": the Spain and Canary Islands extracts overlap at their edge
+  and come from different snapshots, so ferry terminal node 345366405 carried versions 20 and 21,
+  and `osmium merge` removes only duplicates identical in id and version.
+  The script now merges Spain and the UK, then applies the Canary Islands and Overpass files with `osmium apply-changes`,
+  which keeps the newest version of each object.
+  `make map-data` took 7 min 12 s, including one Overpass 502 that `--retry` recovered from.
+  `places.geojsonl` is 490 MB (32,746 boundaries, 33,203 nodes); `make map-import` took 33.3 s.
+  Every answer above is unchanged.

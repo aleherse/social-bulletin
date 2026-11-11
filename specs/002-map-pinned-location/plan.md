@@ -155,11 +155,11 @@ and the first publish (quickstart "Checking published data").
   ADR-0015 (`make ci`), ADR-0016 (AWS),
   ADR-0019 (lazy routes), ADR-0021 (CQRS),
   ADR-0022 (JSON:API) and ADR-0023 (generated OpenAPI), adopted on `main` after this plan was first written.
-  **ADR-0024** (Proposed, already written; numbered 0022 until the 2026-11 rebase took 0022 and 0023) is corrected in place and renamed
-  to `ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md`:
+  **ADR-0024** (already written; numbered 0022 until the 2026-11 rebase took 0022 and 0023) is corrected in place and renamed
+  to `ADR-0024-use-openstreetmap-tiles-and-self-hosted-place-lookup.md`:
   OSM raster tiles instead of the PMTiles archive, the Overpass fetch, and the build guard.
-  Corrected in place in the same change: **ADR-0009** (PostGIS-enabled container and extension, unchanged)
-  and **ADR-0016** (the map-data bucket holds places only; no `/tiles/*` behaviour).
+  Corrected in place in the same change: **ADR-0016** (the map-data bucket holds places only; no `/tiles/*` behaviour).
+  ADR-0009 stays generic; ADR-0024 states that PostgreSQL needs PostGIS.
   Rules read: `application-frontend-*`, `application-framework-*`, `application-queries-*`,
   `application-commands-*`, `application-helpers-*`, `application-style-0001`,
   `database-persistence-*`, `database-dbal-*`, `domain-helpers-*`, `domain-common-0001`,
@@ -205,9 +205,8 @@ specs/002-map-pinned-location/
 
 ```text
 docs/decisions/
-├── ADR-0009-adopt-postgresql-and-doctrine-dbal.md   # corrected: PostGIS
 ├── ADR-0016-aws-serverless-deployment.md            # corrected: map-data bucket for places only
-└── ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md # corrected and renamed, status Proposed
+└── ADR-0024-use-openstreetmap-tiles-and-self-hosted-place-lookup.md # corrected and renamed, status Accepted
 
 db/schema.dbml                                       # + place_boundaries, place_neighbourhoods
 deptrac.yaml                                         # + DomainPort layer; Framework may implement it
@@ -228,7 +227,7 @@ infrastructure/
 .github/workflows/map-data.yml                       # build → upload places → presign → import (tiles steps removed)
 
 packages/core/
-├── src/Domain/Helper/PlaceFeed.php                  # port
+├── src/Application/Helper/JsonLinesReader.php       # newline-delimited JSON from a path or URL
 ├── src/Domain/Place/
 │   ├── GeoPoint.php
 │   ├── PlaceLevel.php
@@ -247,12 +246,11 @@ packages/core/
 
 apps/api/
 ├── migrations/Version<timestamp>.php                # postgis extension + both tables
-├── config/services.yaml                             # alias PlaceFeed → GeoJsonSeqPlaceFeed
+├── config/services.yaml                             # registers JsonLinesReader
 ├── src/Controller/Place/LookUpPlaceController.php   # POST /api/places/lookup, JSON:API
 ├── src/Controller/Place/LookUpPlacePayload.php      # request attributes, for the OpenAPI document
 ├── src/Http/Transformer/PlaceTransformer.php        # fixed id `lookup`
 ├── src/Console/ImportPlacesConsoleCommand.php       # app:places:import <path-or-url>
-├── src/Place/GeoJsonSeqPlaceFeed.php                # PlaceFeed adapter
 ├── src/EventListener/DomainErrorListener.php        # + InvalidPlaceLookup errors
 ├── features/places.feature                          # new
 ├── features/fixtures.feature                        # + import the fixture places
@@ -294,17 +292,13 @@ the domain values and the import port in `Domain`,
 the query, command, provider, and model in `Application` (ADR-0021).
 `PlaceLevel` depends on `Domain\Movement\Area`,
 a same-layer domain dependency deptrac already allows.
-`PlaceFeed` is the first `Domain/Helper` port (`domain-helpers-0002`),
-and today's `deptrac.yaml` lets `Framework` depend only on `Application` and `DomainError`,
-so the `apps/api` adapter would fail `make lint`.
-`deptrac.yaml` therefore gains a `DomainPort` layer
-(interfaces under `packages/core/src/Domain/Helper/` other than `DomainError`)
-that `Framework`, `Application`, and `Domain` may depend on —
-the layer the rule already assumes, not a new exception (ADR-0012 owns the ruleset).
+Reading the feed is plain `fopen` and `json_decode`, so it is a concrete
+`Application\Helper\JsonLinesReader` in `core`, not a `Domain/Helper` port:
+a port over the standard library would be the `IdentityGenerator` pattern `domain-helpers-0002` rejects.
 Validation messages are keys (`place.point.out_of_range`, `place.area.unsupported`),
 rendered the same way as the existing `movement.*` keys.
 `apps/api` adds one controller in a per-aggregate folder (`scaffolding-folders-0001`),
-the console command, and the `PlaceFeed` adapter.
+and the console command.
 In `apps/web`, the lookup client takes an `Area`,
 so it belongs to `entities/movement` rather than a new entity
 (a sibling entity could not import `Area` without `@x`);
