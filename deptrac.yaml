@@ -3,7 +3,6 @@
 # ADR-0021: inside packages/core, Application may use Domain; Domain never reaches back into Application.
 # Framework reaches core through Application only, plus the domain errors it maps to status codes (DomainError).
 # Providers read; they never touch a repository (ADR-0021), and nothing in apps/api injects one either.
-# domain-helpers-0002: Domain/Helper interfaces are ports apps/api implements, so they form their own DomainPort layer.
 deptrac:
   paths:
     - apps/api/src
@@ -37,18 +36,6 @@ deptrac:
         - type: classNameRegex
           value: '/^SocialBulletin\\Core\\Domain\\Helper\\DomainError$/'
 
-    - name: DomainPort
-      collectors:
-        - type: bool
-          must:
-            - type: directory
-              value: packages/core/src/Domain/Helper/.*
-            - type: interface
-              value: '.*'
-          must_not:
-            - type: layer
-              value: DomainError
-
     - name: Repository
       collectors:
         - type: classNameRegex
@@ -63,8 +50,6 @@ deptrac:
           must_not:
             - type: layer
               value: DomainError
-            - type: layer
-              value: DomainPort
             - type: layer
               value: Repository
 
@@ -104,10 +89,9 @@ deptrac:
           value: '/^Webmozart/'
 
   ruleset:
-    Framework: [Application, DomainError, DomainPort, Symfony, SymfonyContracts, SymfonyUid, Doctrine, Psr, Assert]
-    Application: [Provider, Domain, DomainError, DomainPort, Repository, SymfonyContracts, SymfonyUid, Psr, Assert]
+    Framework: [Application, DomainError, Symfony, SymfonyContracts, SymfonyUid, Doctrine, Psr, Assert]
+    Application: [Provider, Domain, DomainError, Repository, SymfonyContracts, SymfonyUid, Psr, Assert]
     Provider: [Application, Domain, DomainError, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
-    Repository: [Domain, DomainError, DomainPort, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
-    Domain: [DomainError, DomainPort, SymfonyContracts, SymfonyUid, Psr, Assert]
+    Repository: [Domain, DomainError, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
+    Domain: [DomainError, SymfonyContracts, SymfonyUid, Psr, Assert]
     DomainError: [Domain, SymfonyContracts, SymfonyUid, Psr, Assert]
-    DomainPort: [Domain, DomainError, SymfonyContracts, SymfonyUid, Psr, Assert]

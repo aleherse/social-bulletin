@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SocialBulletin\Core\Application\Place\Command;
 
-use SocialBulletin\Core\Domain\Helper\PlaceFeed;
+use SocialBulletin\Core\Application\Helper\JsonLinesReader;
 use SocialBulletin\Core\Domain\Place\Boundary;
 use SocialBulletin\Core\Domain\Place\InvalidPlaceFeed;
 use SocialBulletin\Core\Domain\Place\Neighbourhood;
@@ -14,7 +14,7 @@ use SocialBulletin\Core\Domain\Place\PlaceRepository;
 final readonly class ImportPlacesHandler
 {
     public function __construct(
-        private PlaceFeed $feed,
+        private JsonLinesReader $reader,
         private PlaceRepository $places,
     ) {
     }
@@ -24,7 +24,7 @@ final readonly class ImportPlacesHandler
      */
     public function __invoke(ImportPlacesCommand $command): void
     {
-        $this->places->replaceAll($this->parse($this->feed->features($command->source)));
+        $this->places->replaceAll($this->parse($this->reader->lines($command->source)));
     }
 
     /**
