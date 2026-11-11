@@ -21,10 +21,11 @@ class PlaceProvider
     ) {
     }
 
-    public function nameAt(GeoPoint $point, PlaceLevel $level): ?Place
+    public function nameAt(GeoPoint $point, PlaceLevel $level): Place
     {
         return $this->boundaryAt($point, $level)
-            ?? ($level->usesNeighbourhoodFallback() ? $this->neighbourhoodNear($point) : null);
+            ?? ($level->usesNeighbourhoodFallback() ? $this->neighbourhoodNear($point) : null)
+            ?? new Place(null);
     }
 
     private function boundaryAt(GeoPoint $point, PlaceLevel $level): ?Place
