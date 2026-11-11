@@ -15,7 +15,7 @@ The project needs repeatable cloud deployment for the frontend, API, database, c
   uploaded by the manual map-data workflow, not by the frontend deploy,
   and read by the console Lambda's import through a presigned URL;
   it is not served by CloudFront
-  ([ADR-0024](ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md)).
+  ([ADR-0024](ADR-0024-use-openstreetmap-tiles-and-self-hosted-place-lookup.md)).
 - The API SHALL run as a Bref PHP-FPM Lambda behind CloudFront at `LIVE_API_URL`.
 - Console commands SHALL run through a Bref console Lambda so production migrations can be invoked after deploy.
 - CDK SHALL manage the Route53 aliases and ACM certificate for both production hostnames.
@@ -28,7 +28,7 @@ The project needs repeatable cloud deployment for the frontend, API, database, c
 
 - AWS CDK becomes the deployment source of truth.
 - Frontend assets are served from S3 through CloudFront.
-- Map tiles come from OpenStreetMap's tile servers ([ADR-0024](ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md)); only the places file lives in AWS.
+- Map tiles come from OpenStreetMap's tile servers ([ADR-0024](ADR-0024-use-openstreetmap-tiles-and-self-hosted-place-lookup.md)); only the places file lives in AWS.
 - The API runs on Bref PHP-FPM Lambda through CloudFront.
 - Production console tasks run through a Bref console Lambda.
 - Aurora Serverless v2 provides managed relational storage.
