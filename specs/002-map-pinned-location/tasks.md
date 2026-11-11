@@ -63,11 +63,8 @@ because both stories end in the same lookup.
 **Purpose**: Record the decisions, add dependencies and PostGIS,
 fix the shared E2E helpers, and prepare the shared test data and strings.
 
-**ADR numbering**: the OSM ADR was written as ADR-0022 and is ADR-0024 since the 2026-11 rebase onto `main`,
-which took ADR-0022 for JSON:API and ADR-0023 for the OpenAPI document.
-T001 and T049 name the files as they were then; `git grep ADR-0022` finds only the JSON:API ADR now.
-
-- [X] T001 Write `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md`
+- [X] T001 Write `docs/decisions/ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md`
+      (first written as a self-hosted PMTiles decision; T049 revised it)
       with the `adr-skill`, status Proposed, following ADR-0019's section layout,
       from research.md R1–R10:
       Leaflet 1.9.4 + react-leaflet 5.0.0 + `protomaps-leaflet` behind `shared/map`;
@@ -88,6 +85,7 @@ T001 and T049 name the files as they were then; `git grep ADR-0022` finds only t
       by running `npm install` inside `make shell service=node`,
       so `apps/web/package-lock.json` is updated too;
       record the `protomaps-leaflet` version in ADR-0024
+      (Superseded in part: T052 removes `protomaps-leaflet`.)
 - [X] T003 Create `docker/postgres/Dockerfile`
       (`FROM public.ecr.aws/docker/library/postgres:17`,
       `RUN apt-get update && apt-get install -y --no-install-recommends postgresql-17-postgis-3 && rm -rf /var/lib/apt/lists/*`)
@@ -363,6 +361,8 @@ and the E2E map helpers. Both stories need all of them.
       extend `apps/web/e2e/fixtures.ts` with a second auto fixture `stubMapTiles`
       that routes `**/tiles/**` to `route.abort()` before each test,
       so no journey needs the archive (research R9)
+      (Superseded in part: T052 replaces `TILES_URL` with the OSM template;
+      T050 replaces the `**/tiles/**` stub.)
 
 **Checkpoint**: `make php-unit`, `make api-tests`, and `make web-unit` pass T008–T015;
 `POST /api/places/lookup` answers from the snapshot's fixture places.
@@ -484,6 +484,8 @@ and find the draft listed as "Neighborhood · Huelin · Cooperative".
       Waiver: the fly-to animation and the basemap drawing are not asserted;
       neither has an accessible outcome, and a broken one leaves the pin, the name, and the save intact
       (depends on T002, T023, T025, T026)
+      (Superseded in part: T052 replaces the Protomaps layer and attribution
+      with `<TileLayer>` and the OpenStreetMap-only credit.)
 - [X] T030 [US1] Create `apps/web/src/features/propose-movement/model/use-place-lookup.ts`:
       a hook `usePlaceLookup({ onFound })` returning
       `{ status: 'idle' | 'pending' | 'not-found' | 'unavailable', lookUp(point, area) }`
@@ -595,7 +597,8 @@ with permission refused, the explanation appears and a typed location still save
 Not a test layer under ADR-0013; each task names its own check.
 Required before the feature is usable outside the fixture points.
 The self-hosted tiles built here (T038, T041, and the tile parts of T039, T040, T042)
-are removed by Phase 6 (spec FR-011, revised 2026-10-16).
+are removed by Phase 6 (spec FR-011, revised 2026-10-16);
+see the Superseded notes under each task.
 
 - [X] T038 [P] Create `infrastructure/map/coverage.geojson`:
       one `FeatureCollection` with a `MultiPolygon` covering
@@ -619,6 +622,8 @@ are removed by Phase 6 (spec FR-011, revised 2026-10-16).
       prints the line count and both file sizes);
       add a `map` service to `docker-compose.yml` under `profiles: [tools]`
       building `docker/map` and mounting the repository at `/app`
+      (Superseded in part: T053 and T056 drop the `pmtiles` CLI and the tiles cut,
+      and add the Overpass fetch.)
 - [X] T040 Add to `Makefile`, documented in its help:
       `map-data` (runs `docker/map/build-map-data.sh` in the `map` service)
       and `map-import` (runs `app:places:import /app/var/map/places.geojsonl` through `make console`);
@@ -635,6 +640,7 @@ are removed by Phase 6 (spec FR-011, revised 2026-10-16).
       so a missing archive is a 404 rather than `index.html`;
       verify with `curl -I -H 'Range: bytes=0-15' https://dev.app.social.aleherse.com/tiles/spain-uk.pmtiles`
       returning `206` after T040
+      (Superseded: T053 removes this location.)
 - [X] T042 [P] Update `infrastructure/lib/frontend-stack.ts`:
       a `MapDataBucket` with the same settings as `AssetsBucket`
       (block public access, S3-managed encryption, SSL enforced,
@@ -648,7 +654,8 @@ are removed by Phase 6 (spec FR-011, revised 2026-10-16).
       No make target synthesises the app, and one cannot run without AWS credentials,
       because `lookupHostedZone()` calls `HostedZone.fromLookup` and no `cdk.context.json` is committed;
       the behaviour itself is proven on the first `preview` deploy by T043's range request
-- [ ] T043 Update `.github/workflows/map-data.yml` (created with T040–T042) to publish the places only:
+      (Superseded in part: T053 removes the `/tiles/*` behaviour; the bucket and its output stay.)
+- [ ] T043 Update the existing `.github/workflows/map-data.yml` to publish the places only:
       remove the tiles upload, the `/tiles/*` invalidation, the range-request check,
       and the `DISTRIBUTION_ID` and `FRONT_HOST` lookups they alone use;
       keep `make env images map-data` (so a failed T057 guard stops the job before any upload),
@@ -676,8 +683,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
 
 ### Decisions
 
-- [X] T049 Correct `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md` in place
-      and rename it with `git mv` to `docs/decisions/ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md`,
+- [X] T049 Correct `docs/decisions/ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md` in place,
       title "Use OpenStreetMap tiles and a self-hosted place lookup", status still Proposed (research R10):
       "Map rendering" names `leaflet` and `react-leaflet` only, with `<TileLayer>`,
       `maxZoom` 19, and the attribution "© OpenStreetMap contributors";
@@ -856,7 +862,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
   T029 after T002, T023, T025, and T026
 - **US2 (Phase 4)**: depends on Foundational, and on T031 (it extends `location-picker.tsx`)
 - **Map data (Phase 5)**: T038, T039, T041, T042 can start after Setup;
-  T040 needs T020; T043 needs T040 and T042
+  T040 needs T020; T043 needs T053, T056, and T057 (Phase 6)
 - **Revision (Phase 6)**: depends on Phases 1–5 as delivered;
   T049 first; tests T050 and T051 before T052 and T054;
   T053 and T055 in parallel; T056 after both; T057 after T054 and T056; T058 after T057;
