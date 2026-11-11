@@ -22,9 +22,13 @@ curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
     https://overpass-api.de/api/interpreter
 osmium sort --overwrite --output "$SRC/overpass.osm.pbf" "$SRC/overpass.osm"
 
-osmium merge --overwrite --output "$SRC/merged.osm.pbf" \
-    "$SRC/spain.osm.pbf" "$SRC/canary-islands.osm.pbf" "$SRC/united-kingdom.osm.pbf" \
-    "$SRC/overpass.osm.pbf"
+osmium merge --overwrite --output "$SRC/base.osm.pbf" \
+    "$SRC/spain.osm.pbf" "$SRC/united-kingdom.osm.pbf"
+# The Spain and Canary Islands extracts overlap at their edge and come from different
+# snapshots, so one node can carry two versions; merge keeps both and export rejects
+# them. apply-changes keeps only the newest version of each object.
+osmium apply-changes --overwrite --output "$SRC/merged.osm.pbf" \
+    "$SRC/base.osm.pbf" "$SRC/canary-islands.osm.pbf" "$SRC/overpass.osm.pbf"
 
 # Relation members are kept, so the boundary polygons can be assembled.
 osmium tags-filter --overwrite --output "$SRC/places.osm.pbf" "$SRC/merged.osm.pbf" \
