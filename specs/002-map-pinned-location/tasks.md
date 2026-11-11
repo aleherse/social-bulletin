@@ -63,7 +63,11 @@ because both stories end in the same lookup.
 **Purpose**: Record the decisions, add dependencies and PostGIS,
 fix the shared E2E helpers, and prepare the shared test data and strings.
 
-- [X] T001 Write `docs/decisions/ADR-0024-self-host-map-tiles-and-place-lookup.md`
+**ADR numbering**: the OSM ADR was written as ADR-0022 and is ADR-0024 since the 2026-11 rebase onto `main`,
+which took ADR-0022 for JSON:API and ADR-0023 for the OpenAPI document.
+T001 and T049 name the files as they were then; `git grep ADR-0022` finds only the JSON:API ADR now.
+
+- [X] T001 Write `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md`
       with the `adr-skill`, status Proposed, following ADR-0019's section layout,
       from research.md R1–R10:
       Leaflet 1.9.4 + react-leaflet 5.0.0 + `protomaps-leaflet` behind `shared/map`;
@@ -187,18 +191,20 @@ and the E2E map helpers. Both stories need all of them.
       a missing or non-numeric `lat` or `lon` throws `InvalidPlaceLookup` keyed by that field;
       a missing, unknown, or `international` `area` throws it keyed `area`;
       the handler, with `PlaceProvider` doubled,
-      returns what `nameAt($point, $level)` returns: `new Place('Huelin')`, or `null`
+      returns what `nameAt($point, $level)` returns: `new Place('Huelin')`,
+      or `new Place(null)` when the provider returns `null`
 - [X] T013 Write `apps/api/features/places.feature`
       ("Look up a place name", as a signed-in author),
       signing in with the existing `POST /api/session` step in each scenario:
       (a) a Scenario Outline over every row of the "Expected lookups" table in
       `specs/002-map-pinned-location/contracts/place-lookup-api.md`:
       `When I send a POST request to "/api/places/lookup" with body:`
-      `{"lat": <lat>, "lon": <lon>, "area": "<area>"}`,
+      `{"data": {"type": "places", "attributes": {"lat": <lat>, "lon": <lon>, "area": "<area>"}}}`,
       `Then the response status code should be 200`,
-      and `the JSON at "name" should equal "<name>"`,
-      with the `null` rows in a second outline using `the JSON at "name" should be null`;
-      (b) `{"lat": 91.123456, "lon": -4.4366, "area": "national"}` → 422,
+      `the response content type should be "application/vnd.api+json"`,
+      and `the JSON at "data.attributes.name" should equal "<name>"`,
+      with the `null` rows in a second outline using `the JSON at "data.attributes.name" should be null`;
+      (b) a `lat` of 91.123456 (`area` `national`) → 422,
       `the JSON at "errors[?source.pointer=='/lat'].detail | [0]" should not be empty`,
       and the new step `the response body should not contain "91.123456"`;
       (c) the same for `lon` 181.654321 and pointer `/lon`;
@@ -222,13 +228,14 @@ and the E2E map helpers. Both stories need all of them.
 - [X] T015 [P] Write Vitest cases in `apps/web/src/entities/movement/api/look-up-place-name.test.ts`
       for `lookUpPlaceName(point, area, signal)`, stubbing `globalThis.fetch` with `vi.stubGlobal`:
       (a) one `POST` to a URL ending in `/api/places/lookup`,
-      with `credentials: 'include'`, `Content-Type: application/json`,
-      and a body that parses to exactly `{ lat: 36.7033, lon: -4.4366, area: 'neighborhood' }`;
+      with `credentials: 'include'`, `Content-Type: application/vnd.api+json`,
+      and a body that parses to exactly
+      `{ data: { type: 'places', attributes: { lat: 36.7033, lon: -4.4366, area: 'neighborhood' } } }`;
       the URL contains neither `36.7033` nor `-4.4366` (FR-005);
       (b) an out-of-range `lon` (355.5634) is sent as -4.4366;
-      (c) `200 {"name":"Huelin"}` resolves `'Huelin'`;
-      (d) `200 {"name":null}` resolves `null`;
-      (e) `503`, `422`, a network `TypeError`, and `200 {}` reject with `PlaceLookupUnavailable`;
+      (c) `200` with `data.attributes.name` `"Huelin"` resolves `'Huelin'`;
+      (d) `200` with `data.attributes.name` `null` resolves `null`;
+      (e) `503`, `422`, a network `TypeError`, and a `200` without `data.attributes.name` reject with `PlaceLookupUnavailable`;
       (f) an `AbortError` caused by the caller's `signal` propagates unchanged;
       (g) with `vi.useFakeTimers()`, a `fetch` that never settles
       rejects with `PlaceLookupUnavailable` once 10000 ms pass and aborts the request (FR-009)
@@ -276,7 +283,7 @@ and the E2E map helpers. Both stories need all of them.
       each table read from its own private query builder,
       since the two finders share no table — note this in the PR as a reading of `database-persistence-0002`),
       and `packages/core/src/Application/Place/Query/LookUpPlaceQuery.php`
-      (`@extends BaseQuery<Place|null>`, `fromPayload` over a private constructor, `application-framework-0002`)
+      (`@extends BaseQuery<Place>`, `fromPayload` over a private constructor, `application-framework-0002`)
       with `LookUpPlaceHandler.php`,
       so T012 passes (depends on T016, T017)
 - [X] T020 Create `apps/api/src/Place/GeoJsonSeqPlaceFeed.php` implementing `PlaceFeed`
@@ -316,8 +323,10 @@ and the E2E map helpers. Both stories need all of them.
       run `make db` to re-snapshot (depends on T007, T020)
 - [X] T022 Create `apps/api/src/Controller/Place/LookUpPlaceController.php`
       (`#[Route('/api/places/lookup', name: 'api_places_lookup', methods: ['POST'])]`,
-      decodes the JSON body, dispatches `LookUpPlaceQuery::fromPayload()` on `QueryBus`,
-      returns `{"name": <string|null>}`; no `try/catch`, `application-framework-0004`)
+      reads `#[JsonApiPayload('places', LookUpPlacePayload::class)] array $payload`,
+      dispatches `LookUpPlaceQuery::fromPayload()` on `QueryBus` and returns the `Place`,
+      rendered by `#[JsonApi(PlaceTransformer::class, 'places')]` with the fixed id `lookup`;
+      no `try/catch`, `application-framework-0004` to `-0007`; after `make openapi`, commit `apps/docs/openapi.json`)
       and extend `apps/api/src/EventListener/DomainErrorListener.php`
       so `InvalidPlaceLookup` passes its `errors` like `InvalidMovement`,
       so T013 passes (depends on T019, T021)
@@ -667,8 +676,8 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
 
 ### Decisions
 
-- [X] T049 Correct `docs/decisions/ADR-0024-self-host-map-tiles-and-place-lookup.md` in place
-      and rename it with `git mv` to `docs/decisions/ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md`,
+- [X] T049 Correct `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md` in place
+      and rename it with `git mv` to `docs/decisions/ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md`,
       title "Use OpenStreetMap tiles and a self-hosted place lookup", status still Proposed (research R10):
       "Map rendering" names `leaflet` and `react-leaflet` only, with `<TileLayer>`,
       `maxZoom` 19, and the attribution "© OpenStreetMap contributors";

@@ -161,10 +161,13 @@ Rejected: OSM's public servers are raster.
 
 ## R6. The point reaches the API in a POST body and is never logged
 
-**Decision**: `POST /api/places/lookup` with
-`{"lat": 36.7033, "lon": -4.4366, "area": "neighborhood"}`,
-answered by `200 {"name": "Huelin"}` or `200 {"name": null}`,
+**Decision**: `POST /api/places/lookup` with the JSON:API resource document
+`{"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": -4.4366, "area": "neighborhood"}}}`,
+answered by `200` with a `places` resource whose `attributes.name` is `"Huelin"` or `null`,
 behind the existing authenticated `^/api` firewall.
+After the 2026-11 rebase the route follows ADR-0022 and `application-framework-0005` to `-0008`.
+A lookup is not stored, so the resource `id` is the fixed `lookup`:
+it must never be derived from the point (FR-005).
 
 - The point is never in a URL,
   so neither nginx's access log nor any CloudFront log records it (FR-005).
@@ -354,8 +357,8 @@ because no suite should download it.
 
 ## R10. Architecture decision records
 
-**Decision**: Correct `ADR-0024` in place (it is still Proposed)
-and rename it `ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md`,
+**Decision**: Correct the OSM ADR in place (it is still Proposed)
+and rename it `ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md` (numbered 0022 at the time, see plan III),
 updating its links from ADR-0009, ADR-0016, and this feature's documents:
 OSM raster tiles through `L.tileLayer` replace the PMTiles archive and `protomaps-leaflet`;
 the map data pipeline gains the Overpass fetch and the guard;
