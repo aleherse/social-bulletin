@@ -7,18 +7,22 @@ It replaces the Nominatim interface the first round consumed.
 
 ```http
 POST /api/places/lookup
-Content-Type: application/json
+Content-Type: application/vnd.api+json
 Cookie: <session JWT>
 
-{"lat": 36.7033, "lon": -4.4366, "area": "neighborhood"}
+{"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": -4.4366, "area": "neighborhood"}}}
 ```
 
-| Field | Type | Rule |
-|-------|------|------|
+The document follows ADR-0022 (JSON:API) and `application-framework-0007`;
+the route is documented in `apps/docs/openapi.json` from its attributes (ADR-0023).
+
+| Attribute | Type | Rule |
+|-----------|------|------|
 | `lat` | number | −90 … 90 |
 | `lon` | number | −180 … 180; the client wraps it first (`wrapLongitude`) |
 | `area` | string | one of `national`, `state`, `province`, `region`, `municipality`, `neighborhood` |
 
+The resource `id` is the fixed `lookup`: an answer is not stored and never carries the point.
 The point travels only in the body, never in the URL (FR-005).
 The endpoint sits behind the existing `^/api` firewall (`IS_AUTHENTICATED_FULLY`).
 The client sends credentials, aborts superseded requests,
@@ -28,8 +32,9 @@ and gives up after 10 s (FR-009).
 
 | Case | Status | Body |
 |------|--------|------|
-| A place at the area's rank | 200 | `{"name": "Huelin"}` |
-| No place at that rank (sea, outside the loaded place data, rank absent) | 200 | `{"name": null}` |
+| A place at the area's rank | 200 | `{"data": {"type": "places", "id": "lookup", "attributes": {"name": "Huelin"}}}` |
+| No place at that rank (sea, outside the loaded place data, rank absent) | 200 | the same document with `"name": null` |
+| The body is not a `places` resource document | 400, 409 or 415 | JSON:API error, as for every write |
 | `lat` or `lon` missing, not a number, or out of range | 422 | JSON:API error; pointer `/lat` or `/lon`, detail from `place.point.out_of_range` |
 | `area` missing, unknown, or `international` | 422 | JSON:API error; pointer `/area`, detail from `place.area.unsupported` |
 | Not signed in | 401 | existing firewall response |
@@ -40,9 +45,9 @@ No response body, error, or log line contains the submitted coordinates.
 
 | Response | `lookUpPlaceName` result | Picker state |
 |----------|--------------------------|--------------|
-| 200 with a string `name` | the name | field filled |
-| 200 with `name: null` | `null` | `not-found` |
-| any other status, a network error, or a body without a `name` key | `PlaceLookupUnavailable` | `unavailable` |
+| 200 with a string `data.attributes.name` | the name | field filled |
+| 200 with `data.attributes.name: null` | `null` | `not-found` |
+| any other status, a network error, or a body without `data.attributes.name` | `PlaceLookupUnavailable` | `unavailable` |
 | no response within 10 s | request aborted, `PlaceLookupUnavailable` | `unavailable` |
 | aborted by a newer pin or by unmounting | `AbortError`, ignored | unchanged |
 
