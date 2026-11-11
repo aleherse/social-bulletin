@@ -7,8 +7,8 @@ namespace spec\SocialBulletin\Core\Application\Place\Command;
 use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use SocialBulletin\Core\Application\Helper\JsonLinesReader;
 use SocialBulletin\Core\Application\Place\Command\ImportPlacesCommand;
-use SocialBulletin\Core\Domain\Helper\PlaceFeed;
 use SocialBulletin\Core\Domain\Place\Boundary;
 use SocialBulletin\Core\Domain\Place\InvalidPlaceFeed;
 use SocialBulletin\Core\Domain\Place\Neighbourhood;
@@ -26,16 +26,16 @@ final class ImportPlacesHandlerSpec extends ObjectBehavior
         'coordinates' => [-1.4701, 53.3895],
     ];
 
-    public function let(PlaceFeed $feed, PlaceRepository $places): void
+    public function let(JsonLinesReader $reader, PlaceRepository $places): void
     {
-        $this->beConstructedWith($feed, $places);
+        $this->beConstructedWith($reader, $places);
     }
 
     public function it_replaces_the_places_with_every_parsed_feature_in_feed_order(
-        PlaceFeed $feed,
+        JsonLinesReader $reader,
         PlaceRepository $places,
     ): void {
-        $feed->features('places.geojsonl')->willReturn([
+        $reader->lines('places.geojsonl')->willReturn([
             1 => self::boundary(),
             2 => self::neighbourhood(),
         ]);
@@ -56,10 +56,10 @@ final class ImportPlacesHandlerSpec extends ObjectBehavior
     }
 
     public function it_fails_while_the_repository_consumes_a_malformed_line(
-        PlaceFeed $feed,
+        JsonLinesReader $reader,
         PlaceRepository $places,
     ): void {
-        $feed->features('places.geojsonl')->willReturn([
+        $reader->lines('places.geojsonl')->willReturn([
             1 => self::boundary(),
             2 => self::neighbourhood(geometry: self::POLYGON),
         ]);
