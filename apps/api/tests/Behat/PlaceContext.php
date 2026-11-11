@@ -80,6 +80,6 @@ final class PlaceContext implements Context
 
     private function featuresPath(string $file): string
     {
-        return $this->kernel->getProjectDir() . '/features/' . $file;
+        return $this->kernel->getProjectDir().'/features/'.$file;
     }
 }
