@@ -1,4 +1,4 @@
-# ADR-0022: the tools that build the map data, used only by `make map-data`.
+# ADR-0024: the tools that build the map data, used only by `make map-data`.
 FROM public.ecr.aws/docker/library/debian:bookworm-slim
 
 RUN apt-get update \

@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * ADR-0022: OpenStreetMap places for the location lookup, replaced wholesale by
+ * ADR-0024: OpenStreetMap places for the location lookup, replaced wholesale by
  * each `app:places:import`. PostGIS goes into `public`, outside the application
  * schema, so its types and functions resolve through the default search path.
  */

@@ -11,7 +11,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand('app:places:import', 'Replace the place lookup data with a newline-delimited GeoJSON file (ADR-0022)')]
+#[AsCommand('app:places:import', 'Replace the place lookup data with a newline-delimited GeoJSON file (ADR-0024)')]
 final readonly class ImportPlacesConsoleCommand
 {
     private const string MEMORY_LIMIT = '512M';
@@ -27,7 +27,7 @@ final readonly class ImportPlacesConsoleCommand
         OutputInterface $output,
     ): int {
         // One boundary with a detailed coastline (Highland: 8.4 MB of GeoJSON) decodes to more than
-        // PHP's default 128 MB; the full Spain and UK import peaks near 160 MB (ADR-0022).
+        // PHP's default 128 MB; the full Spain and UK import peaks near 160 MB (ADR-0024).
         ini_set('memory_limit', self::MEMORY_LIMIT);
         $started = hrtime(true);
 

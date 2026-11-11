@@ -152,7 +152,7 @@ db: ## Create and migrate the database, load the @fixtures baseline and snapshot
 web-build: ## Build the production frontend bundle nginx serves
 	$(RUN_NODE) npm run build
 
-## --- Map data (ADR-0022) ---------------------------------------------------
+## --- Map data (ADR-0024) ---------------------------------------------------
 
 .PHONY: map-data
 map-data: ## Build var/map/places.geojsonl from OpenStreetMap; fails without Spain's outlying boundaries

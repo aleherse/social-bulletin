@@ -154,8 +154,8 @@ and the first publish (quickstart "Checking published data").
   ADR-0010 (shadcn `Button`), ADR-0012 (deptrac owns the layer rules), ADR-0013 (tools),
   ADR-0015 (`make ci`), ADR-0016 (AWS),
   ADR-0019 (lazy routes), ADR-0021 (CQRS).
-  **ADR-0022** (Proposed, already written) is corrected in place and renamed
-  to `ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md`:
+  **ADR-0024** (Proposed, already written) is corrected in place and renamed
+  to `ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md`:
   OSM raster tiles instead of the PMTiles archive, the Overpass fetch, and the build guard.
   Corrected in place in the same change: **ADR-0009** (PostGIS-enabled container and extension, unchanged)
   and **ADR-0016** (the map-data bucket holds places only; no `/tiles/*` behaviour).
@@ -204,7 +204,7 @@ specs/002-map-pinned-location/
 docs/decisions/
 ├── ADR-0009-adopt-postgresql-and-doctrine-dbal.md   # corrected: PostGIS
 ├── ADR-0016-aws-serverless-deployment.md            # corrected: map-data bucket for places only
-└── ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md # corrected and renamed, status Proposed
+└── ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md # corrected and renamed, status Proposed
 
 db/schema.dbml                                       # + place_boundaries, place_neighbourhoods
 deptrac.yaml                                         # + DomainPort layer; Framework may implement it

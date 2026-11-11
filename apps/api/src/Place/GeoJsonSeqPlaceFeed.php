@@ -8,7 +8,7 @@ use SocialBulletin\Core\Domain\Helper\PlaceFeed;
 
 /**
  * Reads newline-delimited GeoJSON from a local path or, on the console Lambda,
- * a presigned HTTPS URL (ADR-0022).
+ * a presigned HTTPS URL (ADR-0024).
  */
 final readonly class GeoJsonSeqPlaceFeed implements PlaceFeed
 {

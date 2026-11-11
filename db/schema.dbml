@@ -45,7 +45,7 @@ Table bulletin.movements {
   Note: 'Movement proposals; draft -> proposed requires a non-empty description'
 }
 
-// OpenStreetMap reference data for the place lookup (ADR-0022). It belongs to
+// OpenStreetMap reference data for the place lookup (ADR-0024). It belongs to
 // no author, holds no personal data, and `app:places:import` replaces both
 // tables in one transaction. Geometry types come from the PostGIS extension,
 // installed into `public`.

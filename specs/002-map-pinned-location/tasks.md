@@ -63,7 +63,7 @@ because both stories end in the same lookup.
 **Purpose**: Record the decisions, add dependencies and PostGIS,
 fix the shared E2E helpers, and prepare the shared test data and strings.
 
-- [X] T001 Write `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md`
+- [X] T001 Write `docs/decisions/ADR-0024-self-host-map-tiles-and-place-lookup.md`
       with the `adr-skill`, status Proposed, following ADR-0019's section layout,
       from research.md R1–R10:
       Leaflet 1.9.4 + react-leaflet 5.0.0 + `protomaps-leaflet` behind `shared/map`;
@@ -83,7 +83,7 @@ fix the shared E2E helpers, and prepare the shared test data and strings.
       and `@types/leaflet` to devDependencies in `apps/web/package.json`
       by running `npm install` inside `make shell service=node`,
       so `apps/web/package-lock.json` is updated too;
-      record the `protomaps-leaflet` version in ADR-0022
+      record the `protomaps-leaflet` version in ADR-0024
 - [X] T003 Create `docker/postgres/Dockerfile`
       (`FROM public.ecr.aws/docker/library/postgres:17`,
       `RUN apt-get update && apt-get install -y --no-install-recommends postgresql-17-postgis-3 && rm -rf /var/lib/apt/lists/*`)
@@ -613,11 +613,11 @@ are removed by Phase 6 (spec FR-011, revised 2026-10-16).
 - [X] T040 Add to `Makefile`, documented in its help:
       `map-data` (runs `docker/map/build-map-data.sh` in the `map` service)
       and `map-import` (runs `app:places:import /app/var/map/places.geojsonl` through `make console`);
-      run both once, record in ADR-0022 the tiles file size and the import's run time;
+      run both once, record in ADR-0024 the tiles file size and the import's run time;
       if the import takes more than 7.5 minutes (half the console Lambda's 15-minute limit),
       switch `PlaceRepository::replaceAll()` to multi-row inserts
       capped by both row count and bind parameters (PostgreSQL allows 65,535),
-      and record the change and the new run time in ADR-0022;
+      and record the change and the new run time in ADR-0024;
       and check the quickstart's Huelin and Sheffield lookups against the real data
       (research R7, known risk); update `docs/engineering/scaffolding/make.md` if it lists targets
       (depends on T020, T038, T039)
@@ -650,7 +650,7 @@ are removed by Phase 6 (spec FR-011, revised 2026-10-16).
       failing on a `FunctionError` or a missing seconds-taken line (T020).
       First run against `preview`, then follow quickstart "Checking published data",
       including the FR-012 points (Palma, Las Palmas, Ceuta, Melilla at `national` and `state`);
-      record in ADR-0022 the console function's import duration on `preview`
+      record in ADR-0024 the console function's import duration on `preview`
       (from the job log or the function's `REPORT` line),
       and apply T040's 7.5-minute rule to it before any `live` run
       (depends on T053, T056, T057)
@@ -667,8 +667,8 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
 
 ### Decisions
 
-- [X] T049 Correct `docs/decisions/ADR-0022-self-host-map-tiles-and-place-lookup.md` in place
-      and rename it with `git mv` to `docs/decisions/ADR-0022-use-osm-tiles-and-self-hosted-place-lookup.md`,
+- [X] T049 Correct `docs/decisions/ADR-0024-self-host-map-tiles-and-place-lookup.md` in place
+      and rename it with `git mv` to `docs/decisions/ADR-0024-use-osm-tiles-and-self-hosted-place-lookup.md`,
       title "Use OpenStreetMap tiles and a self-hosted place lookup", status still Proposed (research R10):
       "Map rendering" names `leaflet` and `react-leaflet` only, with `<TileLayer>`,
       `maxZoom` 19, and the attribution "© OpenStreetMap contributors";
@@ -687,7 +687,7 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       and `docs/decisions/ADR-0016-aws-serverless-deployment.md`,
       and correct ADR-0016 in place: the map-data bucket holds the places file only,
       with no `/tiles/*` behaviour, and the line saying the browser makes no cross-origin map request
-      becomes "map tiles come from OpenStreetMap's tile servers (ADR-0022)".
+      becomes "map tiles come from OpenStreetMap's tile servers (ADR-0024)".
       Check with `git grep -n "self-host-map-tiles"` finding nothing outside `specs/`
 
 ### Tests (write first, must fail) ⚠️
@@ -782,9 +782,9 @@ Research R4, R5, R7, R9, R10; contracts/place-lookup-api.md "Fixture places".
       Huelin (all six levels), central Sheffield (`national`, `municipality`),
       and Palma, Las Palmas de Gran Canaria, Ceuta, and Melilla at `national` and `state`
       (spec US1 sc.10);
-      record the answers, the Overpass fetch time, the places count, and the import time in ADR-0022
+      record the answers, the Overpass fetch time, the places count, and the import time in ADR-0024
       under a new dated measurements entry; if Ceuta's relation is not `admin_level` 4,
-      correct the guard, the research R7 entry, and ADR-0022 to the level OSM uses (depends on T057)
+      correct the guard, the research R7 entry, and ADR-0024 to the level OSM uses (depends on T057)
 
 ---
 

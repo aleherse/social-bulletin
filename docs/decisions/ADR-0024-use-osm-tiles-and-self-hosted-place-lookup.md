@@ -1,4 +1,4 @@
-# ADR-0022: Use OpenStreetMap tiles and a self-hosted place lookup
+# ADR-0024: Use OpenStreetMap tiles and a self-hosted place lookup
 
 - Status: Proposed
 - Date: 2026-10-16

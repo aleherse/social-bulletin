@@ -17,4 +17,4 @@ Feature: Baseline fixtures
   #
   # The fixture places are shared reference data: every place lookup in Behat
   # and Playwright reads them, so they are loaded here, through the same
-  # import command production uses (ADR-0022).
+  # import command production uses (ADR-0024).

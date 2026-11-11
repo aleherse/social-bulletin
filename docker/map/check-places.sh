@@ -1,5 +1,5 @@
 #!/bin/sh
-# ADR-0022, spec FR-012: Geofabrik clips boundaries whose members leave its
+# ADR-0024, spec FR-012: Geofabrik clips boundaries whose members leave its
 # extract, so a build missing Spain's outlying land fails here, before upload.
 set -eu
 
