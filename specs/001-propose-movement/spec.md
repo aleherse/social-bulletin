@@ -4,7 +4,7 @@
 
 **Created**: 2026-07-19
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "A user can propose a `Movement`, it has:
 a title; a description (in markdown);
