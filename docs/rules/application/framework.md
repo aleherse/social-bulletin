@@ -176,3 +176,21 @@ and `features/openapi.feature` asserts it.
 | Edit `apps/docs/openapi.json` by hand                  | `make openapi`                                                     |
 | A `components.schemas` entry copying `CreateMovementCommand` | `#[JsonApiPayload('movements', CreateMovementCommand::class)]` |
 | `/api/logout` left with the global `cookieAuth` security | `paths./api/logout.post.security: []` and its `204` in `nelmio_api_doc.yaml` |
+
+## application-framework-0009: A read with a body documents it through a payload class
+
+**WHEN** a controller under `apps/api/src/Controller` answers a read from a JSON:API body (a `POST` dispatching a
+`Core\Application` query) whose public properties are not the wire fields
+
+**THEN** name a `final readonly <Name>Payload` class beside the controller in `#[JsonApiPayload]`
+(`application-framework-0007`), with the wire fields as public promoted properties. It only feeds
+`JsonApiRouteDescriber`; the controller still passes the raw `array $payload` to `<Name>Query::fromPayload()`. The query
+validates the shape itself and throws its `DomainError` naming the field, never quoting the value, as
+`Webmozart\Assert` messages do.
+
+**Example:**
+
+| Wrong                                                                              | Right                                                          |
+|------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| `#[JsonApiPayload('places', LookUpPlaceQuery::class)]` documents `point`, `level`  | `#[JsonApiPayload('places', LookUpPlacePayload::class)]`       |
+| `Assert::float($payload['lat'])` in `LookUpPlaceQuery`                             | `InvalidPlaceLookup(['lat' => 'place.point.out_of_range'], …)` |

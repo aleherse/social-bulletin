@@ -29,7 +29,8 @@ exposes no writer for the timestamps — the properties are private, set only by
 holding only `select(...)` and `from(...)` and, if required, some `innerJoin(...)`; every finder starts from it, adds nothing but its own
 `where` / `orderBy` / `setParameter`, and ends in `fetchAssociative()` or `fetchAllAssociative()` feeding a private
 `hydrate()`. A provider declares its own, the repository beside it declares its own,
-and neither reuses the other's.
+and neither reuses the other's. A reader over several tables declares one builder per table, named
+`get<Thing>QueryBuilder()` for what the table holds, and each finder starts from the builder of the table it reads.
 
 **Example:**
 
@@ -37,6 +38,7 @@ and neither reuses the other's.
 |------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
 | `private const COLUMNS = 'id, author_id, title, …';`                         | `getQueryBuilder()->select('id', 'author_id', …)`                                          |
 | `sprintf('SELECT %s FROM bulletin.movements WHERE id = :id', self::COLUMNS)` | `$this->getQueryBuilder()->where('id = :id')->setParameter('id', $id)->fetchAssociative()` |
+| one `getQueryBuilder()` in `PlaceProvider`, with the finders re-choosing the table | `getBoundaryQueryBuilder()` and `getNeighbourhoodQueryBuilder()`, one per table |
 
 `MovementProvider`: `byAuthor()` and `authorMovement()` share it; `byAuthor()` adds
 `orderBy('created_at', 'DESC')->addOrderBy('id', 'DESC')`.
