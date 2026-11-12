@@ -26,7 +26,7 @@ final class AsyncApiDocumentTest extends IntegrationTestCase
 
     public function testItIsAnAsyncApiThreeDocument(): void
     {
-        self::assertSame('3.0.0', $this->document['asyncapi']);
+        self::assertSame('3.1.0', $this->document['asyncapi']);
     }
 
     public function testTheUserChannelIsAddressedLikeTheChannelTheApiPublishesTo(): void

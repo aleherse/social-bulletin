@@ -3,7 +3,7 @@
 # from the class by NotificationDescriber, so it is not repeated here.
 # `%ticket_lifetime%` and `%ticket_audience%` are filled in from TicketIssuer.
 document:
-    asyncapi: 3.0.0
+    asyncapi: 3.1.0
     info:
         title: Social Bulletin realtime
         version: 1.0.0
