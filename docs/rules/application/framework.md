@@ -167,7 +167,7 @@ lists its public properties, bar `id` and `authorId`, as the `attributes` in `ap
 (ADR-0023). Document the route from its attributes (`application-framework-0006`, `application-framework-0007`),
 never with a hand-written schema. Only what attributes cannot express goes in
 `apps/api/config/packages/nelmio_api_doc.yaml` — security, `Set-Cookie` headers, non-default statuses, public routes —
-and `features/openapi.feature` asserts it.
+and `tests/Integration/Http/OpenApiDocumentTest.php` asserts it (`test-integration-0002`).
 
 **Example:**
 
