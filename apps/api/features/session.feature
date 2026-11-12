@@ -65,6 +65,21 @@ Feature: Email session
     And the response content type should be "application/vnd.api+json"
     And the JSON at "errors[0].status" should equal "401"
 
+  Scenario: A token for a user who no longer exists does not block signing in
+    Given the request carries a session token for "gone.user@example.com" issued 5 minutes ago
+    When I send a POST request to "/api/session" with body:
+      """
+      {"data": {"type": "sessions", "attributes": {"email": "gone.user@example.com"}}}
+      """
+    Then the response status code should be 200
+    And the response should set an httpOnly cookie named "token"
+    And exactly one user should exist with email "gone.user@example.com"
+
+  Scenario: A token for a user who no longer exists does not block logging out
+    Given the request carries a session token for "gone.user@example.com" issued 5 minutes ago
+    When I send a POST request to "/api/logout"
+    Then the response status code should be 204
+
   Scenario: Logging out clears the session
     When I send a POST request to "/api/session" with body:
       """
