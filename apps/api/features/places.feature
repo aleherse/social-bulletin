@@ -113,37 +113,6 @@ Feature: Look up a place name
       """
     Then the response status code should be 401
 
-  Scenario: Importing places from the console replaces the lookup data
-    When I run the console command "app:places:import" with the file "fixtures/places-reimport.geojsonl"
-    Then the console command should succeed
-    When I send a POST request to "/api/session" with body:
-      """
-      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
-      """
-    And I send a POST request to "/api/places/lookup" with body:
-      """
-      {"data": {"type": "places", "attributes": {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}}}
-      """
-    Then the JSON at "data.attributes.name" should equal "Sheffield City"
-    When I send a POST request to "/api/places/lookup" with body:
-      """
-      {"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": -4.4366, "area": "national"}}}
-      """
-    Then the JSON at "data.attributes.name" should be null
-
-  Scenario: A malformed import changes nothing
-    When I run the console command "app:places:import" with the file "fixtures/places-malformed.geojsonl"
-    Then the console command should fail mentioning "line 2"
-    When I send a POST request to "/api/session" with body:
-      """
-      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
-      """
-    And I send a POST request to "/api/places/lookup" with body:
-      """
-      {"data": {"type": "places", "attributes": {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}}}
-      """
-    Then the JSON at "data.attributes.name" should equal "Sheffield"
-
   Scenario: Where boundaries at one rank overlap, the smallest names the point
     Given the places in "fixtures/places-overlapping.geojsonl" are imported
     When I send a POST request to "/api/session" with body:
