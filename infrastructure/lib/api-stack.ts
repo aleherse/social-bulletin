@@ -103,7 +103,7 @@ export class ApiStack extends cdk.Stack {
     props.realtimeApi.grantPublish(consoleFunction);
 
     const functionUrl = apiFunction.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE,
+      authType: lambda.FunctionUrlAuthType.AWS_IAM,
     });
 
     const distribution = new cloudfront.Distribution(this, 'Distribution', {
