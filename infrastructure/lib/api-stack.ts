@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 
+import { ConsoleFunction, PhpFpmFunction } from '@bref.sh/constructs';
 import * as cdk from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
@@ -19,15 +20,6 @@ export interface ApiStackProps extends cdk.StackProps {
   readonly certificate: acm.ICertificate;
   readonly realtimeApi: appsync.IEventApi;
 }
-
-// Bref publishes its layers from this account; versions are pinned via CDK
-// context so upgrades are explicit (https://runtimes.bref.sh for current ids).
-const BREF_ACCOUNT = '534081306603';
-const DEFAULT_LAYER_VERSIONS: Record<string, string> = {
-  'php-84-fpm': '38',
-  'php-84': '38',
-  console: '133',
-};
 
 /**
  * ADR-0016: the API runs as a Bref PHP-FPM Lambda behind CloudFront at the
@@ -58,21 +50,19 @@ export class ApiStack extends cdk.Stack {
       REALTIME_WS_URL: `wss://${environment.realtimeDomainName}/event/realtime`,
     };
 
-    const apiFunction = new lambda.Function(this, 'ApiFunction', {
-      runtime: lambda.Runtime.PROVIDED_AL2023,
+    const apiFunction = new PhpFpmFunction(this, 'ApiFunction', {
+      phpVersion: '8.5',
       handler: 'public/index.php',
       code: apiCode,
-      layers: [this.brefLayer('php-84-fpm')],
       memorySize: 1024,
       timeout: cdk.Duration.seconds(28),
       environment: functionEnvironment,
     });
 
-    const consoleFunction = new lambda.Function(this, 'ConsoleFunction', {
-      runtime: lambda.Runtime.PROVIDED_AL2023,
+    const consoleFunction = new ConsoleFunction(this, 'ConsoleFunction', {
+      phpVersion: '8.5',
       handler: 'bin/console',
       code: apiCode,
-      layers: [this.brefLayer('php-84'), this.brefLayer('console')],
       memorySize: 1024,
       timeout: cdk.Duration.minutes(15),
       environment: functionEnvironment,
@@ -122,17 +112,5 @@ export class ApiStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'ApiFunctionName', { value: apiFunction.functionName });
     new cdk.CfnOutput(this, 'ConsoleFunctionName', { value: consoleFunction.functionName });
-  }
-
-  private brefLayer(name: string): lambda.ILayerVersion {
-    const version =
-      (this.node.tryGetContext(`brefLayer:${name}`) as string | undefined) ??
-      DEFAULT_LAYER_VERSIONS[name];
-
-    return lambda.LayerVersion.fromLayerVersionArn(
-      this,
-      `BrefLayer-${name}`,
-      `arn:aws:lambda:${this.region}:${BREF_ACCOUNT}:layer:${name}:${version}`,
-    );
   }
 }
