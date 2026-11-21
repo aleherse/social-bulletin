@@ -8,7 +8,7 @@ export interface RealtimeTicket {
   channels: string[];
 }
 
-/** ADR-0024: a ticket lasts a minute, so every connect and every subscribe asks for its own. */
+/** ADR-0025: a ticket lasts a minute, so every connect and every subscribe asks for its own. */
 export function fetchRealtimeTicket(): Promise<RealtimeTicket> {
   return apiResource<RealtimeTicket>('/api/realtime-tickets', { method: 'POST' });
 }

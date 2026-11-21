@@ -1,4 +1,4 @@
-# ADR-0024: Adopt AppSync Events And AsyncAPI For Realtime Push
+# ADR-0025: Adopt AppSync Events And AsyncAPI For Realtime Push
 
 - Status: Accepted
 - Date: 2026-11-02

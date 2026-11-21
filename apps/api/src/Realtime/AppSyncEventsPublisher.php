@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
- * Publishes to the AppSync Events HTTP endpoint (ADR-0024), signed with IAM SigV4.
+ * Publishes to the AppSync Events HTTP endpoint (ADR-0025), signed with IAM SigV4.
  *
  * The local realtime container serves the same endpoint and ignores the signature,
  * so every environment takes this one code path.

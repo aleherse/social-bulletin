@@ -101,7 +101,7 @@ services:
           - test.api.social.aleherse.com
           - test.app.social.aleherse.com
 
-  # Local stand-in for AppSync Events (ADR-0024): the API publishes to it, browsers subscribe through nginx.
+  # Local stand-in for AppSync Events (ADR-0025): the API publishes to it, browsers subscribe through nginx.
   realtime:
     build: docker/realtime
     volumes:

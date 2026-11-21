@@ -17,7 +17,7 @@ export interface RealtimeStackProps extends cdk.StackProps {
 }
 
 /**
- * ADR-0024: an AppSync Events API pushes notifications to browsers at the environment's realtime hostname.
+ * ADR-0025: an AppSync Events API pushes notifications to browsers at the environment's realtime hostname.
  *
  * Browsers connect and subscribe with the ticket `POST /api/realtime-tickets` issues, which a Lambda
  * authorizer verifies; only the API publishes, signed with IAM.

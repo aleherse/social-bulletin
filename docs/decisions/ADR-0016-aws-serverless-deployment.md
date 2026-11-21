@@ -49,7 +49,7 @@ and need no servers to patch.
 ### Realtime
 
 - Realtime push SHALL be an AWS AppSync Events API at `LIVE_REALTIME_URL`, in its own CDK stack
-  ([ADR-0024](ADR-0024-adopt-appsync-events-and-asyncapi-for-realtime-push.md)).
+  ([ADR-0025](ADR-0025-adopt-appsync-events-and-asyncapi-for-realtime-push.md)).
 
 ### Database
 

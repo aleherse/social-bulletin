@@ -1,4 +1,4 @@
-// AppSync Events Lambda authorizer (ADR-0024): verifies the short-lived ticket issued by
+// AppSync Events Lambda authorizer (ADR-0025): verifies the short-lived ticket issued by
 // `POST /api/realtime-tickets` and lets its user connect and subscribe to their own channels.
 // A browser never publishes: the API publishes with IAM.
 import { createVerify } from 'node:crypto';

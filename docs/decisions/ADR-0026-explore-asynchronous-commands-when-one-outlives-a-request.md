@@ -1,4 +1,4 @@
-# ADR-0025: Explore Asynchronous Commands When One Outlives A Request
+# ADR-0026: Explore Asynchronous Commands When One Outlives A Request
 
 - Status: Proposed
 - Date: 2026-11-09
@@ -6,7 +6,7 @@
 ## Context
 
 Commands run synchronously and answer in the HTTP response (ADR-0021),
-and clients learn about other people's changes through realtime notifications (ADR-0024).
+and clients learn about other people's changes through realtime notifications (ADR-0025).
 That fits commands that finish in milliseconds.
 
 A command that is slow, depends on a slow external system, or can fail long after it was accepted
@@ -34,10 +34,10 @@ so building the machinery ahead of it would be guesswork.
 ## Consequences
 
 - Nothing changes today: commands, queries and the realtime contract stay as they are.
-- A notification is best effort (ADR-0024),
+- A notification is best effort (ADR-0025),
   so an outcome that only exists as a notification can be lost.
   The first asynchronous command therefore requires a transactional outbox and a status resource,
-  and ADR-0021's synchronous buses and ADR-0024's no-outbox decision are revisited by it.
+  and ADR-0021's synchronous buses and ADR-0025's no-outbox decision are revisited by it.
 - The command id, idempotency, timeouts and the failure model for work that fails late are decided with a real command,
   not guessed now.
-- The OpenAPI and AsyncAPI documents (ADR-0023, ADR-0024) gain the `202` response, the status resource and the result notification.
+- The OpenAPI and AsyncAPI documents (ADR-0023, ADR-0025) gain the `202` response, the status resource and the result notification.

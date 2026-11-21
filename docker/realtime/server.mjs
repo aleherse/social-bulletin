@@ -1,4 +1,4 @@
-// Local stand-in for AppSync Events (ADR-0024). It serves the same two surfaces the application uses:
+// Local stand-in for AppSync Events (ADR-0025). It serves the same two surfaces the application uses:
 // `POST /event` to publish and the `/event/realtime` websocket to subscribe, speaking the AppSync Events
 // protocol. Publishing ignores the SigV4 signature; connecting and subscribing run through the production
 // Lambda authorizer, so a ticket is checked exactly as it is on AWS.

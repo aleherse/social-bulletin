@@ -200,7 +200,7 @@ validates the shape itself and throws its `DomainError` naming the field, never 
 **WHEN** a notification under `Application/<Aggregate>/Event/` or the realtime ticket (`App\Realtime\TicketIssuer`) changes
 
 **THEN** run `make asyncapi` and commit `apps/docs/asyncapi.json`; `make asyncapi-check` fails the gate otherwise
-(ADR-0024). `App\Realtime\AsyncApi\NotificationDescriber` derives each notification's channel, payload and enum
+(ADR-0025). `App\Realtime\AsyncApi\NotificationDescriber` derives each notification's channel, payload and enum
 values from its class — `channelFor()`, the constructor types, the keys of `payload()` — and only prose goes in
 `apps/api/config/asyncapi.yaml`, where a new notification is also listed. Never retype a derived fact there or edit
 the JSON by hand.

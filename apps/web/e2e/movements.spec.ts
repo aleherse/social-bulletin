@@ -138,7 +138,7 @@ test('a movement drafted in one window appears in the author’s other window wi
   browser,
   page,
 }) => {
-  // ADR-0024: the API pushes a notification and the open list refetches.
+  // ADR-0025: the API pushes a notification and the open list refetches.
   await signIn(page, 'author@example.com');
   await expect(page.getByText('You have not proposed any movements yet.')).toBeVisible();
 

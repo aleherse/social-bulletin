@@ -1,4 +1,4 @@
-# The hand-written parts of the AsyncAPI document (ADR-0024); `make asyncapi` dumps it.
+# The hand-written parts of the AsyncAPI document (ADR-0025); `make asyncapi` dumps it.
 # Whatever a notification class already decides (channel address, payload, enum values) is derived
 # from the class by NotificationDescriber, so it is not repeated here.
 # `%ticket_lifetime%` and `%ticket_audience%` are filled in from TicketIssuer.

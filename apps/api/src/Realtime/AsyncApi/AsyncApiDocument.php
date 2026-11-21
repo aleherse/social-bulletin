@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * The AsyncAPI description of what the API pushes to browsers (ADR-0024).
+ * The AsyncAPI description of what the API pushes to browsers (ADR-0025).
  *
  * The hand-written parts come from `config/asyncapi.yaml`; every notification it lists is described
  * from its class by {@see NotificationDescriber}. `make asyncapi-check` compares the dump with the committed file.

@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Signs the short-lived ticket a browser presents to the AppSync Lambda authorizer (ADR-0024).
+ * Signs the short-lived ticket a browser presents to the AppSync Lambda authorizer (ADR-0025).
  *
  * It carries no `username` claim, so the API's own authenticator never accepts it as a session.
  */

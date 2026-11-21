@@ -64,7 +64,7 @@ export class ApiStack extends cdk.Stack {
       JWT_PASSPHRASE: secret('jwt-passphrase'),
       DEFAULT_URI: `https://${environment.apiDomainName}`,
       CORS_ALLOW_ORIGIN: `^https://${environment.frontDomainName.replaceAll('.', '\\.')}$`,
-      // ADR-0024: the API publishes to AppSync Events and hands browsers the websocket endpoint.
+      // ADR-0025: the API publishes to AppSync Events and hands browsers the websocket endpoint.
       REALTIME_PUBLISH_URL: `https://${environment.realtimeDomainName}/event`,
       REALTIME_WS_URL: `wss://${environment.realtimeDomainName}/event/realtime`,
     };
@@ -104,7 +104,7 @@ export class ApiStack extends cdk.Stack {
     apiFunction.addToRolePolicy(parameterReadAccess);
     consoleFunction.addToRolePolicy(parameterReadAccess);
 
-    // Publishing is the only way in; browsers get a ticket, never publish rights (ADR-0024).
+    // Publishing is the only way in; browsers get a ticket, never publish rights (ADR-0025).
     props.realtimeApi.grantPublish(apiFunction);
     props.realtimeApi.grantPublish(consoleFunction);
 
