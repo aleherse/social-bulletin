@@ -61,6 +61,7 @@ Read this before making changes; the README covers human onboarding.
 | [monorepo.md](docs/engineering/scaffolding/monorepo.md) | Monorepo layout              | Modifing containers, structure and tools   |
 | [make.md](docs/engineering/scaffolding/make.md)         | Unify development commands   | Working on development flow common actions |
 | [database-bootstrap.md](docs/engineering/infrastructure/database-bootstrap.md) | Shared Aurora roles and databases | Deploying an environment for the first time |
+| [application-secrets.md](docs/engineering/infrastructure/application-secrets.md) | SSM secrets the API reads | Deploying an environment for the first time |
 | [quality.md](docs/engineering/quality/quality.md)       | Ensure code quality          | Tweaking code quality tools and hooks      |
 
 ## Claude Code setup

@@ -39,12 +39,20 @@ export class ApiStack extends cdk.Stack {
       exclude: ['var/**', 'tests/**', 'features/**', 'config/jwt/**', '.env.local', '.env.*.local'],
     });
 
+    // Secrets are `bref-ssm:` references that the Bref secrets loader resolves from
+    // Parameter Store when the function starts (ADR-0016); only their paths are stored here.
+    const secret = (key: string): string => `bref-ssm:${parameterPath(environment, key)}`;
+
     const functionEnvironment: Record<string, string> = {
       APP_ENV: 'prod',
-      // Runtime configuration and secrets are read from Parameter Store
-      // under this environment-scoped prefix (ADR-0016).
-      SSM_PARAMETER_PREFIX: `/${PROJECT_SLUG}/${environment.name}`,
-      DATABASE_URL_PARAMETER: parameterPath(environment, 'database-url'),
+      APP_SECRET: secret('app-secret'),
+      DATABASE_URL: secret('database-url'),
+      // The key pair is read as key text rather than file paths, so nothing is packaged with the code.
+      JWT_SECRET_KEY: secret('jwt-private-key'),
+      JWT_PUBLIC_KEY: secret('jwt-public-key'),
+      JWT_PASSPHRASE: secret('jwt-passphrase'),
+      DEFAULT_URI: `https://${environment.apiDomainName}`,
+      CORS_ALLOW_ORIGIN: `^https://${environment.frontDomainName.replaceAll('.', '\\.')}$`,
       // ADR-0024: the API publishes to AppSync Events and hands browsers the websocket endpoint.
       REALTIME_PUBLISH_URL: `https://${environment.realtimeDomainName}/event`,
       REALTIME_WS_URL: `wss://${environment.realtimeDomainName}/event/realtime`,
@@ -68,8 +76,9 @@ export class ApiStack extends cdk.Stack {
       environment: functionEnvironment,
     });
 
+    // The secrets loader reads the `bref-ssm:` parameters with GetParameters.
     const parameterReadAccess = new iam.PolicyStatement({
-      actions: ['ssm:GetParameter', 'ssm:GetParameters', 'ssm:GetParametersByPath'],
+      actions: ['ssm:GetParameters'],
       resources: [
         cdk.Arn.format(
           {
