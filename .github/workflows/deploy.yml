@@ -53,7 +53,7 @@ jobs:
 
       - name: Deploy live stacks
         working-directory: infrastructure
-        run: npx cdk deploy 'social-bulletin-live-*' --require-approval never
+        run: npx cdk deploy social-bulletin-database 'social-bulletin-live-*' --require-approval never
 
       - name: Run database migrations
         run: |

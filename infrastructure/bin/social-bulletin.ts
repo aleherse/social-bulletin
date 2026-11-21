@@ -18,10 +18,12 @@ const env: cdk.Environment = {
   region: 'us-east-1',
 };
 
+// One Aurora cluster serves every environment, each with its own database.
+new DatabaseStack(app, `${PROJECT_SLUG}-database`, { env });
+
 for (const environment of environments) {
   const prefix = `${PROJECT_SLUG}-${environment.name}`;
 
-  new DatabaseStack(app, `${prefix}-database`, { environment, env });
   const realtime = new RealtimeStack(app, `${prefix}-realtime`, { environment, env });
   new ApiStack(app, `${prefix}-api`, { environment, env, realtimeApi: realtime.api });
   new FrontendStack(app, `${prefix}-frontend`, { environment, env });
