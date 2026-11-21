@@ -59,7 +59,7 @@ help: ## List supported targets and their purpose
 
 .PHONY: init
 init: ## Initialise (or update) everything from scratch; safe to re-run
-	+@$(call in_order,$(MAKE),env images deps web-build docs-build up db hooks setup-claude)
+	+@$(call in_order,$(MAKE),env images deps web-build docs-build map-data up db hooks setup-claude)
 
 .PHONY: env
 env: ## Create .env and docker-compose.override.yml from their .dist templates when missing
@@ -150,8 +150,12 @@ asyncapi-check: ## Check apps/docs/asyncapi.json matches the notifications (whol
 shell: ## Open an interactive shell in the PHP container (or another via `make shell service=node`)
 	$(COMPOSE) exec $(or $(service),php) bash
 
+# MAP_IMPORT=0 skips the OSM places import, leaving the @fixtures ones; the gate sets it.
+# The import follows the snapshot, so the suites' baseline never holds it.
+MAP_IMPORT ?= 1
+
 .PHONY: db
-db: ## Create and migrate the database, load the @fixtures baseline and snapshot it for the suites
+db: ## Create and migrate the database, load the @fixtures baseline and snapshot it for the suites, then import the map data when built
 	$(COMPOSE) run --rm --workdir /app/apps/api php sh -ec '\
 		php bin/console doctrine:database:create --if-not-exists; \
 		php bin/console dbal:run-sql "CREATE SCHEMA IF NOT EXISTS bulletin"; \
@@ -159,7 +163,10 @@ db: ## Create and migrate the database, load the @fixtures baseline and snapshot
 		php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration; \
 		vendor/bin/behat --tags=@fixtures; \
 		dslr --url "$$DSLR_DATABASE_URL" delete fixtures 2>/dev/null || true; \
-		dslr --url "$$DSLR_DATABASE_URL" snapshot fixtures'
+		dslr --url "$$DSLR_DATABASE_URL" snapshot fixtures; \
+		if [ "$(MAP_IMPORT)" = 1 ] && [ -s /app/docker/map/places/places.geojsonl ]; then \
+			php bin/console app:places:import --no-debug /app/docker/map/places/places.geojsonl; \
+		fi'
 
 .PHONY: web-build
 web-build: ## Build the production frontend bundle nginx serves
@@ -168,12 +175,12 @@ web-build: ## Build the production frontend bundle nginx serves
 ## --- Map data (ADR-0024) ---------------------------------------------------
 
 .PHONY: map-data
-map-data: ## Build var/map/places.geojsonl from OpenStreetMap; fails without Spain's outlying boundaries
+map-data: ## Build docker/map/places/places.geojsonl from OpenStreetMap; fails without Spain's outlying boundaries
 	$(COMPOSE) run --rm map docker/map/build-map-data.sh
 
 .PHONY: map-import
-map-import: ## Replace the development database's places with var/map/places.geojsonl (after `make map-data`); without debug, whose query log would hold every geometry
-	+@$(MAKE) console cmd="app:places:import --no-debug /app/var/map/places.geojsonl"
+map-import: ## Replace the development database's places with docker/map/places/places.geojsonl (after `make map-data`); without debug, whose query log would hold every geometry
+	+@$(MAKE) console cmd="app:places:import --no-debug /app/docker/map/places/places.geojsonl"
 
 ## --- Focussed checks (FILES=... narrows linters, PATHS=... narrows tests) -----
 
@@ -261,7 +268,7 @@ web-e2e-ui: web-build ## Open the Playwright UI on https://dev.app.social.aleher
 # checkouts can gate at once.
 GATE_PROJECT := social-bulletin-gate-$(shell printf '%s' '$(CURDIR)' | cksum | cut -d' ' -f1)
 GATE_COMPOSE_FILE ?= docker-compose.yml
-GATE_ENV := COMPOSE_PROJECT_NAME=$(GATE_PROJECT) COMPOSE_FILE=$(GATE_COMPOSE_FILE)
+GATE_ENV := COMPOSE_PROJECT_NAME=$(GATE_PROJECT) COMPOSE_FILE=$(GATE_COMPOSE_FILE) MAP_IMPORT=0
 GATE := $(GATE_ENV) $(MAKE)
 
 # The gate's stages, declared once: `make ci` runs them and `make ci-stages`

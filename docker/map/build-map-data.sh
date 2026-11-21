@@ -1,13 +1,20 @@
 #!/bin/sh
-# ADR-0024: builds var/map/places.geojsonl (the shape of
+# ADR-0024: builds docker/map/places/places.geojsonl (the shape of
 # apps/api/features/fixtures/places.geojsonl).
 set -eu
 
-OUT=/app/var/map
+OUT=/app/docker/map/places
 SRC="$OUT/src"
+
+# Delete places.geojsonl to rebuild it.
+if [ -s "$OUT/places.geojsonl" ]; then
+    echo "$OUT/places.geojsonl already exists; skipping the build."
+    exit 0
+fi
+
 mkdir -p "$SRC"
 
-for extract in europe/spain africa/canary-islands europe/united-kingdom; do
+for extract in europe/spain africa/canary-islands; do
     curl --fail --location --silent --show-error \
         --output "$SRC/$(basename "$extract").osm.pbf" \
         "https://download.geofabrik.de/$extract-latest.osm.pbf"
@@ -22,13 +29,11 @@ curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
     https://overpass-api.de/api/interpreter
 osmium sort --overwrite --output "$SRC/overpass.osm.pbf" "$SRC/overpass.osm"
 
-osmium merge --overwrite --output "$SRC/base.osm.pbf" \
-    "$SRC/spain.osm.pbf" "$SRC/united-kingdom.osm.pbf"
 # The Spain and Canary Islands extracts overlap at their edge and come from different
 # snapshots, so one node can carry two versions; merge keeps both and export rejects
 # them. apply-changes keeps only the newest version of each object.
 osmium apply-changes --overwrite --output "$SRC/merged.osm.pbf" \
-    "$SRC/base.osm.pbf" "$SRC/canary-islands.osm.pbf" "$SRC/overpass.osm.pbf"
+    "$SRC/spain.osm.pbf" "$SRC/canary-islands.osm.pbf" "$SRC/overpass.osm.pbf"
 
 # Relation members are kept, so the boundary polygons can be assembled.
 osmium tags-filter --overwrite --output "$SRC/places.osm.pbf" "$SRC/merged.osm.pbf" \
