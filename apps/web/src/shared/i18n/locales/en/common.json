@@ -54,7 +54,7 @@
       "areaLabel": "Area",
       "areaPlaceholder": "Choose an area",
       "locationLabel": "Location",
-      "locationPlaceholder": "e.g. Sheffield",
+      "locationPlaceholder": "e.g. Málaga",
       "map": {
         "label": "Location map",
         "marker": "Pinned location",

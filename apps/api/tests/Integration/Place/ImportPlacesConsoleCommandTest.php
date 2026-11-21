@@ -18,7 +18,7 @@ final class ImportPlacesConsoleCommandTest extends IntegrationTestCase
         $console = $this->import('places-reimport.geojsonl');
 
         self::assertSame(0, $console->getStatusCode(), $console->getDisplay());
-        self::assertSame('Sheffield City', $this->nameAt(53.3811, -1.4701, 'municipality'));
+        self::assertSame('Madrid City', $this->nameAt(40.4168, -3.7038, 'municipality'));
         self::assertNull($this->nameAt(36.7033, -4.4366, 'national'));
     }
 
@@ -28,7 +28,8 @@ final class ImportPlacesConsoleCommandTest extends IntegrationTestCase
 
         self::assertNotSame(0, $console->getStatusCode());
         self::assertStringContainsString('line 2', $console->getDisplay());
-        self::assertSame('Sheffield', $this->nameAt(53.3811, -1.4701, 'municipality'));
+        self::assertSame('Málaga', $this->nameAt(36.7033, -4.4366, 'municipality'));
+        self::assertNull($this->nameAt(40.4168, -3.7038, 'municipality'));
     }
 
     private function import(string $file): ApplicationTester

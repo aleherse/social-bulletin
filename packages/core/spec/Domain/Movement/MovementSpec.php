@@ -39,7 +39,7 @@ final class MovementSpec extends ObjectBehavior
         $this->area()
             ->shouldBe(Area::Municipality);
         $this->location()
-            ->shouldBe('Sheffield');
+            ->shouldBe('Málaga');
         $this->status()
             ->shouldBe(MovementStatus::Draft);
     }
@@ -67,7 +67,7 @@ final class MovementSpec extends ObjectBehavior
             '',
             'cooperative',
             Area::Municipality,
-            'Sheffield',
+            'Málaga',
             MovementStatus::Draft,
             new \DateTimeImmutable(),
             new \DateTimeImmutable(),
@@ -110,7 +110,7 @@ final class MovementSpec extends ObjectBehavior
 
     public function it_records_no_update_when_the_edit_is_rejected(): void
     {
-        $this->shouldThrow(InvalidMovement::class)->during('edit', ['   ', '', 'cooperative', 'municipality', 'Sheffield']);
+        $this->shouldThrow(InvalidMovement::class)->during('edit', ['   ', '', 'cooperative', 'municipality', 'Málaga']);
 
         $this->pullEvents()
             ->shouldBeLike([new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID))]);
@@ -216,7 +216,7 @@ final class MovementSpec extends ObjectBehavior
     public function it_applies_creation_rules_when_editing(): void
     {
         $this->shouldThrow(InvalidMovement::class)
-            ->during('edit', ['   ', '', 'cooperative', 'municipality', 'Sheffield']);
+            ->during('edit', ['   ', '', 'cooperative', 'municipality', 'Málaga']);
     }
 
     public function it_refuses_to_edit_a_movement_that_is_not_a_draft(): void
@@ -228,7 +228,7 @@ final class MovementSpec extends ObjectBehavior
             'New description.',
             'cooperative',
             'municipality',
-            'Sheffield',
+            'Málaga',
         ]);
     }
 
@@ -261,7 +261,7 @@ final class MovementSpec extends ObjectBehavior
         string $description = "## Why\nGardens for all.",
         string $category = 'cooperative',
         string $area = 'municipality',
-        string|null $location = 'Sheffield',
+        string|null $location = 'Málaga',
     ): void {
         $this->beConstructedThrough('draft', [
             MovementId::from(self::ID),

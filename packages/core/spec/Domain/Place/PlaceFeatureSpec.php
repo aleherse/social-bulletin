@@ -25,27 +25,27 @@ final class PlaceFeatureSpec extends ObjectBehavior
 
     private const POINT = [
         'type' => 'Point',
-        'coordinates' => [-1.4701, 53.3895],
+        'coordinates' => [-3.88, 36.75],
     ];
 
     public function it_parses_a_boundary_with_a_polygon(): void
     {
         $this->parse(1, self::boundary())->shouldBeLike(
-            new Boundary(13, 8, 'Sheffield', (string) json_encode(self::POLYGON)),
+            new Boundary(13, 8, 'Málaga', (string) json_encode(self::POLYGON)),
         );
     }
 
     public function it_parses_a_boundary_with_a_multipolygon(): void
     {
         $this->parse(1, self::boundary(geometry: self::MULTI_POLYGON))->shouldBeLike(
-            new Boundary(13, 8, 'Sheffield', (string) json_encode(self::MULTI_POLYGON)),
+            new Boundary(13, 8, 'Málaga', (string) json_encode(self::MULTI_POLYGON)),
         );
     }
 
     public function it_parses_a_neighbourhood_with_a_point(): void
     {
         $this->parse(1, self::neighbourhood())->shouldBeLike(
-            new Neighbourhood(21, 'Kelham Island', (string) json_encode(self::POINT)),
+            new Neighbourhood(21, 'Pedregalejo', (string) json_encode(self::POINT)),
         );
     }
 
@@ -126,7 +126,7 @@ final class PlaceFeatureSpec extends ObjectBehavior
                 'osm_id' => 13,
                 'kind' => 'boundary',
                 'admin_level' => 8,
-                'name' => 'Sheffield',
+                'name' => 'Málaga',
             ], $properties),
             'geometry' => $geometry,
         ];
@@ -145,7 +145,7 @@ final class PlaceFeatureSpec extends ObjectBehavior
             'properties' => array_merge([
                 'osm_id' => 21,
                 'kind' => 'neighbourhood',
-                'name' => 'Kelham Island',
+                'name' => 'Pedregalejo',
             ], $properties),
             'geometry' => $geometry,
         ];

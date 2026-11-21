@@ -102,7 +102,7 @@ final class MovementNotificationsTest extends IntegrationTestCase
             'description' => "## Why\nGardens for all.",
             'category' => 'cooperative',
             'area' => 'municipality',
-            'location' => 'Sheffield',
+            'location' => 'Málaga',
         ];
     }
 }

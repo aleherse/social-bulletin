@@ -48,7 +48,7 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
         $movements->save(Argument::that(
             static fn (Movement $saved): bool => 'Save All the Bees' === $saved->title()
                 && 'cooperative' === $saved->category()
-                && 'Sheffield' === $saved->location(),
+                && 'Málaga' === $saved->location(),
         ))->shouldBeCalled();
 
         $this->__invoke(UpdateMovementCommand::fromPayload([
@@ -112,7 +112,7 @@ final class UpdateMovementHandlerSpec extends ObjectBehavior
             "## Why\nGardens for all.",
             'cooperative',
             'municipality',
-            'Sheffield',
+            'Málaga',
         );
     }
 

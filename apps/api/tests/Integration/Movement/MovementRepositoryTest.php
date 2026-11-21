@@ -50,7 +50,7 @@ final class MovementRepositoryTest extends IntegrationTestCase
         $this->movements->save($draft);
 
         $stored = $this->movements->authorMovement((string) $draft->id, $this->authorId);
-        $stored->edit('Save All the Bees', '', 'cooperative', 'municipality', 'Sheffield');
+        $stored->edit('Save All the Bees', '', 'cooperative', 'municipality', 'Málaga');
         $this->movements->save($stored);
 
         $updated = $this->movements->authorMovement((string) $draft->id, $this->authorId);
@@ -98,7 +98,7 @@ final class MovementRepositoryTest extends IntegrationTestCase
         $this->movements->save($draft);
 
         $stored = $this->movements->authorMovement((string) $draft->id, $this->authorId);
-        $stored->edit('Save All the Bees', '', 'cooperative', 'municipality', 'Sheffield');
+        $stored->edit('Save All the Bees', '', 'cooperative', 'municipality', 'Málaga');
         $this->movements->save($stored);
 
         $dispatched = $this->events->dispatched();
@@ -131,7 +131,7 @@ final class MovementRepositoryTest extends IntegrationTestCase
             $description,
             $category,
             'municipality',
-            'Sheffield',
+            'Málaga',
         );
     }
 }

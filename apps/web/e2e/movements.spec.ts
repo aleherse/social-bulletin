@@ -68,12 +68,12 @@ test('an author drafts a movement, finds it listed, and submits it as a proposal
     title: 'Community Gardens for Everyone',
     category: 'Cooperative',
     area: 'Municipality',
-    location: 'Sheffield',
+    location: 'Málaga',
     description: '## Why\n\nGardens for all.',
   });
 
   const row = page.getByRole('listitem').filter({ hasText: 'Community Gardens for Everyone' });
-  await expect(row).toContainText('Municipality · Sheffield · Cooperative');
+  await expect(row).toContainText('Municipality · Málaga · Cooperative');
   await expect(row).toContainText('Draft');
 
   await page.getByRole('link', { name: 'Community Gardens for Everyone' }).click();
@@ -150,7 +150,7 @@ test('a movement drafted in one window appears in the author’s other window wi
     title: 'Live Gardens',
     category: 'Cooperative',
     area: 'Municipality',
-    location: 'Sheffield',
+    location: 'Málaga',
   });
 
   await expect(otherWindow.getByRole('link', { name: 'Live Gardens' })).toBeVisible();

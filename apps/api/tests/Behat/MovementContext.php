@@ -119,7 +119,7 @@ final class MovementContext implements Context
             'description' => $description,
             'category' => 'cooperative',
             'area' => 'municipality',
-            'location' => 'Sheffield',
+            'location' => 'Málaga',
         ], $user->id);
         $this->commandBus->dispatch($command);
 

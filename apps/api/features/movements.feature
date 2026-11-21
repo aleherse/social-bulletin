@@ -10,7 +10,7 @@ Feature: Propose a movement
       """
     And I send a POST request to "/api/movements" with body:
       """
-      {"data": {"type": "movements", "attributes": {"title": "Community Gardens for Everyone", "description": "## Why\nGardens for all.", "category": "cooperative", "area": "municipality", "location": "Sheffield"}}}
+      {"data": {"type": "movements", "attributes": {"title": "Community Gardens for Everyone", "description": "## Why\nGardens for all.", "category": "cooperative", "area": "municipality", "location": "Málaga"}}}
       """
     Then the response status code should be 201
     And the response content type should be "application/vnd.api+json"
@@ -19,7 +19,7 @@ Feature: Propose a movement
     And the JSON at "data.attributes.title" should equal "Community Gardens for Everyone"
     And the JSON at "data.attributes.category" should equal "cooperative"
     And the JSON at "data.attributes.area" should equal "municipality"
-    And the JSON at "data.attributes.location" should equal "Sheffield"
+    And the JSON at "data.attributes.location" should equal "Málaga"
     And the JSON at "data.id" should not be empty
 
   Scenario: A draft can be saved without a description
@@ -29,7 +29,7 @@ Feature: Propose a movement
       """
     And I send a POST request to "/api/movements" with body:
       """
-      {"data": {"type": "movements", "attributes": {"title": "Community Gardens for Everyone", "category": "cooperative", "area": "municipality", "location": "Sheffield"}}}
+      {"data": {"type": "movements", "attributes": {"title": "Community Gardens for Everyone", "category": "cooperative", "area": "municipality", "location": "Málaga"}}}
       """
     Then the response status code should be 201
     And the JSON at "data.attributes.status" should equal "draft"
@@ -55,7 +55,7 @@ Feature: Propose a movement
       """
     And I send a POST request to "/api/movements" with body:
       """
-      {"data": {"type": "movements", "attributes": {"title": "Community Gardens for Everyone", "category": "cooperative", "area": "municipality", "location": "Sheffield"}}}
+      {"data": {"type": "movements", "attributes": {"title": "Community Gardens for Everyone", "category": "cooperative", "area": "municipality", "location": "Málaga"}}}
       """
     Then the response status code should be 201
 
@@ -89,7 +89,7 @@ Feature: Propose a movement
   Scenario: Guests cannot create movements
     When I send a POST request to "/api/movements" with body:
       """
-      {"data": {"type": "movements", "attributes": {"title": "Community Gardens for Everyone", "category": "cooperative", "area": "municipality", "location": "Sheffield"}}}
+      {"data": {"type": "movements", "attributes": {"title": "Community Gardens for Everyone", "category": "cooperative", "area": "municipality", "location": "Málaga"}}}
       """
     Then the response status code should be 401
     And the response content type should be "application/vnd.api+json"

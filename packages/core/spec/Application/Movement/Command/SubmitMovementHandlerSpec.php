@@ -78,7 +78,7 @@ final class SubmitMovementHandlerSpec extends ObjectBehavior
             $description,
             'cooperative',
             'municipality',
-            'Sheffield',
+            'Málaga',
         );
     }
 

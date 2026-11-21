@@ -23,7 +23,7 @@ final class ImportPlacesHandlerSpec extends ObjectBehavior
 
     private const POINT = [
         'type' => 'Point',
-        'coordinates' => [-1.4701, 53.3895],
+        'coordinates' => [-3.88, 36.75],
     ];
 
     public function let(JsonLinesReader $reader, PlaceRepository $places): void
@@ -41,8 +41,8 @@ final class ImportPlacesHandlerSpec extends ObjectBehavior
         ]);
 
         $expected = [
-            new Boundary(13, 8, 'Sheffield', (string) json_encode(self::POLYGON)),
-            new Neighbourhood(21, 'Kelham Island', (string) json_encode(self::POINT)),
+            new Boundary(13, 8, 'Málaga', (string) json_encode(self::POLYGON)),
+            new Neighbourhood(21, 'Pedregalejo', (string) json_encode(self::POINT)),
         ];
         // A generator can be consumed once, and Prophecy may ask more than once.
         $consumed = null;
@@ -92,7 +92,7 @@ final class ImportPlacesHandlerSpec extends ObjectBehavior
                 'osm_id' => 13,
                 'kind' => 'boundary',
                 'admin_level' => 8,
-                'name' => 'Sheffield',
+                'name' => 'Málaga',
             ],
             'geometry' => self::POLYGON,
         ];
@@ -110,7 +110,7 @@ final class ImportPlacesHandlerSpec extends ObjectBehavior
             'properties' => [
                 'osm_id' => 21,
                 'kind' => 'neighbourhood',
-                'name' => 'Kelham Island',
+                'name' => 'Pedregalejo',
             ],
             'geometry' => $geometry,
         ];
