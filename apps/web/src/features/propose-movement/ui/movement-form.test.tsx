@@ -108,7 +108,7 @@ describe('MovementForm', () => {
     await userEvent.type(screen.getByLabelText('Title'), 'Community Gardens for Everyone');
     await userEvent.selectOptions(await screen.findByLabelText('Category'), 'cooperative');
     await userEvent.selectOptions(screen.getByLabelText('Area'), 'municipality');
-    await userEvent.type(screen.getByLabelText('Location'), 'Sheffield');
+    await userEvent.type(screen.getByLabelText('Location'), 'Málaga');
     await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));
 
     expect(onSubmit).toHaveBeenCalledWith({
@@ -116,7 +116,7 @@ describe('MovementForm', () => {
       description: '',
       category: 'cooperative',
       area: 'municipality',
-      location: 'Sheffield',
+      location: 'Málaga',
     });
   });
 
@@ -225,13 +225,13 @@ describe('MovementForm', () => {
       description: '',
       category: 'cooperative',
       area: 'municipality',
-      location: 'Sheffield',
+      location: 'Málaga',
       status: 'draft',
       createdAt: '2026-10-16T10:00:00+00:00',
       updatedAt: '2026-10-16T10:00:00+00:00',
     });
 
-    expect(screen.getByLabelText('Location')).toHaveValue('Sheffield');
+    expect(screen.getByLabelText('Location')).toHaveValue('Málaga');
     expect(locationMapStub.props?.point).toBeNull();
     expect(lookUpPlaceName).not.toHaveBeenCalled();
   });
@@ -280,10 +280,10 @@ describe('MovementForm', () => {
     await fillDraft('municipality');
     await pin(HUELIN);
     await screen.findByRole('alert');
-    await userEvent.type(screen.getByLabelText('Location'), 'Sheffield');
+    await userEvent.type(screen.getByLabelText('Location'), 'Málaga');
     await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));
 
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ location: 'Sheffield' }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ location: 'Málaga' }));
   });
 
   it('still saves a typed location when the position is refused', async () => {
@@ -293,9 +293,9 @@ describe('MovementForm', () => {
     await fillDraft('municipality');
     await userEvent.click(screen.getByRole('button', { name: 'Use my location' }));
     await screen.findByRole('alert');
-    await userEvent.type(screen.getByLabelText('Location'), 'Sheffield');
+    await userEvent.type(screen.getByLabelText('Location'), 'Málaga');
     await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));
 
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ location: 'Sheffield' }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ location: 'Málaga' }));
   });
 });

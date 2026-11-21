@@ -46,3 +46,6 @@ playwright-report/
 /.claude/skills/*
 # ...except the speckit-* skills, which are real versioned files, not symlinks
 !/.claude/skills/speckit-*/
+
+# Generated map data (ADR-0024)
+docker/map/places/

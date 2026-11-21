@@ -21,6 +21,7 @@ POSTGRES_PORT = $(or $(call env_value,POSTGRES_PORT),5432)
 RUN_PHP := $(COMPOSE) run --rm --no-deps php
 RUN_NODE := $(COMPOSE) run --rm --no-deps node
 OPENAPI_DUMP := $(COMPOSE) run --rm --no-deps -T --workdir /app/apps/api php php bin/console nelmio:apidoc:dump --format=json
+ASYNCAPI_DUMP := $(COMPOSE) run --rm --no-deps -T --workdir /app/apps/api php php bin/console app:asyncapi:dump
 
 # $(call in_order,<make command>,<targets>): one sub-make per target, one
 # after the other, stopping at the first failure. Prerequisite lists only
@@ -58,7 +59,7 @@ help: ## List supported targets and their purpose
 
 .PHONY: init
 init: ## Initialise (or update) everything from scratch; safe to re-run
-	+@$(call in_order,$(MAKE),env images deps web-build docs-build up db hooks setup-claude)
+	+@$(call in_order,$(MAKE),env images deps web-build docs-build map-data up db hooks setup-claude)
 
 .PHONY: env
 env: ## Create .env and docker-compose.override.yml from their .dist templates when missing
@@ -78,7 +79,8 @@ deps: ## Install Composer and npm dependencies and the JWT key pair
 	$(RUN_NODE) sh -ec '\
 		npm install --no-audit --no-fund --prefix /app/apps/web; \
 		npm install --no-audit --no-fund --prefix /app/apps/docs; \
-		npm install --no-audit --no-fund --prefix /app/infrastructure'
+		npm install --no-audit --no-fund --prefix /app/infrastructure; \
+		npm install --no-audit --no-fund --prefix /app/docker/realtime'
 
 .PHONY: hooks
 hooks: ## Install the Lefthook git hooks, using the node container to fetch the host's lefthook binary
@@ -98,7 +100,10 @@ urls: ## Print the addresses the development stack serves
 	@echo "Frontend (Vite dev server): https://dev.app.social.aleherse.com:$(NODE_PORT)"
 	@echo "API:                        https://dev.api.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))"
 	@echo "OpenAPI document:           https://dev.api.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/api/doc.json"
-	@echo "API documentation (Scalar): https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))"
+	@echo "Documentation:              https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))"
+	@echo "  HTTP API (Scalar):        https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/api/"
+	@echo "  Realtime events:          https://dev.doc.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/event/"
+	@echo "Realtime (websocket):       wss://dev.realtime.social.aleherse.com$(if $(filter 443,$(NGINX_HTTPS_PORT)),,:$(NGINX_HTTPS_PORT))/event/realtime"
 	@echo "PostgreSQL:                 localhost:$(POSTGRES_PORT) (bulletin/bulletin)"
 
 .PHONY: down
@@ -121,24 +126,37 @@ console: ## Run a Symfony console command, e.g. `make console cmd="cache:clear"`
 openapi: ## Regenerate apps/docs/openapi.json, the OpenAPI document of the API
 	$(OPENAPI_DUMP) > apps/docs/openapi.json.tmp && mv apps/docs/openapi.json.tmp apps/docs/openapi.json
 
+.PHONY: asyncapi
+asyncapi: ## Regenerate apps/docs/asyncapi.json, the AsyncAPI document of the realtime notifications
+	$(ASYNCAPI_DUMP) > apps/docs/asyncapi.json.tmp && mv apps/docs/asyncapi.json.tmp apps/docs/asyncapi.json
+
 .PHONY: docs-lint
-docs-lint: ## Validate apps/docs/openapi.json with Redocly (whole project only: it judges the document)
+docs-lint: ## Validate apps/docs/openapi.json with Redocly and asyncapi.json with the AsyncAPI CLI (whole project only: it judges the documents)
 	$(RUN_NODE) npm run lint --prefix /app/apps/docs
 
 .PHONY: docs-build
-docs-build: ## Render apps/docs/openapi.json to apps/docs/dist/index.html with Scalar
+docs-build: ## Render the docs landing page, openapi.json (Scalar, /api/) and asyncapi.json (AsyncAPI, /event/) into apps/docs/dist
 	$(RUN_NODE) npm run build --prefix /app/apps/docs
 
 .PHONY: openapi-check
 openapi-check: ## Check apps/docs/openapi.json matches the routes (whole project only: it judges the generated document)
 	@$(OPENAPI_DUMP) | diff -u apps/docs/openapi.json - || { echo "apps/docs/openapi.json is stale: run 'make openapi' and commit it"; exit 1; }
 
+.PHONY: asyncapi-check
+asyncapi-check: ## Check apps/docs/asyncapi.json matches the notifications (whole project only: it judges the generated document)
+	@$(ASYNCAPI_DUMP) | diff -u apps/docs/asyncapi.json - || { echo "apps/docs/asyncapi.json is stale: run 'make asyncapi' and commit it"; exit 1; }
+
 .PHONY: shell
 shell: ## Open an interactive shell in the PHP container (or another via `make shell service=node`)
 	$(COMPOSE) exec $(or $(service),php) bash
 
+# MAP_IMPORT=0 skips the OSM places import, leaving the @fixtures ones; the gate sets it.
+# The import follows the snapshot and only reaches the development database,
+# so the testing database and the suites' baseline never hold it.
+MAP_IMPORT ?= 1
+
 .PHONY: db
-db: ## Create and migrate the database, load the @fixtures baseline and snapshot it for the suites
+db: ## Create the development and testing databases from the @fixtures baseline (snapshotted for the suites), then import the map data into development when built
 	$(COMPOSE) run --rm --workdir /app/apps/api php sh -ec '\
 		php bin/console doctrine:database:create --if-not-exists; \
 		php bin/console dbal:run-sql "CREATE SCHEMA IF NOT EXISTS bulletin"; \
@@ -146,21 +164,27 @@ db: ## Create and migrate the database, load the @fixtures baseline and snapshot
 		php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration; \
 		vendor/bin/behat --tags=@fixtures; \
 		dslr --url "$$DSLR_DATABASE_URL" delete fixtures 2>/dev/null || true; \
-		dslr --url "$$DSLR_DATABASE_URL" snapshot fixtures'
+		dslr --url "$$DSLR_DATABASE_URL" snapshot fixtures; \
+		DATABASE_URL="$$DSLR_TEST_DATABASE_URL" php bin/console doctrine:database:create --if-not-exists; \
+		dslr --url "$$DSLR_TEST_DATABASE_URL" restore fixtures; \
+		if [ "$(MAP_IMPORT)" = 1 ] && [ -s /app/docker/map/places/places.geojsonl ]; then \
+			php bin/console app:places:import --no-debug /app/docker/map/places/places.geojsonl; \
+		fi'
 
 .PHONY: web-build
-web-build: ## Build the production frontend bundle nginx serves
+web-build: ## Build the production frontend bundle nginx serves, and the copy that talks to the test API
 	$(RUN_NODE) npm run build
+	$(COMPOSE) run --rm --no-deps -e VITE_API_URL=https://test.api.social.aleherse.com node npx vite build --outDir dist/test
 
 ## --- Map data (ADR-0024) ---------------------------------------------------
 
 .PHONY: map-data
-map-data: ## Build var/map/places.geojsonl from OpenStreetMap; fails without Spain's outlying boundaries
+map-data: ## Build docker/map/places/places.geojsonl from OpenStreetMap; fails without Spain's outlying boundaries
 	$(COMPOSE) run --rm map docker/map/build-map-data.sh
 
 .PHONY: map-import
-map-import: ## Replace the development database's places with var/map/places.geojsonl (after `make map-data`); without debug, whose query log would hold every geometry
-	+@$(MAKE) console cmd="app:places:import --no-debug /app/var/map/places.geojsonl"
+map-import: ## Replace the development database's places with docker/map/places/places.geojsonl (after `make map-data`); without debug, whose query log would hold every geometry
+	+@$(MAKE) console cmd="app:places:import --no-debug /app/docker/map/places/places.geojsonl"
 
 ## --- Focussed checks (FILES=... narrows linters, PATHS=... narrows tests) -----
 
@@ -196,13 +220,21 @@ web-knip: ## Check frontend project hygiene with knip (whole project only: it lo
 web-prettier: ## Apply (locally) or check (CI) frontend formatting with Prettier (FILES narrows)
 	$(call narrowed,$(web_files),$(RUN_NODE) npx prettier $(PRETTIER_MODE) --ignore-unknown,.)
 
+.PHONY: infra-test
+infra-test: ## Run the infrastructure tests: CDK template assertions and the realtime authorizer (node:test)
+	$(COMPOSE) run --rm --no-deps --workdir /app/infrastructure node npm test
+
+.PHONY: realtime-test
+realtime-test: ## Run the local AppSync Events stand-in's tests (node:test)
+	$(COMPOSE) run --rm --no-deps --workdir /app/docker/realtime node npm test
+
 .PHONY: infra-tsc
 infra-tsc: ## Type-check the AWS CDK infrastructure app (whole project only)
 	$(COMPOSE) run --rm --no-deps --workdir /app/infrastructure node npm run typecheck
 
 .PHONY: tests
-tests: ## Run the four test suites against the development stack
-	+@$(call in_order,$(MAKE),php-unit api-tests web-unit web-e2e)
+tests: ## Run the five test suites against the development stack
+	+@$(call in_order,$(MAKE),php-unit api-integration api-tests web-unit web-e2e)
 
 .PHONY: php-unit
 php-unit: ## Run core PHPSpec specs; narrow with PATHS=packages/core/spec/UserServiceSpec.php
@@ -210,7 +242,11 @@ php-unit: ## Run core PHPSpec specs; narrow with PATHS=packages/core/spec/UserSe
 
 .PHONY: api-tests
 api-tests: ## Run the Behat API suite (needs `make db`); narrow with PATHS=apps/api/features/session.feature
-	$(COMPOSE) run --rm --workdir /app/apps/api php vendor/bin/behat $(patsubst apps/api/%,%,$(PATHS))
+	$(COMPOSE) run --rm --workdir /app/apps/api php-test vendor/bin/behat $(patsubst apps/api/%,%,$(PATHS))
+
+.PHONY: api-integration
+api-integration: ## Run the PHPUnit integration suite (needs `make db`); narrow with PATHS=apps/api/tests/Integration/Movement
+	$(COMPOSE) run --rm --workdir /app/apps/api php-test vendor/bin/phpunit $(patsubst apps/api/%,%,$(PATHS))
 
 .PHONY: web-unit
 web-unit: ## Run Vitest; narrow with PATHS=apps/web/src/pages/home/ui/home-page.test.tsx
@@ -222,11 +258,11 @@ web-e2e: ## Build the frontend, then run Playwright; narrow with PATHS=apps/web/
 
 .PHONY: web-e2e-run
 web-e2e-run: ## Run Playwright against the current frontend build (needs `make db`)
-	$(COMPOSE) run --rm node npx playwright test $(patsubst apps/web/%,%,$(PATHS))
+	$(COMPOSE) run --rm node-test npx playwright test $(patsubst apps/web/%,%,$(PATHS))
 
 .PHONY: web-e2e-ui
-web-e2e-ui: web-build ## Open the Playwright UI on https://dev.app.social.aleherse.com:9323
-	$(COMPOSE) run --rm -p 9323:9323 node npx playwright test --ui-host=0.0.0.0 --ui-port=9323
+web-e2e-ui: web-build ## Open the Playwright UI on https://test.app.social.aleherse.com:9323
+	$(COMPOSE) run --rm -p 9323:9323 node-test npx playwright test --ui-host=0.0.0.0 --ui-port=9323
 
 ## --- The full gate ----------------------------------------------------------
 
@@ -236,7 +272,7 @@ web-e2e-ui: web-build ## Open the Playwright UI on https://dev.app.social.aleher
 # checkouts can gate at once.
 GATE_PROJECT := social-bulletin-gate-$(shell printf '%s' '$(CURDIR)' | cksum | cut -d' ' -f1)
 GATE_COMPOSE_FILE ?= docker-compose.yml
-GATE_ENV := COMPOSE_PROJECT_NAME=$(GATE_PROJECT) COMPOSE_FILE=$(GATE_COMPOSE_FILE)
+GATE_ENV := COMPOSE_PROJECT_NAME=$(GATE_PROJECT) COMPOSE_FILE=$(GATE_COMPOSE_FILE) MAP_IMPORT=0
 GATE := $(GATE_ENV) $(MAKE)
 
 # The gate's stages, declared once: `make ci` runs them and `make ci-stages`
@@ -247,13 +283,14 @@ GATE := $(GATE_ENV) $(MAKE)
 # - suites:  the database-backed suites, one after the other: both restore
 #            the same snapshot into the same database.
 GATE_PREPARE := images deps
-LINT_CHECKS := php-deptrac php-stan php-ecs openapi-check docs-lint web-tsc web-eslint web-knip web-prettier infra-tsc
+LINT_CHECKS := php-deptrac php-stan php-ecs openapi-check asyncapi-check docs-lint web-tsc web-eslint web-knip web-prettier infra-tsc
 GATE_CHEAP := $(LINT_CHECKS)
-GATE_BUILD := php-unit web-unit web-build docs-build db
-GATE_SUITES := api-tests web-e2e-run
+GATE_BUILD := php-unit web-unit infra-test realtime-test web-build docs-build db
+GATE_SUITES := api-integration api-tests web-e2e-run
 GATE_STAGES := $(GATE_PREPARE) $(GATE_CHEAP) $(GATE_BUILD) $(GATE_SUITES)
 
 # What a suite stage needs from earlier tiers when re-run on its own.
+STAGE_NEEDS_api-integration := db
 STAGE_NEEDS_api-tests := db
 STAGE_NEEDS_web-e2e-run := web-build db
 

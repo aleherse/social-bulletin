@@ -68,12 +68,12 @@ test('an author drafts a movement, finds it listed, and submits it as a proposal
     title: 'Community Gardens for Everyone',
     category: 'Cooperative',
     area: 'Municipality',
-    location: 'Sheffield',
+    location: 'Málaga',
     description: '## Why\n\nGardens for all.',
   });
 
   const row = page.getByRole('listitem').filter({ hasText: 'Community Gardens for Everyone' });
-  await expect(row).toContainText('Municipality · Sheffield · Cooperative');
+  await expect(row).toContainText('Municipality · Málaga · Cooperative');
   await expect(row).toContainText('Draft');
 
   await page.getByRole('link', { name: 'Community Gardens for Everyone' }).click();
@@ -132,4 +132,27 @@ test('an author edits a draft before submitting it', async ({ page }) => {
   const row = page.getByRole('listitem').filter({ hasText: 'Save All the Bees' });
   await expect(row).toContainText('Region · Yorkshire · Cooperative');
   await expect(row).toContainText('Draft');
+});
+
+test('a movement drafted in one window appears in the author’s other window without a reload', async ({
+  browser,
+  page,
+}) => {
+  // ADR-0025: the API pushes a notification and the open list refetches.
+  await signIn(page, 'author@example.com');
+  await expect(page.getByText('You have not proposed any movements yet.')).toBeVisible();
+
+  const otherWindow = await (await browser.newContext()).newPage();
+  await signIn(otherWindow, 'author@example.com');
+  await expect(otherWindow.getByText('You have not proposed any movements yet.')).toBeVisible();
+
+  await createDraft(page, {
+    title: 'Live Gardens',
+    category: 'Cooperative',
+    area: 'Municipality',
+    location: 'Málaga',
+  });
+
+  await expect(otherWindow.getByRole('link', { name: 'Live Gardens' })).toBeVisible();
+  await otherWindow.context().close();
 });

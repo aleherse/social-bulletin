@@ -18,7 +18,8 @@ The OpenAPI document SHALL be generated from the routes and rendered by Scalar.
   No request DTO or hand-written schema repeats the fields.
 - Hand-written parts (security scheme, `Set-Cookie` headers, error schema) live in `nelmio_api_doc.yaml`.
 - `make docs-lint` lints the document with Redocly (`@redocly/cli`).
-- `make docs-build` renders `apps/docs/dist` with Scalar (`@scalar/api-reference`); nginx serves it at `DEV_DOCS_URL`, and `make init` builds it.
+- `make docs-build` renders `apps/docs/dist`, and `make init` builds it.
+  Its landing page at `/` links the rendered documents, and Scalar (`@scalar/api-reference`) renders this one at `/api/`.
 - Scalar sends its requests with `credentials: 'include'` (`customFetch`),
   and CORS allows `DEV_DOCS_URL` with credentials, so signing in stores the `token` cookie.
 

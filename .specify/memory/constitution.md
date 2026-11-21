@@ -1,22 +1,20 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.2.1 → 2.3.0
-Bump rationale: MINOR — the merge gate became `make ci`, the full gate CI also
-runs (ADR-0015), replacing "`make lint` and `make tests`" plus the PR checkbox
-list. Decision records moved to `specs/decisions/`, carry no dates, and are
-corrected in place (FRAMEWORK.local.md § Decision records), so diverging from
-one means correcting it, and a conflict with one is resolved by correcting the
-wrong document rather than by comparing dates. Principle V's suppression
-example describes the rule instead of citing a file absent from `main`.
+Version change: 2.3.0 → 2.4.0
+Bump rationale: MINOR — materially expanded guidance. ADR-0013 (amended) adds
+PHPUnit for `apps/api` integration tests that need the kernel and the database
+but no HTTP request (repositories, providers, bus wiring, event publishing);
+Behat keeps the HTTP contract only. There are now five suites, and PHPUnit
+restores the DSLR snapshot like Behat does, through one `DatabaseSnapshot`
+(rules test-integration-0002 and test-integration-0003).
 
 Principles modified:
-  III. Decisions And Rules Are Written Down, Then Followed — ADRs are corrected
-       in place instead of superseded by a new one.
-  V.   Code Explains Itself; Comments Are Exceptional — example reworded.
+  II.  Every Layer Is Tested In Its Own Tool — new tool-table row; the pyramid
+       routes below-HTTP cases to PHPUnit.
+  IV.  Automated Gates Over Human Vigilance — snapshot restore covers PHPUnit.
 Sections modified:
-  Development Workflow & Quality Gates — `make ci` is the merge gate.
-  Governance — conflict resolution no longer depends on ADR dates.
+  Testing Standards — suite entrypoints list `make api-integration`; five suites.
 
 Current principles:
   I.   Tests Are First-Class Citizens (NON-NEGOTIABLE)
@@ -29,11 +27,12 @@ Sections added: none
 Sections removed: none
 
 Templates requiring updates:
-  ✅ .specify/templates/plan-template.md     — gate III: divergence corrects the
-     ADR in place instead of proposing a new one
+  ✅ .specify/templates/plan-template.md     — layer/tool mapping and layers table
+     gain the PHPUnit row
+  ✅ README.md, specs/001-propose-movement/quickstart.md — five suites
   ✅ .specify/templates/spec-template.md     — no change; specs cite no principle
      titles
-  ✅ .specify/templates/tasks-template.md    — no change; no principle titles cited
+  ✅ .specify/templates/tasks-template.md    — layer-to-tool mapping names PHPUnit
   ✅ .claude/skills/speckit-analyze/SKILL.md — no change; reads principles from
      this file rather than naming them
   ✅ .claude/skills/speckit-implement/SKILL.md — no change; no principle titles cited
@@ -57,6 +56,7 @@ Deferred items:
 2.2.0 (2026-08-19): Principle V added — comment discipline.
 2.2.1 (2026-08-25): Principle III retitled to name rules alongside decisions.
 2.3.0 (2026-09-23): `make ci` becomes the merge gate; ADRs corrected in place.
+2.4.0 (2026-11-02): PHPUnit owns `apps/api` tests below HTTP; five suites.
 -->
 
 # Social Bulletin Constitution
@@ -98,6 +98,7 @@ that owns the layer it changes:
 |--------------------------------------|--------------------------|-------------------------|
 | `packages/core` domain logic         | PHPSpec                  | `packages/core/spec/`   |
 | `apps/api` HTTP behaviour            | Behat + JMESPath         | `apps/api/features/`    |
+| `apps/api` below HTTP (repositories, providers, bus wiring) | PHPUnit | `apps/api/tests/Integration/` |
 | `apps/web` components, hooks, pures  | Vitest + Testing Library | next to the source      |
 | End-to-end user journeys             | Playwright               | `apps/web/e2e/`         |
 
@@ -109,6 +110,9 @@ that owns the layer it changes:
 **The pyramid decides *which* case goes *where*.** Layer coverage says a layer
 is exercised; it does not license testing every case at every level.
 
+- **A case that needs the kernel or the database but no HTTP request** MUST be a
+  PHPUnit test, never a Behat scenario (`test-integration-0002`); Behat asserts
+  the HTTP contract only.
 - **Error, edge, and validation cases** MUST be tested at the **lowest layer
   that can prove them**, and MUST NOT be repeated higher up. A rule enforced in
   the domain is proven by PHPSpec; that same rejection does not need a Behat
@@ -153,8 +157,9 @@ enforcing them forever in review.
 - Lefthook gates MUST stay honest to their cost budget (ADR-0014): `pre-commit`
   fast checks only, `commit-msg` Conventional Commits, `pre-push` medium-cost
   checks. Full API and E2E suites MUST NOT run in hooks.
-- Database state for tests MUST come from the DSLR `fixtures` snapshot. Behat
-  and Playwright restore it per scenario; test runs MUST NOT recreate it.
+- Database state for tests MUST come from the DSLR `fixtures` snapshot. Behat,
+  PHPUnit and Playwright restore it per scenario or test (the first two through
+  `DatabaseSnapshot`, `test-integration-0003`); test runs MUST NOT recreate it.
 - Commit messages MUST follow Conventional Commits.
 
 **Rationale**: Gates a human has to remember are gates that fail on the busy
@@ -212,8 +217,8 @@ field it belongs to instead.
 MUST NOT depend on ordering between scenarios. `make web-e2e` builds the
 frontend first so journeys always run against the compiled bundle nginx serves.
 
-**Suite entrypoints**: `make php-unit`, `make api-tests`, `make web-unit`,
-`make web-e2e`; `make tests` runs all four. Any document listing "how to run the
+**Suite entrypoints**: `make php-unit`, `make api-integration`, `make api-tests`,
+`make web-unit`, `make web-e2e`; `make tests` runs all five. Any document listing "how to run the
 tests" MUST list all four or explain the omission.
 
 ## Development Workflow & Quality Gates
@@ -258,4 +263,4 @@ violates a principle MUST be recorded in the plan's Complexity Tracking table
 with the simpler alternative that was rejected and why — an unjustified
 violation blocks merge.
 
-**Version**: 2.3.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-09-23
+**Version**: 2.4.0 | **Ratified**: 2026-08-09 | **Last Amended**: 2026-11-02

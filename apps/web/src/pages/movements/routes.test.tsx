@@ -22,6 +22,8 @@ vi.mock('@/entities/movement/api/client.ts', () => ({
   updateMovement: vi.fn(),
 }));
 
+vi.mock('@/shared/realtime', () => ({ watchRealtime: vi.fn(() => vi.fn()) }));
+
 vi.mock('@/shared/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/shared/api')>()),
   fetchCurrentUser: vi.fn(),
@@ -33,7 +35,7 @@ const draft: Movement = {
   description: '',
   category: 'cooperative',
   area: 'municipality',
-  location: 'Sheffield',
+  location: 'Málaga',
   status: 'draft',
   createdAt: '2026-07-19T10:00:00+00:00',
   updatedAt: '2026-07-19T10:00:00+00:00',
@@ -53,7 +55,7 @@ describe('movements routes', () => {
 
     expect(await screen.findByText('Save the Bees')).toBeInTheDocument();
     expect(screen.getByText('Draft')).toBeInTheDocument();
-    expect(screen.getByText(/Municipality · Sheffield/)).toBeInTheDocument();
+    expect(screen.getByText(/Municipality · Málaga/)).toBeInTheDocument();
   });
 
   it('shows an empty state when no movements exist yet', async () => {
@@ -79,7 +81,7 @@ describe('movements routes', () => {
     await userEvent.type(await screen.findByLabelText('Title'), 'Save the Bees');
     await userEvent.selectOptions(await screen.findByLabelText('Category'), 'cooperative');
     await userEvent.selectOptions(screen.getByLabelText('Area'), 'municipality');
-    await userEvent.type(screen.getByLabelText('Location'), 'Sheffield');
+    await userEvent.type(screen.getByLabelText('Location'), 'Málaga');
     await userEvent.click(screen.getByRole('button', { name: 'Save draft' }));
 
     expect(vi.mocked(createMovement).mock.calls[0]?.[0]).toEqual({
@@ -87,7 +89,7 @@ describe('movements routes', () => {
       description: '',
       category: 'cooperative',
       area: 'municipality',
-      location: 'Sheffield',
+      location: 'Málaga',
     });
   });
 
@@ -120,7 +122,7 @@ describe('movements routes', () => {
       description: '',
       category: 'cooperative',
       area: 'municipality',
-      location: 'Sheffield',
+      location: 'Málaga',
     });
   });
 

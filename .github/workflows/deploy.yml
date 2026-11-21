@@ -41,6 +41,12 @@ jobs:
         working-directory: apps/api
         run: composer install --no-dev --optimize-autoloader --no-interaction
 
+      # Lambda's filesystem is read-only, so the container is compiled here
+      # and shipped in the package instead of being built on every cold start.
+      - name: Warm the API cache
+        working-directory: apps/api
+        run: php bin/console cache:warmup --env=prod --no-debug
+
       - name: Install infrastructure dependencies
         working-directory: infrastructure
         run: npm ci
@@ -49,11 +55,11 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: eu-west-1
 
       - name: Deploy live stacks
         working-directory: infrastructure
-        run: npx cdk deploy 'social-bulletin-live-*' --require-approval never
+        run: npx cdk deploy social-bulletin-database 'social-bulletin-live-*' --require-approval never
 
       - name: Run database migrations
         run: |

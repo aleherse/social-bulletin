@@ -2,6 +2,7 @@
 # packages/core stays framework-free but owns its DBAL repositories; apps depend on packages, never the reverse.
 # ADR-0021: inside packages/core, Application may use Domain; Domain never reaches back into Application.
 # Framework reaches core through Application only, plus the domain errors it maps to status codes (DomainError).
+# Likewise the event port and marker (DomainEvents), which apps/api implements to publish what the domain records.
 # Providers read; they never touch a repository (ADR-0021), and nothing in apps/api injects one either.
 deptrac:
   paths:
@@ -36,6 +37,11 @@ deptrac:
         - type: classNameRegex
           value: '/^SocialBulletin\\Core\\Domain\\Helper\\DomainError$/'
 
+    - name: DomainEvents
+      collectors:
+        - type: classNameRegex
+          value: '/^SocialBulletin\\Core\\Domain\\Helper\\(DomainEvent|EventDispatcher)$/'
+
     - name: Repository
       collectors:
         - type: classNameRegex
@@ -50,6 +56,8 @@ deptrac:
           must_not:
             - type: layer
               value: DomainError
+            - type: layer
+              value: DomainEvents
             - type: layer
               value: Repository
 
@@ -89,9 +97,10 @@ deptrac:
           value: '/^Webmozart/'
 
   ruleset:
-    Framework: [Application, DomainError, Symfony, SymfonyContracts, SymfonyUid, Doctrine, Psr, Assert]
+    Framework: [Application, DomainError, DomainEvents, Symfony, SymfonyContracts, SymfonyUid, Doctrine, Psr, Assert]
     Application: [Provider, Domain, DomainError, Repository, SymfonyContracts, SymfonyUid, Psr, Assert]
     Provider: [Application, Domain, DomainError, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
-    Repository: [Domain, DomainError, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
-    Domain: [DomainError, SymfonyContracts, SymfonyUid, Psr, Assert]
+    Repository: [Domain, DomainError, DomainEvents, SymfonyContracts, SymfonyUid, DBAL, Psr, Assert]
+    Domain: [DomainError, DomainEvents, SymfonyContracts, SymfonyUid, Psr, Assert]
+    DomainEvents: [SymfonyContracts, SymfonyUid, Psr, Assert]
     DomainError: [Domain, SymfonyContracts, SymfonyUid, Psr, Assert]

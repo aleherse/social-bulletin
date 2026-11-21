@@ -37,7 +37,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: eu-west-1
 
       - name: Read the stack outputs
         run: |
@@ -54,7 +54,7 @@ jobs:
 
       - name: Upload the places
         run: |
-          aws s3 cp var/map/places.geojsonl "s3://$MAP_DATA_BUCKET/places/places.geojsonl"
+          aws s3 cp docker/map/places/places.geojsonl "s3://$MAP_DATA_BUCKET/places/places.geojsonl"
 
       # The Bref console layer runs the command through a shell, so the URL is
       # single-quoted: an unquoted `&` in the presigned query string would

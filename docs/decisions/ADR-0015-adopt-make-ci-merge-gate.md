@@ -20,7 +20,7 @@ It SHALL run its stages in this order, as declared in the Makefile:
 - `cheap`: every linter, in parallel, reporting every failure.
 - `build`: unit suites, the production bundle and the database snapshot, in parallel.
 - `suites`: the database-backed API and E2E suites, one after the other,
-  since both restore the same snapshot into the same database.
+  since both restore the same snapshot into the same test database.
 
 `make ci` SHALL tear down its containers, network and database volume when it finishes,
 whatever the outcome.

@@ -33,9 +33,6 @@ Feature: Look up a place name
       | Ceuta             | 35.8894 | -5.3213 | state        | Ceuta                |
       | Melilla           | 35.2923 | -2.9381 | national     | España               |
       | Melilla           | 35.2923 | -2.9381 | state        | Melilla              |
-      | central Sheffield | 53.3811 | -1.4701 | national     | United Kingdom       |
-      | central Sheffield | 53.3811 | -1.4701 | municipality | Sheffield            |
-      | central Sheffield | 53.3811 | -1.4701 | neighborhood | Kelham Island        |
 
   Scenario Outline: A point with no place at the area's rank has no name
     When I send a POST request to "/api/session" with body:
@@ -50,11 +47,11 @@ Feature: Look up a place name
     And the JSON at "data.attributes.name" should be null
 
     Examples:
-      | point                                   | lat     | lon     | area         |
-      | central Sheffield, no province boundary | 53.3811 | -1.4701 | province     |
-      | south Sheffield, 3.3 km from a quarter  | 53.3600 | -1.4701 | neighborhood |
-      | Madrid, outside the fixture places      | 40.4168 | -3.7038 | municipality |
-      | the North Atlantic                      | 45.0    | -20.0   | national     |
+      | point                                       | lat     | lon     | area         |
+      | Palma, no province boundary                 | 39.5696 | 2.6502  | province     |
+      | south of Pedregalejo, 3.3 km from a quarter | 36.7205 | -3.88   | neighborhood |
+      | Madrid, outside the fixture places          | 40.4168 | -3.7038 | municipality |
+      | the North Atlantic                          | 45.0    | -20.0   | national     |
 
   Scenario: A latitude out of range is refused without echoing it
     When I send a POST request to "/api/session" with body:
@@ -113,37 +110,6 @@ Feature: Look up a place name
       """
     Then the response status code should be 401
 
-  Scenario: Importing places from the console replaces the lookup data
-    When I run the console command "app:places:import" with the file "fixtures/places-reimport.geojsonl"
-    Then the console command should succeed
-    When I send a POST request to "/api/session" with body:
-      """
-      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
-      """
-    And I send a POST request to "/api/places/lookup" with body:
-      """
-      {"data": {"type": "places", "attributes": {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}}}
-      """
-    Then the JSON at "data.attributes.name" should equal "Sheffield City"
-    When I send a POST request to "/api/places/lookup" with body:
-      """
-      {"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": -4.4366, "area": "national"}}}
-      """
-    Then the JSON at "data.attributes.name" should be null
-
-  Scenario: A malformed import changes nothing
-    When I run the console command "app:places:import" with the file "fixtures/places-malformed.geojsonl"
-    Then the console command should fail mentioning "line 2"
-    When I send a POST request to "/api/session" with body:
-      """
-      {"data": {"type": "sessions", "attributes": {"email": "author@example.com"}}}
-      """
-    And I send a POST request to "/api/places/lookup" with body:
-      """
-      {"data": {"type": "places", "attributes": {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}}}
-      """
-    Then the JSON at "data.attributes.name" should equal "Sheffield"
-
   Scenario: Where boundaries at one rank overlap, the smallest names the point
     Given the places in "fixtures/places-overlapping.geojsonl" are imported
     When I send a POST request to "/api/session" with body:
@@ -152,6 +118,6 @@ Feature: Look up a place name
       """
     And I send a POST request to "/api/places/lookup" with body:
       """
-      {"data": {"type": "places", "attributes": {"lat": 53.3811, "lon": -1.4701, "area": "municipality"}}}
+      {"data": {"type": "places", "attributes": {"lat": 36.7033, "lon": -4.4366, "area": "municipality"}}}
       """
-    Then the JSON at "data.attributes.name" should equal "Sheffield"
+    Then the JSON at "data.attributes.name" should equal "Málaga"

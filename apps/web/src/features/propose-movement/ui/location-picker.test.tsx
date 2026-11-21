@@ -21,7 +21,7 @@ vi.mock('@/shared/geo/api/current-position.ts', async (importOriginal) => ({
 }));
 
 const HUELIN = { lat: 36.7033, lon: -4.4366 };
-const SHEFFIELD = { lat: 53.3811, lon: -1.4701 };
+const MADRID = { lat: 40.4168, lon: -3.7038 };
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -133,7 +133,7 @@ describe('LocationPicker', () => {
 
     await pin(HUELIN);
     const firstSignal = vi.mocked(lookUpPlaceName).mock.calls[0]?.[2];
-    await pin(SHEFFIELD);
+    await pin(MADRID);
 
     expect(firstSignal?.aborted).toBe(true);
 
@@ -141,11 +141,11 @@ describe('LocationPicker', () => {
       first.resolve('Málaga');
     });
     await settle(() => {
-      second.resolve('Sheffield');
+      second.resolve('Madrid');
     });
 
     expect(onPlaceFound).toHaveBeenCalledTimes(1);
-    expect(onPlaceFound).toHaveBeenCalledWith('Sheffield');
+    expect(onPlaceFound).toHaveBeenCalledWith('Madrid');
   });
 
   it('clears a previous message on the next pin', async () => {
@@ -156,7 +156,7 @@ describe('LocationPicker', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument();
 
     vi.mocked(lookUpPlaceName).mockReturnValueOnce(deferred<string | null>().promise);
-    await pin(SHEFFIELD);
+    await pin(MADRID);
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
@@ -166,7 +166,7 @@ describe('LocationPicker', () => {
     const { onPin } = renderPicker();
 
     await pin(HUELIN);
-    await pin(SHEFFIELD);
+    await pin(MADRID);
 
     expect(onPin).toHaveBeenCalledTimes(2);
   });
@@ -188,14 +188,14 @@ describe('LocationPicker', () => {
   });
 
   it('reports the new name when the author pins again after a lookup', async () => {
-    vi.mocked(lookUpPlaceName).mockResolvedValueOnce('Málaga').mockResolvedValueOnce('Sheffield');
+    vi.mocked(lookUpPlaceName).mockResolvedValueOnce('Málaga').mockResolvedValueOnce('Madrid');
     const { onPlaceFound } = renderPicker('municipality');
 
     await pin(HUELIN);
-    await pin(SHEFFIELD);
+    await pin(MADRID);
 
     expect(onPlaceFound).toHaveBeenNthCalledWith(1, 'Málaga');
-    expect(onPlaceFound).toHaveBeenNthCalledWith(2, 'Sheffield');
+    expect(onPlaceFound).toHaveBeenNthCalledWith(2, 'Madrid');
   });
 
   it('leaves the rest of the form working when the map fails to render', () => {
@@ -228,7 +228,7 @@ describe('LocationPicker', () => {
       vi.mocked(lookUpPlaceName).mockReturnValue(deferred<string | null>().promise);
       vi.mocked(currentPosition).mockRejectedValue(new PositionDenied());
       const { onPin, onPlaceFound } = renderPicker();
-      await pin(SHEFFIELD);
+      await pin(MADRID);
       vi.mocked(lookUpPlaceName).mockClear();
       onPin.mockClear();
 
@@ -240,7 +240,7 @@ describe('LocationPicker', () => {
       expect(lookUpPlaceName).not.toHaveBeenCalled();
       expect(onPin).not.toHaveBeenCalled();
       expect(onPlaceFound).not.toHaveBeenCalled();
-      expect(locationMapStub.props?.point).toEqual(SHEFFIELD);
+      expect(locationMapStub.props?.point).toEqual(MADRID);
     });
 
     it('explains an unavailable position', async () => {

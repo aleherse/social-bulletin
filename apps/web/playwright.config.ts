@@ -9,7 +9,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://dev.app.social.aleherse.com',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'https://test.app.social.aleherse.com',
     trace: 'on-first-retry',
   },
   projects: [

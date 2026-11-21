@@ -1,0 +1,33 @@
+# The hand-written parts of the AsyncAPI document (ADR-0025); `make asyncapi` dumps it.
+# Whatever a notification class already decides (channel address, payload, enum values) is derived
+# from the class by NotificationDescriber, so it is not repeated here.
+# `%ticket_lifetime%` and `%ticket_audience%` are filled in from TicketIssuer.
+document:
+    asyncapi: 3.1.0
+    info:
+        title: Social Bulletin realtime
+        version: 1.0.0
+        description: >-
+            Notifications the API pushes to signed-in browsers over AppSync Events.
+            Commands and queries stay on the HTTP API; a notification only tells the client what to refetch.
+    components:
+        securitySchemes:
+            ticket:
+                type: http
+                scheme: bearer
+                bearerFormat: JWT
+                description: >-
+                    The ticket returned by `POST /api/realtime-tickets`, valid for %ticket_lifetime% seconds,
+                    with the `%ticket_audience%` audience.
+                    It is sent when connecting; the session cookie is not read by AppSync.
+
+# One entry per notification the API publishes.
+notifications:
+    SocialBulletin\Core\Application\Movement\Event\MovementChanged:
+        channel: userMovements
+        description: Changes to the movements of one user.
+        summary: A movement of the user was created, updated or submitted.
+        message: "Refetch the movements: one of them changed."
+        parameters:
+            userId: The id of the user, as returned by `GET /api/me`. A ticket only subscribes to its own user.
+        security: [ticket]

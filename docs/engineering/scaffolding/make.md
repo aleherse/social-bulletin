@@ -15,7 +15,7 @@ The ones agents need most:
 | `make ci`         | The full gate CI runs: the only verdict                                          |
 | `make ci-stages`  | List the gate's stages                                                           |
 | `make ci-stage`   | Diagnose one stage: `make ci-stage STAGE=php-stan`                               |
-| `make db`         | Rebuild the test database and DSLR snapshot                                      |
+| `make db`         | Rebuild the dev and test databases and the DSLR snapshot                         |
 | `make tests`      | Full suite: PHPSpec, Behat, Vitest, Playwright                                   |
 | `make php-unit`   | PHPSpec for `packages/core`                                                      |
 | `make api-tests`  | Behat for `apps/api` (needs a `make db` snapshot)                                |
@@ -23,7 +23,10 @@ The ones agents need most:
 | `make web-e2e`    | Playwright against the real API                                                  |
 | `make lint`       | All linters in parallel; narrow with `FILES="..."`                               |
 | `make console`    | Symfony console (`make console cmd="cache:clear"`)                               |
-| `make docs-build` | Render the OpenAPI document with Scalar to `apps/docs/dist/index.html`           |
+| `make docs-build` | Render the docs landing page, OpenAPI (Scalar, `/api/`) and AsyncAPI (`/event/`) to `apps/docs/dist` |
 | `make openapi`    | Regenerate `apps/docs/openapi.json`; `make openapi-check` fails when it is stale |
 | `make map-data`   | Build the real places from OpenStreetMap                                         |
 | `make map-import` | Load the built places into the dev database                                      |
+| `make infra-test` | Infrastructure tests: CDK template assertions and the realtime authorizer (node:test) |
+| `make realtime-test` | Tests of the local AppSync Events stand-in (node:test) |
+| `make asyncapi`   | Regenerate `apps/docs/asyncapi.json`; `make asyncapi-check` fails when it is stale |

@@ -376,12 +376,25 @@ Records something significant that happened in the domain.
 - Immutable
 - Past tense naming (`OrderPlaced`, not `PlaceOrder`)
 - Contains data needed by consumers
-- Timestamp when it occurred
+- Lives in `Domain/<Aggregate>/Events/` and carries ids, not aggregates
 
 ## Pattern
 
 ```php
+final readonly class MovementHasBeenCreated implements DomainEvent
+{
+    public function __construct(
+        public MovementId $movementId,
+        public UserId $authorId,
+    ) {
+    }
+}
+
+// in the aggregate: use RecordsEvents; ... $movement->recordThat(new MovementHasBeenCreated($id, $authorId));
+// in the repository, last statement of save(): $this->events->dispatch(...$movement->pullEvents());
 ```
+
+See `domain-events-0001` and `domain-events-0002`.
 
 ---
 

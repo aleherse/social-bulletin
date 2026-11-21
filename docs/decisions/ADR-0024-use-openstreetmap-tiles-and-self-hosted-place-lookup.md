@@ -62,7 +62,7 @@ Geofabrik's Spain extract lacks parts of Spain's and Ceuta's boundaries, so the 
 - `make map-data` SHALL run a `map` tools container (`docker/map/`) that downloads the Geofabrik extracts for Spain,
   the Canary Islands and the United Kingdom, fetches Spain's and Ceuta's complete relations from the Overpass API,
   merges them with `osmium apply-changes` (the extracts overlap and come from different snapshots),
-  and writes `var/map/places.geojsonl`, one GeoJSON feature per line.
+  and writes `docker/map/places/places.geojsonl`, one GeoJSON feature per line.
   `docker/map/check-places.sh` SHALL then fail the build unless España, Ceuta, Melilla and Illes Balears are present.
 - `app:places:import <path-or-url>` SHALL dispatch `ImportPlacesCommand`.
   Its handler reads the file through `Application/Helper/JsonLinesReader`

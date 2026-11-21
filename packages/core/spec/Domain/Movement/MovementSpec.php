@@ -6,6 +6,9 @@ namespace spec\SocialBulletin\Core\Domain\Movement;
 
 use PhpSpec\ObjectBehavior;
 use SocialBulletin\Core\Domain\Movement\Area;
+use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenCreated;
+use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenSubmitted;
+use SocialBulletin\Core\Domain\Movement\Events\MovementHasBeenUpdated;
 use SocialBulletin\Core\Domain\Movement\InvalidMovement;
 use SocialBulletin\Core\Domain\Movement\MovementId;
 use SocialBulletin\Core\Domain\Movement\MovementNotDraft;
@@ -36,9 +39,81 @@ final class MovementSpec extends ObjectBehavior
         $this->area()
             ->shouldBe(Area::Municipality);
         $this->location()
-            ->shouldBe('Sheffield');
+            ->shouldBe('Málaga');
         $this->status()
             ->shouldBe(MovementStatus::Draft);
+    }
+
+    public function it_records_that_it_has_been_created(): void
+    {
+        $this->pullEvents()
+            ->shouldBeLike([new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID))]);
+    }
+
+    public function it_forgets_the_events_once_they_are_pulled(): void
+    {
+        $this->pullEvents();
+
+        $this->pullEvents()
+            ->shouldBe([]);
+    }
+
+    public function it_records_no_event_when_restored_from_persistence(): void
+    {
+        $this->beConstructedThrough('restore', [
+            MovementId::from(self::ID),
+            UserId::from(self::AUTHOR_ID),
+            'Community Gardens for Everyone',
+            '',
+            'cooperative',
+            Area::Municipality,
+            'Málaga',
+            MovementStatus::Draft,
+            new \DateTimeImmutable(),
+            new \DateTimeImmutable(),
+        ]);
+
+        $this->pullEvents()
+            ->shouldBe([]);
+    }
+
+    public function it_records_that_it_has_been_updated_when_edited(): void
+    {
+        $this->edit('Save All the Bees', 'New description.', 'animal_rights', 'region', 'Yorkshire');
+
+        $this->pullEvents()
+            ->shouldBeLike([
+                new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
+                new MovementHasBeenUpdated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
+            ]);
+    }
+
+    public function it_records_that_it_has_been_submitted(): void
+    {
+        $this->submit();
+
+        $this->pullEvents()
+            ->shouldBeLike([
+                new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
+                new MovementHasBeenSubmitted(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID)),
+            ]);
+    }
+
+    public function it_records_no_submission_when_the_description_is_still_empty(): void
+    {
+        $this->beConstructedAsADraft(description: '');
+
+        $this->shouldThrow(InvalidMovement::class)->during('submit');
+        $this->pullEvents()
+            ->shouldBeLike([new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID))]);
+    }
+
+    public function it_records_no_update_when_the_edit_is_rejected(): void
+    {
+        $this->shouldThrow(InvalidMovement::class)->during('edit', ['   ', '', 'cooperative', 'municipality', 'Málaga']);
+
+        $this->pullEvents()
+            ->shouldBeLike([new MovementHasBeenCreated(MovementId::from(self::ID), UserId::from(self::AUTHOR_ID))]);
     }
 
     public function it_allows_an_empty_description_while_draft(): void
@@ -141,7 +216,7 @@ final class MovementSpec extends ObjectBehavior
     public function it_applies_creation_rules_when_editing(): void
     {
         $this->shouldThrow(InvalidMovement::class)
-            ->during('edit', ['   ', '', 'cooperative', 'municipality', 'Sheffield']);
+            ->during('edit', ['   ', '', 'cooperative', 'municipality', 'Málaga']);
     }
 
     public function it_refuses_to_edit_a_movement_that_is_not_a_draft(): void
@@ -153,7 +228,7 @@ final class MovementSpec extends ObjectBehavior
             'New description.',
             'cooperative',
             'municipality',
-            'Sheffield',
+            'Málaga',
         ]);
     }
 
@@ -186,7 +261,7 @@ final class MovementSpec extends ObjectBehavior
         string $description = "## Why\nGardens for all.",
         string $category = 'cooperative',
         string $area = 'municipality',
-        string|null $location = 'Sheffield',
+        string|null $location = 'Málaga',
     ): void {
         $this->beConstructedThrough('draft', [
             MovementId::from(self::ID),

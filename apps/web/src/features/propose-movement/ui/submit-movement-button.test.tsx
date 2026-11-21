@@ -25,7 +25,7 @@ const draft: Movement = {
   description: '## Why\nBecause it matters.',
   category: 'cooperative',
   area: 'municipality',
-  location: 'Sheffield',
+  location: 'Málaga',
   status: 'draft',
   createdAt: '2026-07-19T10:00:00+00:00',
   updatedAt: '2026-07-19T10:00:00+00:00',

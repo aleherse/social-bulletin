@@ -38,6 +38,12 @@ services:
 
     League\Fractal\Serializer\JsonApiSerializer: ~
 
+    # the domain's event port, backed by the event bus
+    SocialBulletin\Core\Domain\Helper\EventDispatcher: '@App\Messenger\EventBus'
+
+    # the application's notification port, backed by AppSync Events
+    SocialBulletin\Core\Application\Helper\NotificationPublisher: '@App\Realtime\AppSyncEventsPublisher'
+
     # makes every packages/core `*Repository` class available as a service:
     SocialBulletin\Core\Domain\:
         resource: '../../../packages/core/src/Domain/*/*Repository.php'
@@ -64,6 +70,14 @@ services:
         tags:
             - name: messenger.message_handler
               bus: query.bus
+
+    # packages/core event handlers: tagged on the event bus
+    SocialBulletin\Core\Application\EventHandlers:
+        namespace: SocialBulletin\Core\Application\
+        resource: '../../../packages/core/src/Application/*/Event/*Handler.php'
+        tags:
+            - name: messenger.message_handler
+              bus: event.bus
 
 when@test:
     services:

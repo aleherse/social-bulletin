@@ -1,28 +1,35 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 
-import { DeploymentEnvironment, parameterPath } from './environment';
+import { environments, parameterPath, PROJECT_SLUG } from './environment';
 
-export interface DatabaseStackProps extends cdk.StackProps {
-  readonly environment: DeploymentEnvironment;
-}
+const MASTER_USER = 'bulletin';
 
-const DATABASE_NAME = 'bulletin';
-const DATABASE_USER = 'bulletin';
+const databaseName = (environment: string): string => `bulletin_${environment}`;
+
+// Each environment connects as its own role, which owns only its own database.
+const roleName = databaseName;
 
 /**
  * ADR-0016: Aurora Serverless v2 PostgreSQL with one writer, no reader, and
- * cost-optimised capacity. Connection details are published to Parameter
- * Store under the environment-scoped path.
+ * cost-optimised capacity. One cluster is shared by every environment, each
+ * with its own PostgreSQL database (`bulletin_<env>`); the cluster scales to
+ * zero capacity (auto-pause) when idle, so the first request after a quiet
+ * spell waits for it to resume. Connection details are published to
+ * Parameter Store under each environment-scoped path.
+ *
+ * Each environment connects as its own PostgreSQL role, whose generated
+ * password lives in Secrets Manager. CloudFormation cannot create roles or
+ * databases, so the one-off bootstrap that does is documented in
+ * docs/engineering/infrastructure/database-bootstrap.md.
  */
 export class DatabaseStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: DatabaseStackProps) {
+  constructor(scope: Construct, id: string, props: cdk.StackProps) {
     super(scope, id, props);
-
-    const { environment } = props;
 
     // Cost optimisation: no NAT gateways or VPC endpoints. The cluster sits
     // in public subnets so the (non-VPC) Lambdas can reach it; access is
@@ -38,15 +45,16 @@ export class DatabaseStack extends cdk.Stack {
         version: rds.AuroraPostgresEngineVersion.of('17.4', '17'),
       }),
       writer: rds.ClusterInstance.serverlessV2('writer', { publiclyAccessible: true }),
-      serverlessV2MinCapacity: 0.5,
+      serverlessV2MinCapacity: 0,
+      serverlessV2AutoPauseDuration: cdk.Duration.minutes(5),
       serverlessV2MaxCapacity: 1,
       vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-      credentials: rds.Credentials.fromGeneratedSecret(DATABASE_USER),
-      defaultDatabaseName: DATABASE_NAME,
+      credentials: rds.Credentials.fromGeneratedSecret(MASTER_USER),
+      defaultDatabaseName: databaseName('live'),
       storageEncrypted: true,
-      removalPolicy:
-        environment.name === 'live' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
+      // The cluster holds live data, so it outlives the stack.
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
     cluster.connections.allowDefaultPortFromAnyIpv4('Non-VPC Lambdas connect over the internet');
@@ -58,16 +66,32 @@ export class DatabaseStack extends cdk.Stack {
 
     // ADR-0016: the application reads its configuration from Parameter Store.
     // CloudFormation resolves the Secrets Manager reference at deploy time.
-    new ssm.StringParameter(this, 'DatabaseUrlParameter', {
-      parameterName: parameterPath(environment, 'database-url'),
-      stringValue: `postgresql://${DATABASE_USER}:${secret.secretValueFromJson('password').unsafeUnwrap()}@${cluster.clusterEndpoint.hostname}:${cdk.Token.asString(cluster.clusterEndpoint.port)}/${DATABASE_NAME}?serverVersion=17&charset=utf8`,
-    });
+    for (const environment of environments) {
+      const name = databaseName(environment.name);
+      const role = roleName(environment.name);
 
-    new ssm.StringParameter(this, 'DatabaseHostParameter', {
-      parameterName: parameterPath(environment, 'database-host'),
-      stringValue: cluster.clusterEndpoint.hostname,
-    });
+      const credentials = new secretsmanager.Secret(this, `DatabaseSecret-${environment.name}`, {
+        secretName: `${PROJECT_SLUG}/${environment.name}/database`,
+        generateSecretString: {
+          secretStringTemplate: JSON.stringify({ username: role, database: name }),
+          generateStringKey: 'password',
+          passwordLength: 32,
+          excludePunctuation: true,
+        },
+      });
 
+      new ssm.StringParameter(this, `DatabaseUrlParameter-${environment.name}`, {
+        parameterName: parameterPath(environment, 'database-url'),
+        stringValue: `postgresql://${role}:${credentials.secretValueFromJson('password').unsafeUnwrap()}@${cluster.clusterEndpoint.hostname}:${cdk.Token.asString(cluster.clusterEndpoint.port)}/${name}?serverVersion=17&charset=utf8`,
+      });
+
+      new ssm.StringParameter(this, `DatabaseHostParameter-${environment.name}`, {
+        parameterName: parameterPath(environment, 'database-host'),
+        stringValue: cluster.clusterEndpoint.hostname,
+      });
+    }
+
+    new cdk.CfnOutput(this, 'MasterSecretArn', { value: secret.secretArn });
     new cdk.CfnOutput(this, 'ClusterEndpoint', { value: cluster.clusterEndpoint.hostname });
   }
 }

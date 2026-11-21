@@ -167,7 +167,7 @@ lists its public properties, bar `id` and `authorId`, as the `attributes` in `ap
 (ADR-0023). Document the route from its attributes (`application-framework-0006`, `application-framework-0007`),
 never with a hand-written schema. Only what attributes cannot express goes in
 `apps/api/config/packages/nelmio_api_doc.yaml` — security, `Set-Cookie` headers, non-default statuses, public routes —
-and `features/openapi.feature` asserts it.
+and `tests/Integration/Http/OpenApiDocumentTest.php` asserts it (`test-integration-0002`).
 
 **Example:**
 
@@ -194,3 +194,22 @@ validates the shape itself and throws its `DomainError` naming the field, never 
 |------------------------------------------------------------------------------------|----------------------------------------------------------------|
 | `#[JsonApiPayload('places', LookUpPlaceQuery::class)]` documents `point`, `level`  | `#[JsonApiPayload('places', LookUpPlacePayload::class)]`       |
 | `Assert::float($payload['lat'])` in `LookUpPlaceQuery`                             | `InvalidPlaceLookup(['lat' => 'place.point.out_of_range'], …)` |
+
+## application-framework-0010: A notification change regenerates the AsyncAPI document
+
+**WHEN** a notification under `Application/<Aggregate>/Event/` or the realtime ticket (`App\Realtime\TicketIssuer`) changes
+
+**THEN** run `make asyncapi` and commit `apps/docs/asyncapi.json`; `make asyncapi-check` fails the gate otherwise
+(ADR-0025). `App\Realtime\AsyncApi\NotificationDescriber` derives each notification's channel, payload and enum
+values from its class — `channelFor()`, the constructor types, the keys of `payload()` — and only prose goes in
+`apps/api/config/asyncapi.yaml`, where a new notification is also listed. Never retype a derived fact there or edit
+the JSON by hand.
+
+**Example:**
+
+| Wrong                                                           | Right                                              |
+|-----------------------------------------------------------------|----------------------------------------------------|
+| Edit `apps/docs/asyncapi.json` by hand                          | `make asyncapi`                                    |
+| `address: /users/{userId}/movements` typed in the yaml          | `MovementChanged::channelFor('{userId}')`, derived |
+| "valid for 60 seconds" in a description                         | `%ticket_lifetime%`, filled from `TicketIssuer`    |
+| A new notification missing from `notifications:` in the yaml    | listed there; `AsyncApiDocumentTest` fails if not  |

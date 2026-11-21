@@ -25,6 +25,12 @@ Use **Behat** with the **friends-of-behat/symfony-extension** for integration an
 
 Entry `api-tests` shall be added to Makefile.
 
+Use **PHPUnit** with Symfony's `KernelTestCase` for integration tests in the `api` package that need the kernel and the database but no HTTP request:
+repositories, providers and bus wiring.
+They live in `apps/api/tests/Integration/`; Behat covers only the HTTP contract.
+
+Entry `api-integration` shall be added to Makefile.
+
 ### Fixtures Strategy
 
 Create a dedicated `fixtures.feature` (using `@fixtures` tag) file that contains a baseline set of generic, reusable `Given` steps representing sensible default system state.
@@ -55,10 +61,13 @@ The full `make db` sequence SHALL be:
 2. Run all migrations.
 3. Load the `fixtures.feature` dataset.
 4. Create the DSLR snapshot.
+5. Restore the snapshot into the separate `bulletin_test` database the suites run on,
+   so the development database stays untouched by test runs.
 
 Test execution SHALL NOT recreate the snapshot.
 
-Behat SHALL restore the snapshot before each scenario.
+Behat SHALL restore the snapshot before each scenario, and PHPUnit before each test,
+both through `App\Tests\Support\DatabaseSnapshot`.
 
 ### Frontend — `apps/web`
 
@@ -75,7 +84,8 @@ Playwright tests SHALL build the frontend before execution and restore the snaps
 ## Consequences
 
 - Core behaviour is tested with PHPSpec.
-- API behaviour is tested with Behat against Symfony.
+- API behaviour over HTTP is tested with Behat against Symfony.
+- API behaviour below HTTP is tested with PHPUnit against the kernel and the database.
 - JSON assertions use JMESPath for clear response checks.
 - Shared fixtures stay reusable and scenario-specific data stays local.
 - DSLR snapshots keep database tests repeatable.

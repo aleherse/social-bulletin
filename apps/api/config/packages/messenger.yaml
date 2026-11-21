@@ -4,3 +4,6 @@ framework:
         buses:
             command.bus: ~
             query.bus: ~
+            event.bus:
+                default_middleware:
+                    allow_no_handlers: true

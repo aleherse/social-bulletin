@@ -7,6 +7,10 @@
         "php": ">=8.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "async-aws/core": "^1.30",
+        "bref/bref": "^3.0",
+        "bref/secrets-loader": "^1.3",
+        "bref/symfony-bridge": "^3.0",
         "doctrine/dbal": "*",
         "doctrine/doctrine-migrations-bundle": "*",
         "league/fractal": "^0.21.0",
@@ -18,6 +22,7 @@
         "symfony/dotenv": "7.4.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.4.*",
+        "symfony/http-client": "7.4.*",
         "symfony/messenger": "7.4.*",
         "symfony/monolog-bundle": "^4.0",
         "symfony/runtime": "7.4.*",
@@ -88,6 +93,8 @@
         "friends-of-behat/symfony-extension": "^2.6",
         "mtdowling/jmespath.php": "^2.9",
         "phpstan/phpstan": "^2.2",
+        "phpunit/phpunit": "^13.4",
+        "symfony/process": "7.4.*",
         "symplify/easy-coding-standard": "^13.2"
     }
 }

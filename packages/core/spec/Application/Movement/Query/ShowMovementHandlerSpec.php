@@ -51,7 +51,7 @@ final class ShowMovementHandlerSpec extends ObjectBehavior
             "## Why\nGardens for all.",
             'cooperative',
             'municipality',
-            'Sheffield',
+            'Málaga',
             'draft',
             new \DateTimeImmutable(),
             new \DateTimeImmutable(),

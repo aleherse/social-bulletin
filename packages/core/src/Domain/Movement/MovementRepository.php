@@ -7,6 +7,7 @@ namespace SocialBulletin\Core\Domain\Movement;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\DBAL\Query\QueryBuilder;
+use SocialBulletin\Core\Domain\Helper\EventDispatcher;
 use SocialBulletin\Core\Domain\User\UserId;
 use Symfony\Component\Uid\Uuid;
 
@@ -14,6 +15,7 @@ class MovementRepository
 {
     public function __construct(
         private readonly Connection $connection,
+        private readonly EventDispatcher $events,
     ) {
     }
 
@@ -58,6 +60,8 @@ class MovementRepository
                 'category' => 'movement.category.unknown',
             ], 'movement.invalid', $exception);
         }
+
+        $this->events->dispatch(...$movement->pullEvents());
     }
 
     public function authorMovement(string $id, UserId $authorId): Movement

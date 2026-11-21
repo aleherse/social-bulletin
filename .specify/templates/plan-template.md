@@ -25,7 +25,7 @@
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
 **Testing**: [Required — name every suite this feature needs, per ADR-0013:
-PHPSpec, Behat, Vitest, Playwright. "None" is not a valid answer; a layer left
+PHPSpec, PHPUnit, Behat, Vitest, Playwright. "None" is not a valid answer; a layer left
 out needs a written waiver]
 
 **Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
@@ -46,8 +46,8 @@ Confirm each gate or record a justified violation in Complexity Tracking.
 
 - [ ] **I. Tests first-class**: every layer this feature touches is listed below
       with the tool that will cover it; no layer is left implicit
-- [ ] **II. Layer/tool mapping**: `packages/core` → PHPSpec, `apps/api` → Behat,
-      `apps/web` units → Vitest, user journeys → Playwright
+- [ ] **II. Layer/tool mapping**: `packages/core` → PHPSpec, `apps/api` below HTTP → PHPUnit,
+      `apps/api` HTTP → Behat, `apps/web` units → Vitest, user journeys → Playwright
 - [ ] **II. Pyramid**: every user story has a Playwright journey for its **happy
       path**; error, edge, and validation cases are planned at the lowest layer
       that can prove them and are not repeated higher up
@@ -65,7 +65,8 @@ constitutional gate; they are governed by ADR-0005/ADR-0007 and enforced by
 | Layer | Touched? | Test tool | Where |
 |-------|----------|-----------|-------|
 | `packages/core` | [yes/no] | PHPSpec | `packages/core/spec/…` |
-| `apps/api` | [yes/no] | Behat | `apps/api/features/…` |
+| `apps/api` below HTTP | [yes/no] | PHPUnit | `apps/api/tests/Integration/…` |
+| `apps/api` HTTP | [yes/no] | Behat | `apps/api/features/…` |
 | `apps/web` | [yes/no] | Vitest | next to the source |
 | User journeys | [yes/no] | Playwright | `apps/web/e2e/…` |
 

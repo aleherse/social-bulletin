@@ -24,6 +24,8 @@ what its aggregates share, carrying no aggregate vocabulary of its own.
 
 **THEN** declare it in `Domain/Helper/` as an **interface** named for the capability, implement it in `apps/api`,
 and alias the two in `apps/api/config/services.yaml` — that's what keeps `core` framework-free.
+Give the port (and any type it exposes) its own `deptrac.yaml` layer that `Framework` may use, as `DomainError` and
+`DomainEvents` have — `Framework` may not depend on `Domain`.
 
 Exception: a small, dependency-free Symfony component `deptrac.yaml` already permits inside `Domain` on its own
 layer (e.g. `SymfonyUid`) can be called directly
@@ -41,6 +43,7 @@ Don't add a `*RepositoryInterface` to `Helper/` to match this pattern.
 | `MovementRepositoryInterface` in `Domain/Helper/`                    | concrete `MovementRepository` in `Domain/Movement/`                    |
 | a concrete `Clock` class in `Domain/Helper/`                         | a `Clock` interface there, implemented in `apps/api`                   |
 | a `PlaceFeed` port in `Domain/Helper/` for a handler's `fopen`      | `Application\Helper\JsonLinesReader` (`application-helpers-0004`)     |
+| `App\Messenger\EventBus` failing deptrac on `EventDispatcher`        | a `DomainEvents` layer in `deptrac.yaml` that `Framework` may use      |
 
 ## domain-helpers-0003: A domain failure apps/api maps implements DomainError
 
