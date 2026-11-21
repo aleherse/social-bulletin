@@ -20,10 +20,17 @@ The project needs repeatable cloud deployment for the frontend, API, database, c
 - Console commands SHALL run through a Bref console Lambda so production migrations can be invoked after deploy.
 - CDK SHALL manage the Route53 aliases and ACM certificate for the production hostnames.
 - Realtime push SHALL be an AWS AppSync Events API at `LIVE_REALTIME_URL`, in its own CDK stack (ADR-0024).
-- Database SHALL use Aurora Serverless v2 cluster with one writer and no reader, uses cost-optimised settings.
+- Database SHALL use one Aurora Serverless v2 cluster with one writer and no reader, uses cost-optimised settings.
+  The cluster is shared by both environments,
+  each with its own PostgreSQL database (`bulletin_live`, `bulletin_preview`),
+  and scales to zero capacity after five idle minutes, so the first request after a pause waits for it to resume.
+  It lives in its own `social-bulletin-database` stack and is retained on deletion.
+  Each environment connects as its own PostgreSQL role that owns only its own database;
+  the roles and the `preview` database are created once by hand, never by the deployment
+  (`docs/engineering/infrastructure/database-bootstrap.md`).
 - Configuration and secrets SHALL use AWS Systems Manager Parameter Store under environment-scoped paths.
 - Deployment SHALL be triggered from a GitHub action on merge into `live`.
-- Two separate environments SHALL be created `live` and `preview`.
+- Two separate environments SHALL be created `live` and `preview`; they share the database cluster but never a database.
 
 ## Consequences
 
@@ -35,5 +42,7 @@ The project needs repeatable cloud deployment for the frontend, API, database, c
 - Aurora Serverless v2 provides managed relational storage.
 - Parameter Store holds environment-scoped configuration and secrets.
 - Deployments run from GitHub Actions on merge to `live`.
-- `live` and `preview` environments must stay isolated.
+- `live` and `preview` environments must stay isolated, except for the shared cluster:
+  each environment's role can reach only its own database, and only the one-off bootstrap uses the master credentials.
+- A paused cluster adds roughly 15 seconds to the first request after a quiet spell.
 - AWS infrastructure, IAM, migrations, and cost settings need ongoing maintenance.
