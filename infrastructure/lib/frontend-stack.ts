@@ -15,6 +15,7 @@ import { lookupHostedZone } from './hosted-zone';
 
 export interface FrontendStackProps extends cdk.StackProps {
   readonly environment: DeploymentEnvironment;
+  readonly certificate: acm.ICertificate;
 }
 
 /**
@@ -28,13 +29,8 @@ export class FrontendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: FrontendStackProps) {
     super(scope, id, props);
 
-    const { environment } = props;
+    const { environment, certificate } = props;
     const zone = lookupHostedZone(this);
-
-    const certificate = new acm.Certificate(this, 'Certificate', {
-      domainName: environment.frontDomainName,
-      validation: acm.CertificateValidation.fromDns(zone),
-    });
 
     const bucket = new s3.Bucket(this, 'AssetsBucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,

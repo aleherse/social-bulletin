@@ -16,6 +16,7 @@ import { lookupHostedZone } from './hosted-zone';
 
 export interface ApiStackProps extends cdk.StackProps {
   readonly environment: DeploymentEnvironment;
+  readonly certificate: acm.ICertificate;
   readonly realtimeApi: appsync.IEventApi;
 }
 
@@ -37,13 +38,8 @@ export class ApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
-    const { environment } = props;
+    const { environment, certificate } = props;
     const zone = lookupHostedZone(this);
-
-    const certificate = new acm.Certificate(this, 'Certificate', {
-      domainName: environment.apiDomainName,
-      validation: acm.CertificateValidation.fromDns(zone),
-    });
 
     // apps/api must be packaged for production (composer install --no-dev)
     // before synth; the deploy workflow does this.

@@ -4,6 +4,7 @@ import { before, describe, it } from 'node:test';
 import * as cdk from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 
+import { CertificateStack } from '../lib/certificate-stack';
 import { environments } from '../lib/environment';
 import { RealtimeStack } from '../lib/realtime-stack';
 
@@ -13,9 +14,18 @@ describe('RealtimeStack', () => {
   let template: Template;
 
   before(() => {
-    const stack = new RealtimeStack(new cdk.App(), 'realtime', {
+    const app = new cdk.App();
+    const account = '123456789012';
+    const certificates = new CertificateStack(app, 'certificates', {
       environment: live,
-      env: { account: '123456789012', region: 'us-east-1' },
+      env: { account, region: 'us-east-1' },
+      crossRegionReferences: true,
+    });
+    const stack = new RealtimeStack(app, 'realtime', {
+      environment: live,
+      env: { account, region: 'eu-west-1' },
+      certificate: certificates.realtime,
+      crossRegionReferences: true,
     });
     template = Template.fromStack(stack);
   });

@@ -19,7 +19,7 @@ The cluster is publicly reachable and wakes from a pause in about 15 seconds,
 so run these from any machine with `psql` and AWS credentials.
 
 ```bash
-export AWS_REGION=us-east-1
+export AWS_REGION=eu-west-1
 HOST=$(aws ssm get-parameter --name /social-bulletin/live/database-host --query Parameter.Value --output text)
 MASTER_ARN=$(aws cloudformation describe-stacks --stack-name social-bulletin-database \
   --query "Stacks[0].Outputs[?OutputKey=='MasterSecretArn'].OutputValue" --output text)

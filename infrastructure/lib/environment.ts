@@ -1,5 +1,11 @@
 export const PROJECT_SLUG = 'social-bulletin';
 
+/** ADR-0016: every stack deploys here, except the certificates. */
+export const REGION = 'eu-west-1';
+
+/** CloudFront and AppSync custom domains only accept ACM certificates from this region. */
+export const CERTIFICATE_REGION = 'us-east-1';
+
 /**
  * ADR-0016: two isolated deployment environments. `live` serves the ADR-0000
  * production hostnames; `preview` mirrors it with `preview.` in front of each service name.

@@ -13,6 +13,7 @@ import { lookupHostedZone } from './hosted-zone';
 
 export interface RealtimeStackProps extends cdk.StackProps {
   readonly environment: DeploymentEnvironment;
+  readonly certificate: acm.ICertificate;
 }
 
 /**
@@ -27,14 +28,8 @@ export class RealtimeStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: RealtimeStackProps) {
     super(scope, id, props);
 
-    const { environment } = props;
+    const { environment, certificate } = props;
     const zone = lookupHostedZone(this);
-
-    // AppSync custom domains, like CloudFront, take their certificate from us-east-1.
-    const certificate = new acm.Certificate(this, 'Certificate', {
-      domainName: environment.realtimeDomainName,
-      validation: acm.CertificateValidation.fromDns(zone),
-    });
 
     // The tickets are signed with the API's JWT key pair; the authorizer only needs the public half.
     const jwtPublicKeyParameter = parameterPath(environment, 'jwt-public-key');

@@ -30,6 +30,10 @@ The project needs repeatable cloud deployment for the frontend, API, database, c
   (`docs/engineering/infrastructure/database-bootstrap.md`).
 - Configuration and secrets SHALL use AWS Systems Manager Parameter Store under environment-scoped paths.
 - Deployment SHALL be triggered from a GitHub action on merge into `live`.
+- Every stack SHALL deploy to `eu-west-1` (Ireland), except the ACM certificates,
+  which CloudFront and the AppSync custom domain only accept from `us-east-1`
+  and so live in a per-environment `certificates` stack there, referenced across regions.
+  Both regions must be CDK-bootstrapped.
 - Two separate environments SHALL be created `live` and `preview`; they share the database cluster but never a database.
 
 ## Consequences
