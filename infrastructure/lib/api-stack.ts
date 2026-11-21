@@ -33,10 +33,21 @@ export class ApiStack extends cdk.Stack {
     const { environment, certificate } = props;
     const zone = lookupHostedZone(this);
 
-    // apps/api must be packaged for production (composer install --no-dev)
-    // before synth; the deploy workflow does this.
+    // apps/api must be packaged for production (composer install --no-dev) and its
+    // prod cache warmed (var/cache/prod ships with the code) before synth;
+    // the deploy workflow does both.
     const apiCode = lambda.Code.fromAsset(path.join(__dirname, '../../apps/api'), {
-      exclude: ['var/**', 'tests/**', 'features/**', 'config/jwt/**', '.env.local', '.env.*.local'],
+      exclude: [
+        'var/log/**',
+        'var/share/**',
+        'var/cache/dev/**',
+        'var/cache/test/**',
+        'tests/**',
+        'features/**',
+        'config/jwt/**',
+        '.env.local',
+        '.env.*.local',
+      ],
     });
 
     // Secrets are `bref-ssm:` references that the Bref secrets loader resolves from
