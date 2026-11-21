@@ -151,11 +151,12 @@ shell: ## Open an interactive shell in the PHP container (or another via `make s
 	$(COMPOSE) exec $(or $(service),php) bash
 
 # MAP_IMPORT=0 skips the OSM places import, leaving the @fixtures ones; the gate sets it.
-# The import follows the snapshot, so the suites' baseline never holds it.
+# The import follows the snapshot and only reaches the development database,
+# so the testing database and the suites' baseline never hold it.
 MAP_IMPORT ?= 1
 
 .PHONY: db
-db: ## Create and migrate the database, load the @fixtures baseline and snapshot it for the suites, then import the map data when built
+db: ## Create the development and testing databases from the @fixtures baseline (snapshotted for the suites), then import the map data into development when built
 	$(COMPOSE) run --rm --workdir /app/apps/api php sh -ec '\
 		php bin/console doctrine:database:create --if-not-exists; \
 		php bin/console dbal:run-sql "CREATE SCHEMA IF NOT EXISTS bulletin"; \
@@ -164,13 +165,16 @@ db: ## Create and migrate the database, load the @fixtures baseline and snapshot
 		vendor/bin/behat --tags=@fixtures; \
 		dslr --url "$$DSLR_DATABASE_URL" delete fixtures 2>/dev/null || true; \
 		dslr --url "$$DSLR_DATABASE_URL" snapshot fixtures; \
+		DATABASE_URL="$$DSLR_TEST_DATABASE_URL" php bin/console doctrine:database:create --if-not-exists; \
+		dslr --url "$$DSLR_TEST_DATABASE_URL" restore fixtures; \
 		if [ "$(MAP_IMPORT)" = 1 ] && [ -s /app/docker/map/places/places.geojsonl ]; then \
 			php bin/console app:places:import --no-debug /app/docker/map/places/places.geojsonl; \
 		fi'
 
 .PHONY: web-build
-web-build: ## Build the production frontend bundle nginx serves
+web-build: ## Build the production frontend bundle nginx serves, and the copy that talks to the test API
 	$(RUN_NODE) npm run build
+	$(COMPOSE) run --rm --no-deps -e VITE_API_URL=https://test.api.social.aleherse.com node npx vite build --outDir dist/test
 
 ## --- Map data (ADR-0024) ---------------------------------------------------
 
@@ -238,11 +242,11 @@ php-unit: ## Run core PHPSpec specs; narrow with PATHS=packages/core/spec/UserSe
 
 .PHONY: api-tests
 api-tests: ## Run the Behat API suite (needs `make db`); narrow with PATHS=apps/api/features/session.feature
-	$(COMPOSE) run --rm --workdir /app/apps/api php vendor/bin/behat $(patsubst apps/api/%,%,$(PATHS))
+	$(COMPOSE) run --rm --workdir /app/apps/api php-test vendor/bin/behat $(patsubst apps/api/%,%,$(PATHS))
 
 .PHONY: api-integration
 api-integration: ## Run the PHPUnit integration suite (needs `make db`); narrow with PATHS=apps/api/tests/Integration/Movement
-	$(COMPOSE) run --rm --workdir /app/apps/api php vendor/bin/phpunit $(patsubst apps/api/%,%,$(PATHS))
+	$(COMPOSE) run --rm --workdir /app/apps/api php-test vendor/bin/phpunit $(patsubst apps/api/%,%,$(PATHS))
 
 .PHONY: web-unit
 web-unit: ## Run Vitest; narrow with PATHS=apps/web/src/pages/home/ui/home-page.test.tsx
@@ -254,11 +258,11 @@ web-e2e: ## Build the frontend, then run Playwright; narrow with PATHS=apps/web/
 
 .PHONY: web-e2e-run
 web-e2e-run: ## Run Playwright against the current frontend build (needs `make db`)
-	$(COMPOSE) run --rm node npx playwright test $(patsubst apps/web/%,%,$(PATHS))
+	$(COMPOSE) run --rm node-test npx playwright test $(patsubst apps/web/%,%,$(PATHS))
 
 .PHONY: web-e2e-ui
-web-e2e-ui: web-build ## Open the Playwright UI on https://dev.app.social.aleherse.com:9323
-	$(COMPOSE) run --rm -p 9323:9323 node npx playwright test --ui-host=0.0.0.0 --ui-port=9323
+web-e2e-ui: web-build ## Open the Playwright UI on https://test.app.social.aleherse.com:9323
+	$(COMPOSE) run --rm -p 9323:9323 node-test npx playwright test --ui-host=0.0.0.0 --ui-port=9323
 
 ## --- The full gate ----------------------------------------------------------
 

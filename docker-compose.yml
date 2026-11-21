@@ -12,6 +12,8 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://bulletin:bulletin@postgres:5432/bulletin?serverVersion=17&charset=utf8}
       # Plain URL for DSLR (it cannot parse Doctrine's query parameters).
       DSLR_DATABASE_URL: ${DSLR_DATABASE_URL:-postgresql://bulletin:bulletin@postgres:5432/bulletin}
+      # The testing database `make db` restores from the fixtures snapshot.
+      DSLR_TEST_DATABASE_URL: ${DSLR_TEST_DATABASE_URL:-postgresql://bulletin:bulletin@postgres:5432/bulletin_test}
     volumes:
       - .:/app
       - composer-cache:/var/cache/composer
@@ -27,6 +29,16 @@ services:
       retries: 30
     extra_hosts:
       - host.docker.internal:host-gateway
+
+  # The API the test suites run on: the same image on the testing database, so
+  # Behat, PHPUnit and the browser journeys never touch the development data.
+  php-test:
+    extends:
+      service: php
+    environment:
+      DATABASE_URL: ${TEST_DATABASE_URL:-postgresql://bulletin:bulletin@postgres:5432/bulletin_test?serverVersion=17&charset=utf8}
+      DSLR_DATABASE_URL: ${DSLR_TEST_DATABASE_URL:-postgresql://bulletin:bulletin@postgres:5432/bulletin_test}
+      CORS_ALLOW_ORIGIN: '^https://test\.app\.social\.aleherse\.com(:[0-9]+)?$$'
 
   node:
     build:
@@ -49,6 +61,14 @@ services:
       postgres:
         condition: service_healthy
 
+  # Runs the browser journeys against the test stack (test.app / test.api) and its database.
+  node-test:
+    extends:
+      service: node
+    environment:
+      DSLR_DATABASE_URL: ${DSLR_TEST_DATABASE_URL:-postgresql://bulletin:bulletin@postgres:5432/bulletin_test}
+      PLAYWRIGHT_BASE_URL: https://test.app.social.aleherse.com
+
   nginx:
     build: docker/nginx
     environment:
@@ -60,6 +80,8 @@ services:
       - ./docker/certs:/certs
     depends_on:
       php:
+        condition: service_healthy
+      php-test:
         condition: service_healthy
       realtime:
         condition: service_healthy
@@ -76,6 +98,8 @@ services:
           - dev.app.social.aleherse.com
           - dev.doc.social.aleherse.com
           - dev.realtime.social.aleherse.com
+          - test.api.social.aleherse.com
+          - test.app.social.aleherse.com
 
   # Local stand-in for AppSync Events (ADR-0024): the API publishes to it, browsers subscribe through nginx.
   realtime:

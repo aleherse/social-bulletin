@@ -61,6 +61,8 @@ The full `make db` sequence SHALL be:
 2. Run all migrations.
 3. Load the `fixtures.feature` dataset.
 4. Create the DSLR snapshot.
+5. Restore the snapshot into the separate `bulletin_test` database the suites run on,
+   so the development database stays untouched by test runs.
 
 Test execution SHALL NOT recreate the snapshot.
 

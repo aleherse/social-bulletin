@@ -1,5 +1,7 @@
 # Testing conventions
 
+- The suites run on the `bulletin_test` database (the `php-test` and `node-test` services);
+  the development `bulletin` database is never restored by them.
 - API integration below HTTP (repositories, buses, event publishing): PHPUnit `KernelTestCase` tests in
   `apps/api/tests/Integration/`, run with `make api-integration`.
   Every test starts from the DSLR `fixtures` snapshot through `App\Tests\Support\DatabaseSnapshot`.

@@ -69,7 +69,7 @@ No example dataset is needed: register from the home page.
 | `make down`             | Stop the stack                                           |
 | `make logs service=php` | Follow one service's logs (all without `service`)        |
 | `make console cmd=...`  | Run a Symfony console command                            |
-| `make db`               | Recreate the database and its DSLR `fixtures` snapshot   |
+| `make db`               | Recreate the dev and test databases from the fixtures    |
 | `make destroy`          | Remove every container, volume and generated artefact    |
 
 ## Verifying a change
@@ -96,8 +96,11 @@ accept no file argument and run whole.
 and `make docs-build` renders the first with Scalar to `apps/docs/dist/api/index.html`, with a request console that sends to `API_URL`
 (default `https://dev.api.social.aleherse.com`; sign in first, the session is a cookie),
 the second to `apps/docs/dist/event/index.html`, and a landing page linking both to `apps/docs/dist/index.html`.
-The API and browser suites need the database snapshot: run `make db` once
-after `make init` and after any migration
+The API and browser suites run on a separate `bulletin_test` database, restored from the same
+DSLR `fixtures` snapshot as the development `bulletin` database (which then also gets the real
+places, when `make map-data` built them); the browser suite uses its own API and frontend at
+`test.api` and `test.app`.
+Run `make db` once after `make init` and after any migration
 (`make tests` runs all five suites against the development stack).
 
 **The full gate** is the only verdict, and it is what CI runs on every pull

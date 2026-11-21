@@ -15,7 +15,7 @@ The ones agents need most:
 | `make ci`         | The full gate CI runs: the only verdict                                          |
 | `make ci-stages`  | List the gate's stages                                                           |
 | `make ci-stage`   | Diagnose one stage: `make ci-stage STAGE=php-stan`                               |
-| `make db`         | Rebuild the test database and DSLR snapshot                                      |
+| `make db`         | Rebuild the dev and test databases and the DSLR snapshot                         |
 | `make tests`      | Full suite: PHPSpec, Behat, Vitest, Playwright                                   |
 | `make php-unit`   | PHPSpec for `packages/core`                                                      |
 | `make api-tests`  | Behat for `apps/api` (needs a `make db` snapshot)                                |
