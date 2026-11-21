@@ -13,6 +13,8 @@ if [ -s "$OUT/places.geojsonl" ]; then
 fi
 
 mkdir -p "$SRC"
+# The downloads and every intermediate extract are only inputs of places.geojsonl.
+trap 'rm -rf "$SRC"' EXIT
 
 for extract in europe/spain africa/canary-islands; do
     curl --fail --location --silent --show-error \
